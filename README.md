@@ -1,0 +1,7 @@
+## spcon
+
+spcon
+
+#### License
+
+mit
