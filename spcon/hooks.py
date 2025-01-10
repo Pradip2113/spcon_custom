@@ -43,6 +43,8 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
+doctype_js = {"Employee Checkin" : "public/js/custom_employee_checkin.js"}
+doctype_js = {"Stock Entry" : "public/js/custom_stock_entry.js"}
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -136,7 +138,23 @@ app_license = "mit"
 # Document Events
 # ---------------
 # Hook on document methods and events
-
+doc_events = {
+    "Employee Checkin":{
+        "before_save":"spcon.override.employee_checkin.geo_fencing"
+    },
+    "Attendance":{
+        "before_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save"
+    },
+    "Shift Type":{
+        "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
+    },
+    "Salary Slip":{
+        "before_save":"spcon.override.salary_slip.hrs_ot"
+    },
+     "Work Order":{
+        "after_save":"spcon.manufacuring.custom_work_order.bom_set_name"
+    },
+}
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",

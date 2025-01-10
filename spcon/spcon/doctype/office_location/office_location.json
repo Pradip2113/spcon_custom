@@ -1,0 +1,102 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{office_location}",
+ "creation": "2024-12-17 21:55:46.184075",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "office_location",
+  "column_break_yueu",
+  "latitude",
+  "longitude",
+  "column_break_aieo",
+  "radius",
+  "section_break_rjzj",
+  "geolocation",
+  "column_break_xiqb",
+  "check_nqxk"
+ ],
+ "fields": [
+  {
+   "fieldname": "office_location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Office Location",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_yueu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Latitude",
+   "precision": "7"
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Longitude",
+   "precision": "7"
+  },
+  {
+   "fieldname": "column_break_aieo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "radius",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Radius (meter)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_rjzj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "geolocation",
+   "fieldtype": "HTML",
+   "label": "Geolocation"
+  },
+  {
+   "fieldname": "column_break_xiqb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "check_nqxk",
+   "fieldtype": "Check",
+   "label": "Manual Save location"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-12-31 00:22:41.393995",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Office Location",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

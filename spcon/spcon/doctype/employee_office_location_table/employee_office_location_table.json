@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-27 22:29:52.223662",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "office_location",
+  "latitude",
+  "longitude",
+  "radius"
+ ],
+ "fields": [
+  {
+   "fieldname": "office_location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Office Location",
+   "options": "Office Location"
+  },
+  {
+   "fetch_from": "office_location.latitude",
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "label": "latitude"
+  },
+  {
+   "fetch_from": "office_location.longitude",
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "label": "longitude"
+  },
+  {
+   "fetch_from": "office_location.radius",
+   "fieldname": "radius",
+   "fieldtype": "Float",
+   "label": "radius"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-12-27 23:28:27.698837",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Employee Office Location Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

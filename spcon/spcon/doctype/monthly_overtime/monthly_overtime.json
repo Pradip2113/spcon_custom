@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{start_date}",
+ "creation": "2024-12-26 17:44:13.676198",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_vykl",
+  "start_date",
+  "amended_from",
+  "column_break_hrsp",
+  "end_date",
+  "section_break_uaul",
+  "item_ot"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_vykl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Monthly Overtime",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hrsp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_uaul",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "item_ot",
+   "fieldtype": "Table",
+   "label": "Monthly OT Item",
+   "options": "Monthly OT Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-12-27 12:55:28.199687",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Monthly Overtime",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
