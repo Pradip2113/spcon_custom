@@ -13,5 +13,15 @@ frappe.ui.form.on("Monthly Overtime", {
             const endDate = new Date(year, month, lastDay); // Construct the end_date
             frm.set_value('end_date', frappe.datetime.obj_to_str(endDate)); // Convert Date object to string and set it
         }
-    }
+    },
+    get_details: function (frm) {
+		frm.clear_table("item_ot")
+		frm.refresh_field('item_ot')		
+		frm.call({
+			method:'getitems',
+			doc: frm.doc
+		});
+	}
 });
+
+	

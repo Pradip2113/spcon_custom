@@ -11,6 +11,8 @@
   "amended_from",
   "column_break_hrsp",
   "end_date",
+  "_column",
+  "get_details",
   "section_break_uaul",
   "item_ot"
  ],
@@ -53,12 +55,23 @@
    "fieldtype": "Table",
    "label": "Monthly OT Item",
    "options": "Monthly OT Item"
+  },
+  {
+   "fieldname": "_column",
+   "fieldtype": "Column Break",
+   "label": " "
+  },
+  {
+   "fieldname": "get_details",
+   "fieldtype": "Button",
+   "label": "Get Details"
   }
  ],
+ "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-27 12:55:28.199687",
+ "modified": "2025-02-05 15:35:31.213047",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Monthly Overtime",

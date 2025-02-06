@@ -3,7 +3,8 @@ from frappe.model.document import Document
 from frappe.utils import getdate
 
 class MonthlyOvertime(Document):
-    def before_save(doc):
+    @frappe.whitelist()
+    def getitems(doc):
         # Clear existing items in the child table to avoid duplicates
         doc.item_ot = []
 
