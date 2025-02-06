@@ -14,6 +14,7 @@ def hrs_ot(doc, method):
         filters={
             "start_date": ["<=", month_start_date],
             "end_date": [">=", month_start_date],
+            "docstatus":1,
         },
         fields=["name"]
     )

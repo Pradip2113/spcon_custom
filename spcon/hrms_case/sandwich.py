@@ -127,52 +127,117 @@ def apply_sandwich_rule_on_attendance_save(doc, method):
     Apply the sandwich rule whenever an attendance record is saved.
     If Saturday and Monday are marked 'Absent', mark Sunday as 'Absent' unless it's a holiday.
     """
-    # Get the current attendance date
-    attendance_date = getdate(doc.attendance_date)
 
-    # Only process Saturday or Monday
-    if attendance_date.weekday() not in [5, 0]:  # 5 = Saturday, 0 = Monday
-        return
+    if doc.status == "Absent":
+        employee = doc.employee
+        attendance_date = getdate(doc.attendance_date)
 
-    # Determine related Sunday and the other day in the sandwich
-    if attendance_date.weekday() == 5:  # Saturday
-        sunday = add_days(attendance_date, 1)
-        other_day = add_days(attendance_date, 2)
-    else:  # Monday
-        sunday = add_days(attendance_date, -1)
-        other_day = add_days(attendance_date, -2)
+        # Check if today is Monday and the previous Saturday's attendance was Absent
+        if attendance_date.weekday() == 0:  # Monday
+            saturday = add_days(attendance_date, -2)
+            sunday = add_days(attendance_date, -1)
 
-    # Fetch attendance statuses for the related days
-    other_day_status = frappe.get_value(
-        "Attendance", {"employee": doc.employee, "attendance_date": other_day}, "status"
-    )
-    sunday_status = frappe.get_value(
-        "Attendance", {"employee": doc.employee, "attendance_date": sunday}, "status"
-    )
+            saturday_attendance = frappe.get_value("Attendance", 
+                                                   {"employee": employee, 
+                                                    "attendance_date": saturday, 
+                                                    "status": "Absent"}, 
+                                                   "name")
 
-    # Check if Sunday is a holiday
-    holiday_list = frappe.get_value("Employee", doc.employee, "holiday_list")
-    is_sunday_holiday = frappe.db.exists(
-        "Holiday", {"holiday_date": sunday, "parent": holiday_list}
-    )
+            if saturday_attendance:
+                shift = frappe.get_value("Employee", employee, "default_shift") or None
+                # Create or Update Attendance for Sunday
+                sunday_attendance = frappe.get_value("Attendance", 
+                                                     {"employee": employee, 
+                                                      "attendance_date": sunday}, 
+                                                     "name")
+                if sunday_attendance:
+                    # Create a new attendance record for Sunday
+                    attendance = frappe.get_doc({
+                        "doctype": "Attendance",
+                        "employee": employee,
+                        "attendance_date": sunday
+                    })
+                    frappe.db.set_value("Attendance", doc.name, 'status', 'On Leave')
+                    frappe.db.set_value("Attendance", doc.name, 'leave_type', 'Privilege Leave')
+                    # frappe.db.set_value("Attendance", sunday_attendance, {
+                    #     "status": "On Leave",
+                    #     "leave_type": "Privilege Leave",
+                    # })
+                    # frappe.db.commit()
 
-    # Apply the sandwich rule: Mark Sunday as 'Absent'
-    if other_day_status == "Absent" and doc.status == "Absent" and not is_sunday_holiday:
-        if not sunday_status:  # No attendance record exists for Sunday
-            frappe.log(f"Marking Sunday ({sunday}) as 'Absent' for employee: {doc.employee}")
-            attendance = frappe.get_doc({
-                "doctype": "Attendance",
-                "employee": doc.employee,
-                "attendance_date": sunday,
-                "status": "Absent",
-                "company": doc.company,
-            })
-            attendance.insert(ignore_permissions=True)
-            attendance.submit()
-            frappe.db.commit()
-        elif sunday_status != "Absent":  # Update existing record
-            frappe.log(f"Updating Sunday ({sunday}) to 'Absent' for employee: {doc.employee}")
-            frappe.db.set_value("Attendance", {"employee": doc.employee, "attendance_date": sunday}, "status", "Absent")
-            frappe.db.commit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # """
+    # Apply the sandwich rule whenever an attendance record is saved.
+    # If Saturday and Monday are marked 'Absent', mark Sunday as 'Absent' unless it's a holiday.
+    # """
+    # # Get the current attendance date
+    # attendance_date = getdate(doc.attendance_date)
+
+    # # Only process Saturday or Monday
+    # if attendance_date.weekday() not in [5, 0]:  # 5 = Saturday, 0 = Monday
+    #     return
+
+    # # Determine related Sunday and the other day in the sandwich
+    # if attendance_date.weekday() == 5:  # Saturday
+    #     sunday = add_days(attendance_date, 1)
+    #     other_day = add_days(attendance_date, 2)
+    # else:  # Monday
+    #     sunday = add_days(attendance_date, -1)
+    #     other_day = add_days(attendance_date, -2)
+
+    # # Fetch attendance statuses for the related days
+    # other_day_status = frappe.get_value(
+    #     "Attendance", {"employee": doc.employee, "attendance_date": other_day}, "status"
+    # )
+    # sunday_status = frappe.get_value(
+    #     "Attendance", {"employee": doc.employee, "attendance_date": sunday}, "status"
+    # )
+
+    # # Check if Sunday is a holiday
+    # holiday_list = frappe.get_value("Employee", doc.employee, "holiday_list")
+    # is_sunday_holiday = frappe.db.exists(
+    #     "Holiday", {"holiday_date": sunday, "parent": holiday_list}
+    # )
+
+    # # Apply the sandwich rule: Mark Sunday as 'Absent'
+    # if other_day_status == "Absent" and doc.status == "Absent" and not is_sunday_holiday:
+    #     if not sunday_status:  # No attendance record exists for Sunday
+    #         frappe.log(f"Marking Sunday ({sunday}) as 'Absent' for employee: {doc.employee}")
+    #         attendance = frappe.get_doc({
+    #             "doctype": "Attendance",
+    #             "employee": doc.employee,
+    #             "attendance_date": sunday,
+    #             "status": "On Leave",
+    #             "leave_type": "Casual Leave",
+    #             "company": doc.company,
+    #         })
+    #         attendance.insert(ignore_permissions=True)
+    #         attendance.submit()
+    #         frappe.db.commit()
+    #     elif sunday_status != "Absent":  # Update existing record
+    #         frappe.log(f"Updating Sunday ({sunday}) to 'Absent' for employee: {doc.employee}")
+    #         frappe.db.set_value("Attendance", {"employee": doc.employee, "attendance_date": sunday}, "status", "Absent")
+    #         frappe.db.commit()
 
 
