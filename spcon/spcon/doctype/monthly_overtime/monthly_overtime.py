@@ -53,7 +53,7 @@ class MonthlyOvertime(Document):
 
         for employee, data in employee_data.items():
             total_overtime = standardize_time(data["total_overtime"])
-            overtime_pay = total_overtime * data["overtime_rate"]
+            # overtime_pay = total_overtime * data["overtime_rate"]
 
             doc.append("item_ot", {
                 "employee": employee,
@@ -61,6 +61,6 @@ class MonthlyOvertime(Document):
                 "month_start_date": getdate(doc.start_date),
                 "actual_overtime": total_overtime,
                 "allowed_overtime": total_overtime,
-                "ot_hour_rate": data["overtime_rate"],
-                "overtime_pay": overtime_pay,
+                # "ot_hour_rate": data["overtime_rate"],
+                "overtime_pay": total_overtime,
             })
