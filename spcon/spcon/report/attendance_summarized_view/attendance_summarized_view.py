@@ -15,12 +15,12 @@ def get_columns(filters):
     columns = [
         {"fieldname": "employee", "fieldtype": "Link", "label": "Employee", "options": "Employee"},
         {"fieldname": "employee_name", "fieldtype": "Data", "label": "Employee Name", "width": "200"},
-        {"fieldname": "total_present", "fieldtype": "Int", "label": "Total Present", "width": "100"},
-        {"fieldname": "total_leaves", "fieldtype": "Int", "label": "Total Leaves", "width": "100"},
-        {"fieldname": "total_absent", "fieldtype": "Int", "label": "Total Absent", "width": "100"},
-        {"fieldname": "total_holiday", "fieldtype": "Int", "label": "Total Holiday", "width": "100"},
-		{"fieldname": "weekly_off", "fieldtype": "Int", "label": "Total Weekly Off", "width": "100"},
-
+        {"fieldname": "total_present", "fieldtype": "Int", "label": "Total Present", "width": "120"},
+        {"fieldname": "total_leaves", "fieldtype": "Int", "label": "Total Leaves", "width": "120"},
+        {"fieldname": "total_absent", "fieldtype": "Int", "label": "Total Absent", "width": "120"},
+        {"fieldname": "total_holiday", "fieldtype": "Int", "label": "Total Holiday", "width": "120"},
+		{"fieldname": "weekly_off", "fieldtype": "Int", "label": "Total Weekly Off", "width": "120"},
+		{"fieldname": "half_day", "fieldtype": "Int", "label": "Total Half Day", "width": "120"},
     ]
     leave_types = frappe.get_all("Leave Type", pluck="name")
     for l in leave_types:
@@ -28,7 +28,7 @@ def get_columns(filters):
             "fieldname": f"total_{l.lower().replace(' ', '_')}",
             "fieldtype": "Int",  
             "label": l,
-            "width": "100"
+            "width": "120"
         })
     return columns
 
@@ -58,7 +58,9 @@ def get_data(filters):
 				"total_leaves":frappe.get_all("Attendance",{"employee":e.name,"status":"On Leave","docstatus":1,"attendance_date":["between",[month_start_date,month_end_date]]},"count(name) as cnt")[0].get("cnt"),
 				"total_absent":frappe.get_all("Attendance",{"employee":e.name,"status":"Absent","docstatus":1,"attendance_date":["between",[month_start_date,month_end_date]]},"count(name) as cnt")[0].get("cnt"),
 				"total_holiday":frappe.get_all("Attendance",{"employee":e.name,"status":"Holiday","docstatus":1,"attendance_date":["between",[month_start_date,month_end_date]]},"count(name) as cnt")[0].get("cnt"),
-				"weekly_off":frappe.get_all("Holiday",{"parent":year,"holiday_date":["between",[month_start_date,month_end_date]],"weekly_off":1},"count(name) as cnt")[0].get("cnt")
+				"half_day":frappe.get_all("Attendance",{"employee":e.name,"status":"Half Day","docstatus":1,"attendance_date":["between",[month_start_date,month_end_date]]},"count(name) as cnt")[0].get("cnt"),
+				"weekly_off":frappe.get_all("Holiday",{"parent":year,"holiday_date":["between",[month_start_date,month_end_date]],"weekly_off":1},"count(name) as cnt")[0].get("cnt"),
+
 			}
 
 			for l in leave_types:
@@ -66,5 +68,4 @@ def get_data(filters):
 
 
 			data.append(data_dict)
-
 	return data

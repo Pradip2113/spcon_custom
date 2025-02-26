@@ -149,7 +149,7 @@ doc_events = {
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
     },
     "Salary Slip":{
-        "before_save":"spcon.override.salary_slip.hrs_ot"
+        "before_insert":"spcon.override.salary_slip.hrs_ot"
     },
      "Work Order":{
         "after_save":"spcon.manufacuring.custom_work_order.bom_set_name"
