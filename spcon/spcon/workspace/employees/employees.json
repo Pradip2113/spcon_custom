@@ -1,0 +1,202 @@
+{
+ "charts": [
+  {
+   "chart_name": "Attendance Count",
+   "label": "Attendance Count"
+  }
+ ],
+ "content": "[{\"id\":\"_6W0_lCbU5\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Employees</span>\",\"col\":12}},{\"id\":\"l71pGqHn5t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Present (This Month)\",\"col\":3}},{\"id\":\"IaeYaL1hK9\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Absent (This Month)\",\"col\":3}},{\"id\":\"94zcL5sH6A\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Late Entry (This Month)\",\"col\":3}},{\"id\":\"95iif8fmBt\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Early Exit (This Month)\",\"col\":3}},{\"id\":\"6eptYmSgME\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance Count\",\"col\":12}},{\"id\":\"UiMsCGtChr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Presenty\",\"col\":3}},{\"id\":\"MeJc5sx499\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Application\",\"col\":3}},{\"id\":\"KDxgkE3BLR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance\",\"col\":3}},{\"id\":\"aFH_SF9B2V\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expense Claim\",\"col\":3}},{\"id\":\"HQgRFbuuhL\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Holiday List\",\"col\":3}},{\"id\":\"96-1ElHjpr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"9MW6BDGXVk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issue\",\"col\":3}},{\"id\":\"aSdASWF95V\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"b_ISOOm1fZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Request\",\"col\":4}},{\"id\":\"n5Q6yN8Azt\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2024-12-30 09:58:52.423030",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "branch",
+ "idx": 0,
+ "indicator_color": "orange",
+ "is_hidden": 0,
+ "label": "Employees",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Monthly Attendance Sheet",
+   "link_count": 0,
+   "link_to": "Monthly Attendance Sheet",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Attendance",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Leave Balance",
+   "link_count": 0,
+   "link_to": "Employee Leave Balance",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Employee",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Leave Balance Summary",
+   "link_count": 0,
+   "link_to": "Employee Leave Balance Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Employee",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Register",
+   "link_count": 0,
+   "link_to": "Salary Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Salary Slip",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Request",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Early and Late Entry Request",
+   "link_count": 0,
+   "link_to": "Early and Late Entry Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Request",
+   "link_count": 0,
+   "link_to": "Shift Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Out Duty Form",
+   "link_count": 0,
+   "link_to": "Travel Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Advance",
+   "link_count": 0,
+   "link_to": "Employee Advance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-04-03 11:15:42.061244",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Employees",
+ "number_cards": [
+  {
+   "label": "Total Present (This Month)",
+   "number_card_name": "Total Present (This Month)"
+  },
+  {
+   "label": "Total Absent (This Month)",
+   "number_card_name": "Total Absent (This Month)"
+  },
+  {
+   "label": "Late Entry (This Month)",
+   "number_card_name": "Late Entry (This Month)"
+  },
+  {
+   "label": "Early Exit (This Month)",
+   "number_card_name": "Early Exit (This Month)"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 39.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Leave Application",
+   "link_to": "Leave Application",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Issue",
+   "link_to": "Issue",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Presenty",
+   "link_to": "Employee Checkin",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Holiday List",
+   "link_to": "Holiday List",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Attendance",
+   "link_to": "Attendance",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Expense Claim",
+   "link_to": "Expense Claim",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Employees"
+}

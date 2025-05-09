@@ -35,52 +35,52 @@ def apply_sandwich_rule_on_attendance_save(doc, method):
         # Apply the penalty for every 4th late mark
         if late_marks_count > 0 and late_marks_count % 4 == 0:
             doc.status = "Half Day"
-            doc.leave_type = "Penalty Leave"
+            doc.leave_type = "Allocated Leave"
 
 
-    """
-    Apply the sandwich rule whenever an attendance record is saved.
-    If Saturday and Monday are marked 'Absent', mark Sunday as 'Absent' unless it's a holiday.
-    """
-    if doc.status == "Absent":
-        employee = doc.employee
-        attendance_date = getdate(doc.attendance_date)
+    # """
+    # Apply the sandwich rule whenever an attendance record is saved.
+    # If Saturday and Monday are marked 'Absent', mark Sunday as 'Absent' unless it's a holiday.
+    # """
+    # if doc.status == "Absent":
+    #     employee = doc.employee
+    #     attendance_date = getdate(doc.attendance_date)
 
-        # Check if today is Monday and the previous Saturday's attendance was Absent
-        if attendance_date.weekday() == 0:  # Monday
-            saturday = add_days(attendance_date, -2)
-            sunday = add_days(attendance_date, -1)
+    #     # Check if today is Monday and the previous Saturday's attendance was Absent
+    #     if attendance_date.weekday() == 0:  # Monday
+    #         saturday = add_days(attendance_date, -2)
+    #         sunday = add_days(attendance_date, -1)
 
-            saturday_attendance = frappe.get_value("Attendance", 
-                                                   {"employee": employee, 
-                                                    "attendance_date": saturday, 
-                                                    "status": "Absent"}, 
-                                                   "name")
+    #         saturday_attendance = frappe.get_value("Attendance", 
+    #                                                {"employee": employee, 
+    #                                                 "attendance_date": saturday, 
+    #                                                 "status": "Absent"}, 
+    #                                                "name")
 
-            if saturday_attendance:
-                shift = frappe.get_value("Employee", employee, "default_shift") or None
-                # Create or Update Attendance for Sunday
-                sunday_attendance = frappe.get_value("Attendance", 
-                                                     {"employee": employee, 
-                                                      "attendance_date": sunday}, 
-                                                     "name")
-                if not sunday_attendance:
-                    # Create a new attendance record for Sunday
-                    attendance = frappe.get_doc({
-                        "doctype": "Attendance",
-                        "employee": employee,
-                        "attendance_date": sunday,
-                        "status": "On Leave",
-                        "leave_type": "Casual Leave",
-                        "shift": shift,
-                    })
-                    attendance.insert()
-                    attendance.submit()
-                else:
-                    frappe.db.set_value("Attendance", sunday_attendance, {
-                        "status": "On Leave","leave_type": "Casual Leave",
-                    })
-                frappe.db.commit()
+    #         if saturday_attendance:
+    #             shift = frappe.get_value("Employee", employee, "default_shift") or None
+    #             # Create or Update Attendance for Sunday
+    #             sunday_attendance = frappe.get_value("Attendance", 
+    #                                                  {"employee": employee, 
+    #                                                   "attendance_date": sunday}, 
+    #                                                  "name")
+    #             if not sunday_attendance:
+    #                 # Create a new attendance record for Sunday
+    #                 attendance = frappe.get_doc({
+    #                     "doctype": "Attendance",
+    #                     "employee": employee,
+    #                     "attendance_date": sunday,
+    #                     "status": "On Leave",
+    #                     "leave_type": "Casual Leave",
+    #                     "shift": shift,
+    #                 })
+    #                 # attendance.insert()
+    #                 attendance.submit()
+    #             else:
+    #                 frappe.db.set_value("Attendance", sunday_attendance, {
+    #                     "status": "On Leave","leave_type": "Allocated Leave",
+    #                 })
+    #             frappe.db.commit()
 
 
 

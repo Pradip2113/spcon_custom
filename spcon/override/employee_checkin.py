@@ -39,7 +39,7 @@ def geo_fencing(doc, method):
                 # Calculate distance between device and geofence center
                 geofence_center = (office_latitude, office_longitude)
                 distance = geodesic(geofence_center, device_location).meters
-                
+               
                 # Check if device is inside this geofence
                 if distance <= geofence_radius:
                     is_within_geofence = True

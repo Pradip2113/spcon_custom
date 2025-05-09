@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{project_name}",
+ "creation": "2025-05-06 14:22:15.772591",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "project_name",
+  "designated_person",
+  "contact",
+  "segment_type",
+  "column_break_lxfb",
+  "applicator",
+  "discussion",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "label": "Project Name"
+  },
+  {
+   "fieldname": "designated_person",
+   "fieldtype": "Data",
+   "label": "Designated Person"
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Data",
+   "label": "Contact"
+  },
+  {
+   "fieldname": "segment_type",
+   "fieldtype": "Data",
+   "label": "Segment Type"
+  },
+  {
+   "fieldname": "column_break_lxfb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "applicator",
+   "fieldtype": "Data",
+   "label": "Applicator"
+  },
+  {
+   "fieldname": "discussion",
+   "fieldtype": "Data",
+   "label": "Discussion"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-06 14:55:25.979123",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Project Base",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
