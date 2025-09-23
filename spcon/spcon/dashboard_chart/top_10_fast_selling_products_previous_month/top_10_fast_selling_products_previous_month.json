@@ -1,0 +1,37 @@
+{
+ "chart_name": "Top 10 Fast Selling Products Previous Month",
+ "chart_type": "Report",
+ "creation": "2025-08-11 15:00:28.153988",
+ "currency": "INR",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "dynamic_filters_json": "{}",
+ "filters_json": "{}",
+ "group_by_type": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2025-08-11 15:00:28.153988",
+ "modified_by": "vikas@sanpra.co.in",
+ "module": "spcon",
+ "name": "Top 10 Fast Selling Products Previous Month",
+ "number_of_groups": 0,
+ "owner": "vikas@sanpra.co.in",
+ "report_name": "Top 10 Fast Selling Products Previous Month",
+ "roles": [
+  {
+   "role": "Purchase Manager"
+  }
+ ],
+ "time_interval": "Yearly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Bar",
+ "use_report_chart": 0,
+ "x_field": "item_code",
+ "y_axis": [
+  {
+   "y_field": "total_amount"
+  }
+ ]
+}

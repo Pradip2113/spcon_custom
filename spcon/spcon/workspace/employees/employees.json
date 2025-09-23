@@ -5,7 +5,7 @@
    "label": "Attendance Count"
   }
  ],
- "content": "[{\"id\":\"_6W0_lCbU5\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Employees</span>\",\"col\":12}},{\"id\":\"l71pGqHn5t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Present (This Month)\",\"col\":3}},{\"id\":\"IaeYaL1hK9\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Absent (This Month)\",\"col\":3}},{\"id\":\"94zcL5sH6A\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Late Entry (This Month)\",\"col\":3}},{\"id\":\"95iif8fmBt\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Early Exit (This Month)\",\"col\":3}},{\"id\":\"6eptYmSgME\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance Count\",\"col\":12}},{\"id\":\"UiMsCGtChr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Presenty\",\"col\":3}},{\"id\":\"MeJc5sx499\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Application\",\"col\":3}},{\"id\":\"KDxgkE3BLR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance\",\"col\":3}},{\"id\":\"aFH_SF9B2V\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expense Claim\",\"col\":3}},{\"id\":\"HQgRFbuuhL\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Holiday List\",\"col\":3}},{\"id\":\"96-1ElHjpr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"9MW6BDGXVk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issue\",\"col\":3}},{\"id\":\"aSdASWF95V\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"b_ISOOm1fZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Request\",\"col\":4}},{\"id\":\"n5Q6yN8Azt\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"_6W0_lCbU5\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Employees</span>\",\"col\":12}},{\"id\":\"l71pGqHn5t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Present (This Month)\",\"col\":3}},{\"id\":\"IaeYaL1hK9\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Absent (This Month)\",\"col\":3}},{\"id\":\"94zcL5sH6A\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Late Entry (This Month)\",\"col\":3}},{\"id\":\"95iif8fmBt\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Early Exit (This Month)\",\"col\":3}},{\"id\":\"6eptYmSgME\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Attendance Count\",\"col\":12}},{\"id\":\"UiMsCGtChr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Presenty\",\"col\":3}},{\"id\":\"1dANcD9WUI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SPC Holidays\",\"col\":3}},{\"id\":\"MeJc5sx499\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Application\",\"col\":3}},{\"id\":\"KDxgkE3BLR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance\",\"col\":3}},{\"id\":\"aFH_SF9B2V\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expense Claim\",\"col\":3}},{\"id\":\"96-1ElHjpr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"9MW6BDGXVk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issue\",\"col\":3}},{\"id\":\"aSdASWF95V\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"b_ISOOm1fZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Request\",\"col\":4}},{\"id\":\"n5Q6yN8Azt\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2024-12-30 09:58:52.423030",
  "custom_blocks": [],
  "docstatus": 0,
@@ -121,7 +121,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-04-03 11:15:42.061244",
+ "modified": "2025-05-29 11:25:42.158600",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Employees",
@@ -176,10 +176,11 @@
   },
   {
    "color": "Grey",
-   "doc_view": "List",
-   "label": "Holiday List",
-   "link_to": "Holiday List",
-   "type": "Report"
+   "doc_view": "Report Builder",
+   "label": "SPC Holidays",
+   "link_to": "SPC Holidays",
+   "stats_filter": "[]",
+   "type": "DocType"
   },
   {
    "color": "Grey",

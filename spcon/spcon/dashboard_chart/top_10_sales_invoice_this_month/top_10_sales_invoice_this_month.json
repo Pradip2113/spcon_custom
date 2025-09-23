@@ -1,0 +1,38 @@
+{
+ "chart_name": "Top 10 Sales-Invoice This Month",
+ "chart_type": "Report",
+ "creation": "2025-08-11 14:55:32.411207",
+ "currency": "INR",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "document_type": "Purchase Invoice",
+ "dynamic_filters_json": "{}",
+ "filters_json": "{}",
+ "group_by_type": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2025-08-11 14:56:12.755440",
+ "modified_by": "vikas@sanpra.co.in",
+ "module": "spcon",
+ "name": "Top 10 Sales-Invoice This Month",
+ "number_of_groups": 0,
+ "owner": "vikas@sanpra.co.in",
+ "report_name": "Top 10 Sale-Invoice",
+ "roles": [
+  {
+   "role": "Purchase Manager"
+  }
+ ],
+ "time_interval": "Yearly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Bar",
+ "use_report_chart": 0,
+ "x_field": "customer",
+ "y_axis": [
+  {
+   "y_field": "total_sale"
+  }
+ ]
+}

@@ -45,7 +45,9 @@ app_license = "mit"
 # include js in doctype views
 doctype_js = {"Employee Checkin" : "public/js/custom_employee_checkin.js"}
 doctype_js = {"Stock Entry" : "public/js/custom_stock_entry.js"}
+doctype_js = {"Work Order" : "public/js/custom_work_order.js"}
 doctype_js = {"Employee Advance" : "public/js/custom_employee_advance.js"}
+doctype_js = {"Customer": "public/js/customer.js"}
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -124,17 +126,20 @@ doctype_js = {"Employee Advance" : "public/js/custom_employee_advance.js"}
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
 #
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+
+
+
+
+
+# has_permission = "spcon.public.py.permission.has_permission"
 
 # DocType Class
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip"
+}
 
 # Document Events
 # ---------------
@@ -144,7 +149,7 @@ doc_events = {
         "before_save":"spcon.override.employee_checkin.geo_fencing"
     },
     "Attendance":{
-        "before_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save"
+        "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save"
     },
     "Shift Type":{
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
@@ -155,6 +160,12 @@ doc_events = {
      "Work Order":{
         "after_save":"spcon.manufacuring.custom_work_order.bom_set_name"
     },
+    "Material Request": {
+        "before_cancel": "spcon.public.py.material_request.get_data"
+    },
+    "Leave Application": {
+        "on_submit": "spcon.public.py.leave_application.set_leave_type_absent"
+   },
 }
 # doc_events = {
 # 	"*": {

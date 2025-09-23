@@ -1,0 +1,45 @@
+{
+ "add_total_row": 1,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-09-11 10:38:27.829544",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{}",
+ "letter_head": "SP Concare New",
+ "letterhead": null,
+ "modified": "2025-09-11 10:48:21.097161",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Area Wise Sales Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Sales Order",
+ "report_name": "Area Wise Sales Report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Employee Self Service"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Manufacturing Manager"
+  },
+  {
+   "role": "Sales Master Manager"
+  }
+ ],
+ "timeout": 0
+}
