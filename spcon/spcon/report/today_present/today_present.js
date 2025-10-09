@@ -12,7 +12,7 @@ frappe.query_reports["Today Present"] = {
 		{ 
 			"fieldname": "date",
 			"label": "Date",
-			"fieldtype": "Date",
+			"fieldtype": "Date", 
 			"default": frappe.datetime.get_today()
 		} 
 	]

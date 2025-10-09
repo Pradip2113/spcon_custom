@@ -1,3 +1,31 @@
+# import frappe
+# from datetime import date
+
+# def execute(filters=None):
+#     columns = get_columns(filters)
+#     data = get_data(filters)
+#     return columns, data
+
+# def get_columns(filters):
+#     return [
+#         {
+#             "label": "Employee ID",
+#             "fieldname": "employee",
+#             "fieldtype": "Link",
+#             "options": "Employee"
+#         }, 
+#         {
+#             "label": "Employee Name",
+#             "fieldname": "employee_name",
+#             "fieldtype": "Data"
+#         },
+#         {
+#             "label": "Count",
+#             "fieldname": "count",
+#             "fieldtype": "Data"
+#         },
+#     ]
+
 import frappe
 from datetime import date
 
@@ -18,30 +46,12 @@ def get_columns(filters):
             "label": "Employee Name",
             "fieldname": "employee_name",
             "fieldtype": "Data"
-        }
-    ]
-
-import frappe
-from datetime import date
-
-def execute(filters=None):
-    columns = get_columns(filters)
-    data = get_data(filters)
-    return columns, data
-
-def get_columns(filters):
-    return [
-        {
-            "label": "Employee ID",
-            "fieldname": "employee",
-            "fieldtype": "Link",
-            "options": "Employee"
         },
         {
-            "label": "Employee Name",
-            "fieldname": "employee_name",
+            "label": "Count",
+            "fieldname": "count",
             "fieldtype": "Data"
-        }
+        },
     ]
 
 def get_data(filters):
@@ -73,14 +83,15 @@ def get_data(filters):
     for emp in all_employees:
         if emp.name not in checked_in_ids:
             absent_employees.append({
-                "employee": emp.name,
+                "employee": emp.name,  
                 "employee_name": emp.employee_name,
+                "count": 1
             })
 
-    # Step 5: Add total count row
-    absent_employees.append({
-        "employee": f"Total : {len(absent_employees)}",
-        "employee_name": "",
-    })
+    # # Step 5: Add total count row
+    # absent_employees.append({
+    #     "employee": f"Total : {len(absent_employees)}",
+    #     "employee_name": "",
+    # })
 
     return absent_employees
