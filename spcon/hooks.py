@@ -138,9 +138,12 @@ doctype_js = {"Customer": "public/js/customer.js"}
 # Override standard doctype classes
 
 override_doctype_class = {
-	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip"
+	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
+    "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
+    "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary"
 }
 
+ 
 # Document Events
 # ---------------
 # Hook on document methods and events
@@ -165,7 +168,10 @@ doc_events = {
     },
     "Leave Application": {
         "on_submit": "spcon.public.py.leave_application.set_leave_type_absent"
-   },
+    },
+    "Expense Claim": {
+        "on_submit": "spcon.public.py.employee_advance.get_outstanding"
+    } 
 }
 # doc_events = {
 # 	"*": {

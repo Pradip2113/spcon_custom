@@ -7,7 +7,7 @@ filters: [
 			fieldname: "company",
 			label: __("Company"),
 			fieldtype: "Link",  
-			options: "Company",
+			options: "Company", 
 			default: frappe.defaults.get_user_default("Company"),
 		},
 		{
@@ -121,7 +121,7 @@ filters: [
 			label: __("Show GL Balance"),
 			fieldtype: "Check",
 		},
-		{
+		{ 
 			fieldname: "for_revaluation_journals",
 			label: __("Revaluation Journals"),
 			fieldtype: "Check",

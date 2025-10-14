@@ -11,7 +11,7 @@
 //         frm.add_custom_button("Set Permission", () => {
 //             frappe.call({
 //                 method: "frappe.client.get_list",
-//                 args: {
+//                 args: { 
 //                     doctype: "DocType",
 //                     fields: ["name"],
 //                     limit_page_length: 1000
