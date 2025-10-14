@@ -6,7 +6,7 @@ from frappe.model.document import Document
 
 
 class District(Document):
-	pass
+	pass 
  
 # import frappe
 
