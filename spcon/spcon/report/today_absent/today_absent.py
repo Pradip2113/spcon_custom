@@ -12,11 +12,11 @@
 #             "label": "Employee ID",
 #             "fieldname": "employee",
 #             "fieldtype": "Link",
-#             "options": "Employee"
+#             "options": "Employee" 
 #         }, 
 #         {
 #             "label": "Employee Name",
-#             "fieldname": "employee_name",
+#             "fieldname": "employee_name", 
 #             "fieldtype": "Data"
 #         },
 #         {
@@ -27,7 +27,7 @@
 #     ]
 
 import frappe
-from datetime import date
+from frappe.utils import add_days, today
 
 def execute(filters=None):
     columns = get_columns(filters)
@@ -55,8 +55,10 @@ def get_columns(filters):
     ]
 
 def get_data(filters):
-    if not filters or not filters.get("date"):
-        frappe.throw("Please select a Date to check absent employees.")
+    # if not filters or not filters.get("date"):
+    #     frappe.throw("Please select a Date to check absent employees.")
+
+    filters["date"] = today()
 
     # Step 1: Get all active employees
     all_employees = frappe.get_all(

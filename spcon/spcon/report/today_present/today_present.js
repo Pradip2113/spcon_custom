@@ -18,3 +18,4 @@ frappe.query_reports["Today Present"] = {
 	]
 };
   
+ 

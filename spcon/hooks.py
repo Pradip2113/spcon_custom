@@ -123,15 +123,15 @@ doctype_js = {"Customer": "public/js/customer.js"}
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+# 	# "Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+#     "Lead": "spcon.public.py.permissions.get_permission_query_conditions",
 # }
-#
 
 
 
-
-
-# has_permission = "spcon.public.py.permission.has_permission"
+# has_permission = {
+#     "Lead": "spcon.public.py.permissions.has_permission"
+# }
 
 # DocType Class
 # ---------------
