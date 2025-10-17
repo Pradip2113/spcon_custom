@@ -9,13 +9,13 @@ frappe.query_reports["Today Absent"] = {
 			"fieldtype": "Link",
 			"options": "Employee"
 		},
-		{ 
-			"fieldname": "date",
-			"label": "Date",
-			"fieldtype": "Date",
-			"default": frappe.datetime.get_today()
-		} 
-	]
+		// { 
+		// 	"fieldname": "date",
+		// 	"label": "Date",
+		// 	"fieldtype": "Date",
+		// 	"default": frappe.datetime.get_today()
+		// } 
+	] 
 };
   
- 
+  

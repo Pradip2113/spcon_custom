@@ -14,7 +14,7 @@
 #     return [
 #         {
 #             "label": "Employee ID",
-#             "fieldname": "employee",
+#             "fieldname": "employee", 
 #             "fieldtype": "Link",
 #             "options": "Employee"
 #         },
