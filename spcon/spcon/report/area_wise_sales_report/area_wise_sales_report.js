@@ -11,7 +11,7 @@ frappe.query_reports["Area Wise Sales Report"] = {
 		},
 		{  
 			fieldname: "doc_type",
-			label: __("Document Type"),
+			label: __("Document Type"), 
 			fieldtype: "Select",
 			options: "Sales Invoice",
 			default: "Sales Invoice",
