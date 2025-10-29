@@ -200,7 +200,7 @@ def get_data(filters):
 		item_name, alias_name = frappe.db.get_value("Item", row.item_code, ["item_name", "custom_alias"])
 
 		data.append({
-			"posting_date": row.posting_date,
+			"posting_date": row.posting_date,  
 			"receipt_document": row.receipt_document,
 			"supplier": row.supplier,
 			"item_code": row.item_code,
