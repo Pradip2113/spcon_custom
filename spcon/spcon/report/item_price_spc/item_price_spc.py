@@ -16,7 +16,7 @@ def execute(filters=None):
 	last_purchase_rate = get_last_purchase_rate()
 	bom_rate = get_item_bom_rate()
 	val_rate_map = get_valuation_rate()
-	item_last_purchase_field_rate = get_item_last_purchase_rate()  # ✅ new function
+	item_last_sale_field_rate = get_item_last_sale_rate()  # ✅ new function
 	avg_sales_rate = get_avg_sales_rate()  # ✅ new function
 
 	from erpnext.accounts.utils import get_currency_precision
@@ -37,7 +37,7 @@ def execute(filters=None):
 				pl.get(item, {}).get("Selling"),
 				pl.get(item, {}).get("Buying"),
 				flt(bom_rate.get(item, 0), precision),
-				flt(item_last_purchase_field_rate.get(item, 0), precision),  # ✅ new column
+				flt(item_last_sale_field_rate.get(item, 0), precision),  # ✅ new column
 				flt(avg_sales_rate.get(item, 0), precision),  # ✅ new column
 			]
 		)
@@ -60,7 +60,7 @@ def get_columns(filters):
 		_("Sales Price List") + "::180",
 		_("Purchase Price List") + "::180",
 		_("BOM Rate") + ":Currency:90",
-		_("Last Purchase Rate (Item)") + ":Currency:100",  # ✅ new column header
+		_("Last Sale Rate (Item)") + ":Currency:100",  # ✅ new column header
 		_("Avg Sales Rate") + ":Currency:100",  # ✅ new column header
 	]
 
@@ -209,11 +209,11 @@ def get_valuation_rate():
 
 
 # ✅ NEW FUNCTION 1: Fetch "last_purchase_rate" field directly from Item doctype
-def get_item_last_purchase_rate():
+def get_item_last_sale_rate():
 	item_rate_map = {}
-	items = frappe.db.get_all("Item", ["name", "last_purchase_rate"])
+	items = frappe.db.get_all("Item", ["name", "custom_sales_invoice_last_rate"])
 	for i in items:
-		item_rate_map[i.name] = flt(i.last_purchase_rate)
+		item_rate_map[i.name] = flt(i.custom_sales_invoice_last_rate)
 	return item_rate_map
 
 
