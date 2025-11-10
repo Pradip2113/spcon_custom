@@ -152,7 +152,7 @@ doc_events = {
         "before_save":"spcon.override.employee_checkin.geo_fencing"
     },
     "Attendance":{
-        "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save"
+        "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
     },
     "Shift Type":{
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"

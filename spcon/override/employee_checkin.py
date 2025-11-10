@@ -1,12 +1,13 @@
 import frappe
 import json
-from geopy.distance import geodesic
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
+# from geopy.distance import geodesic
+# from shapely.geometry import Point
+# from shapely.geometry.polygon import Polygon
 
 
 @frappe.whitelist()
 def geo_fencing(doc, method):
+    pass
     try:
         # Fetch employee's office location records
         employee_locations = frappe.get_all(
