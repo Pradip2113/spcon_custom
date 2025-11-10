@@ -7,7 +7,6 @@ from frappe.utils import time_diff_in_hours, get_time
 from frappe.utils import flt
 
 def apply_sandwich_rule_on_attendance_save(doc, method):
-
     if doc.shift and doc.working_hours is not None:
         # Fetch custom_work_hrs from the linked Shift Type
         shift_type = frappe.get_value("Shift Type",{"name":doc.shift},"custom_working_hrs")
@@ -32,14 +31,16 @@ def apply_sandwich_rule_on_attendance_save(doc, method):
             },
             fields=["name"]
         )
-        if len(late_marks_count) >= 4:
-            frappe.set_value("Attendance", doc.name, "status", "Half Day")
-            frappe.set_value("Attendance", doc.name, "leave_type", "Allocated Leave")
+        # if len(late_marks_count) >= 4:
+        if len(late_marks_count) >= 3:
+            frappe.set_value("Attendance", doc.name, "status", "Half Day") 
+            # frappe.set_value("Attendance", doc.name, "half_day_status", "Present")
+            # frappe.set_value("Attendance", doc.name, "leave_type", "Allocated Leave")
+            frappe.set_value("Attendance", doc.name, "leave_type", "Leave Without Pay")
             for att in late_marks_count:
                 frappe.set_value("Attendance", att["name"], "custom_late_mark_flag", 1)
 
 
 
 
-
-
+ 
