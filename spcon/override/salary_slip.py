@@ -137,22 +137,22 @@ class CustomSalarySlip(SalarySlip):
             # get details from salary structure
             self.get_emp_and_working_day_details()
         # ==================================================================================================================================
-            attendance_records = frappe.get_all(
-            "Attendance", 
-            filters={
-                "employee_name": self.employee_name,
-                "attendance_date": ["between", [self.start_date, self.end_date]],
-                "leave_type": "Allocated Leave",
-                },
-            fields=["employee_name", "attendance_date"])
+            # attendance_records = frappe.get_all(
+            # "Attendance", 
+            # filters={
+            #     "employee_name": self.employee_name,
+            #     "attendance_date": ["between", [self.start_date, self.end_date]],
+            #     "leave_type": "Allocated Leave",
+            #     },
+            # fields=["employee_name", "attendance_date"])
             
-            sunday_leave_count = sum(
-                1 for att in attendance_records
-                if att.attendance_date.weekday() == 6 
-            )  
-            # frappe.throw(str((self.get("payment_days",0) or 0) + sunday_leave_count))
-            self.custom_weekly_off_sunday = sunday_leave_count
-            self.payment_days = (self.get("payment_days",0) or 0) + sunday_leave_count
+            # sunday_leave_count = sum(
+            #     1 for att in attendance_records
+            #     if att.attendance_date.weekday() == 6 
+            # )  
+            # # frappe.throw(str((self.get("payment_days",0) or 0) + sunday_leave_count))
+            # self.custom_weekly_off_sunday = sunday_leave_count
+            # self.payment_days = (self.get("payment_days",0) or 0) + sunday_leave_count
         # ==================================================================================================================================
         else:
             self.get_working_days_details(lwp=self.leave_without_pay)
