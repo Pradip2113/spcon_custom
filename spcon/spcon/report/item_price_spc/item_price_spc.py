@@ -213,7 +213,7 @@ def get_item_last_sale_rate():
 	item_rate_map = {}
 	items = frappe.db.get_all("Item", ["name", "custom_sales_invoice_last_rate"])
 	for i in items:
-		item_rate_map[i.name] = flt(i.custom_sales_invoice_last_rate)
+		item_rate_map[i.name] = flt(i.custom_sales_invoice_last_rate) 
 	return item_rate_map
 
 
