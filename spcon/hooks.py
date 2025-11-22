@@ -171,8 +171,11 @@ doc_events = {
     },
     "Expense Claim": {
         "on_submit": "spcon.public.py.employee_advance.get_outstanding"
+    },
+    "Purchase Order": {
+        "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
     } 
-}
+} 
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",
