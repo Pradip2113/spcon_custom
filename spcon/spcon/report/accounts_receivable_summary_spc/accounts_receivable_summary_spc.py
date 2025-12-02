@@ -87,46 +87,46 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 			if self.filters.show_future_payments:
 				row.remaining_balance = flt(row.outstanding) - flt(row.future_amount)
 
-			# ranges = ["range1","range2","range3","range4","range5", "total_due", "outstanding"]
-			# for range in ranges:
-			# 	if row[str(range)]<0:
-			# 		row[str(range)] = 0
-			# 	# frappe.throw(str(row))
+			ranges = ["range1","range2","range3","range4","range5", "total_due", "outstanding"]
+			for range in ranges:
+				if row[str(range)]<0:
+					row[str(range)] = 0
+				# frappe.throw(str(row))
 			# self.data.append(row)
 
-			# for i in getattr(self, "range_numbers", []):
-			# 	range_key = f"range{i}"
-			# 	if row.get(range_key) and row[range_key] < 0:
-			# 		row[range_key] = 0
-
-			# # ✅ Also check total_due and outstanding safely
-			# for key in ("total_due", "outstanding"):
-			# 	if row.get(key) and row[key] < 0:
-			# 		row[key] = 0
-
-			# self.data.append(row)
-
-			# ✅ REMOVE rows that have any negative ageing or total values
-			skip_row = False
-
-			# check all ageing ranges
 			for i in getattr(self, "range_numbers", []):
 				range_key = f"range{i}"
 				if row.get(range_key) and row[range_key] < 0:
-					skip_row = True
-					break
+					row[range_key] = 0
 
-			# also check total_due and outstanding
+			# ✅ Also check total_due and outstanding safely
 			for key in ("total_due", "outstanding"):
 				if row.get(key) and row[key] < 0:
-					skip_row = True
-					break
-
-			# if any negative found, skip this party completely
-			if skip_row:
-				continue
+					row[key] = 0
 
 			self.data.append(row)
+
+			# ✅ REMOVE rows that have any negative ageing or total values
+			# skip_row = False
+
+			# # check all ageing ranges
+			# for i in getattr(self, "range_numbers", []):
+			# 	range_key = f"range{i}"
+			# 	if row.get(range_key) and row[range_key] < 0:
+			# 		skip_row = True
+			# 		break
+ 
+			# # also check total_due and outstanding
+			# for key in ("total_due", "outstanding"):
+			# 	if row.get(key) and row[key] < 0:
+			# 		skip_row = True
+			# 		break
+
+			# # if any negative found, skip this party completely
+			# if skip_row:
+			# 	continue
+
+			# self.data.append(row)
 
 			
 	def get_party_total(self, args):

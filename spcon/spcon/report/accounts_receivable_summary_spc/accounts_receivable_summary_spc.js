@@ -24,6 +24,13 @@ filters: [
 			default: "Due Date",
 		},
 		{
+			fieldname: "calculate_ageing_with",
+			label: __("Calculate Ageing With"),
+			fieldtype: "Select",
+			options: "Report Date\nToday Date",
+			default: "Report Date",
+		},
+		{
 			fieldname: "range",
 			label: __("Ageing Range"),
 			fieldtype: "Data",
@@ -127,7 +134,7 @@ filters: [
 			fieldtype: "Check",
 		},
 	],
-  
+   
 	onload: function (report) {
 		report.page.add_inner_button(__("Accounts Receivable"), function () {
 			var filters = report.get_values();
