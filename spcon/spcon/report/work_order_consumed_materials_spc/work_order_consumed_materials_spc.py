@@ -39,7 +39,7 @@ def get_data(report_filters):
 				# If one work order has multiple raw materials then show parent data in the first row only
 				for field in ["name", "status", "production_item", "qty", "produced_qty"]:
 					row[field] = ""
-
+ 
 			data.append(row)
 
 	return data

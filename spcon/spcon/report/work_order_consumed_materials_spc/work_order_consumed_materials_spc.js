@@ -47,7 +47,7 @@ frappe.query_reports["Work Order Consumed Materials SPC"] = {
 		},
 		{
 			label: __("Status"),
-			fieldname: "status",
+			fieldname: "status",  
 			fieldtype: "Select",
 			options: ["", "In Process", "Completed", "Stopped"],
 		},
