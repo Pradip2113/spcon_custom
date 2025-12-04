@@ -40,7 +40,7 @@ def get_data(report_filters):
 				for field in ["name", "status", "production_item", "qty", "produced_qty"]:
 					row[field] = ""
 
-			data.append(row)
+			data.append(row)   
 
 	return data
 

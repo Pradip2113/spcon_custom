@@ -11,7 +11,7 @@ frappe.query_reports["Work Order Consumed Materials SPC"] = {
 			default: frappe.defaults.get_user_default("Company"),
 			reqd: 1,
 		},
-		{
+		{   
 			label: __("From Date"),
 			fieldname: "from_date",
 			fieldtype: "Date",
