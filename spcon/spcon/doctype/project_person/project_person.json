@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{person_name}",
+ "creation": "2025-12-08 11:56:00.639656",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "person_name",
+  "column_break_vwli",
+  "mobile_number",
+  "section_break_ndzm",
+  "architecture",
+  "column_break_qazx",
+  "consultant",
+  "column_break_zxje",
+  "contactor",
+  "column_break_lczg",
+  "applicator"
+ ],
+ "fields": [
+  {
+   "fieldname": "person_name",
+   "fieldtype": "Data",
+   "label": "Person Name"
+  },
+  {
+   "fieldname": "column_break_vwli",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Data",
+   "label": "Mobile Number"
+  },
+  {
+   "fieldname": "section_break_ndzm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "architecture",
+   "fieldtype": "Check",
+   "label": "Architecture"
+  },
+  {
+   "fieldname": "column_break_qazx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "consultant",
+   "fieldtype": "Check",
+   "label": "Consultant"
+  },
+  {
+   "fieldname": "column_break_zxje",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "contactor",
+   "fieldtype": "Check",
+   "label": "Contactor"
+  },
+  {
+   "fieldname": "column_break_lczg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "applicator",
+   "fieldtype": "Check",
+   "label": "Applicator"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-08 12:34:30.543484",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Project Person",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

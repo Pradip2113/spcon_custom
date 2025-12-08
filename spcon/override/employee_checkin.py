@@ -1,8 +1,8 @@
 import frappe
 import json
-# from geopy.distance import geodesic
-# from shapely.geometry import Point
-# from shapely.geometry.polygon import Polygon
+from geopy.distance import geodesic
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 
 @frappe.whitelist()
