@@ -64,3 +64,45 @@ class MonthlyOvertime(Document):
                 # "ot_hour_rate": data["overtime_rate"],
                 "overtime_pay": total_overtime,
             })
+
+    # ============================================================================================================================
+
+    @frappe.whitelist()
+    def overtime_calculation(self):
+        if not self.start_date or not self.end_date:
+            frappe.throw("Please select Start Date and End Date")
+
+        # Clear existing child table
+        self.set("item_ot", [])
+
+        # Dictionary to store total hours per employee
+        employee_hours = {}  # {employee_id: {"name": employee_name, "hrs": total_hours}}
+
+        # Fetch all Overtime Requests within the period
+        overtime_requests = frappe.get_all(
+            "Overtime Request SPC",
+            filters={
+                "start_date": ["between", [self.start_date, self.end_date]]
+            },
+            fields=["name"]
+        )
+
+        for req in overtime_requests:
+            doc = frappe.get_doc("Overtime Request SPC", req.name)
+            for row in doc.overtime_request_items:
+                if row.employee_id in employee_hours:
+                    employee_hours[row.employee_id]["hrs"] += row.hrs
+                else:
+                    employee_hours[row.employee_id] = {
+                        "name": row.employee_name,  # assuming child table has employee_name
+                        "hrs": row.hrs
+                    }
+
+        # Append to item_ot child table
+        for emp_id, data in employee_hours.items():
+            self.append("item_ot", { 
+                "employee": emp_id,
+                "employee_name": data["name"],
+                "overtime_pay": data["hrs"]  # multiply by rate if needed
+            })
+        frappe.msgprint("Overtime calculation completed!")
