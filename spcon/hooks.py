@@ -174,7 +174,10 @@ doc_events = {
     },
     "Purchase Order": {
         "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
-    } 
+    },
+    "Attendance Request": {
+        "before_save": "spcon.public.py.attendance_request.purpose_limit" 
+    }
 } 
 # doc_events = {
 # 	"*": {

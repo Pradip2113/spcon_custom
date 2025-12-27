@@ -14,11 +14,21 @@ frappe.ui.form.on("Monthly Overtime", {
             frm.set_value('end_date', frappe.datetime.obj_to_str(endDate)); // Convert Date object to string and set it
         }
     },
+    // get_details: function (frm) {
+	// 	frm.clear_table("item_ot")
+	// 	frm.refresh_field('item_ot')		
+	// 	frm.call({ 
+	// 		method:'getitems',
+	// 		doc: frm.doc
+	// 	});
+	// }
+    
+    
     get_details: function (frm) {
 		frm.clear_table("item_ot")
 		frm.refresh_field('item_ot')		
 		frm.call({
-			method:'getitems',
+			method:'overtime_calculation',
 			doc: frm.doc
 		});
 	}
