@@ -6,19 +6,30 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "scope_of_work"
+  "scope_of_work",
+  "segment"
  ],
  "fields": [
   {
    "fieldname": "scope_of_work",
    "fieldtype": "Data",
-   "label": "Scope Of Work"
+   "in_list_view": 1,
+   "label": "Scope Of Work",
+   "reqd": 1
+  },
+  {
+   "fieldname": "segment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Segment",
+   "options": "Segment",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-08 17:17:01.796955",
+ "modified": "2025-12-29 11:32:49.287006",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Scope Of Work",

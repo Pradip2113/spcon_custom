@@ -7,6 +7,9 @@ from frappe.model.document import Document
 
 class OvertimeRequestSPC(Document):
 	
+	def before_save(self):
+		self.set_date()
+		
 	@frappe.whitelist()
 	def set_date(self):
 		for row in self.overtime_request_items:
