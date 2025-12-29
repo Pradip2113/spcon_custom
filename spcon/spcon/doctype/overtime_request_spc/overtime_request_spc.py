@@ -1,0 +1,13 @@
+# Copyright (c) 2025, Sanpra and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe.model.document import Document
+
+
+class OvertimeRequestSPC(Document):
+	
+	@frappe.whitelist()
+	def set_date(self):
+		for row in self.overtime_request_items:
+			row.date = self.start_date

@@ -98,6 +98,7 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 				range_key = f"range{i}"
 				if row.get(range_key) and row[range_key] < 0:
 					row[range_key] = 0
+<<<<<<< HEAD
 
 			# ✅ Also check total_due and outstanding safely
 			for key in ("total_due", "outstanding"):
@@ -116,6 +117,35 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 			# 		skip_row = True
 			# 		break
 
+			# # also check total_due and outstanding
+			# for key in ("total_due", "outstanding"):
+			# 	if row.get(key) and row[key] < 0:
+			# 		skip_row = True
+			# 		break
+
+			# # if any negative found, skip this party completely
+			# if skip_row:
+			# 	continue
+=======
+
+			# ✅ Also check total_due and outstanding safely
+			for key in ("total_due", "outstanding"):
+				if row.get(key) and row[key] < 0:
+					row[key] = 0
+>>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
+
+			# self.data.append(row)
+
+			# ✅ REMOVE rows that have any negative ageing or total values
+			# skip_row = False
+
+			# # check all ageing ranges
+			# for i in getattr(self, "range_numbers", []):
+			# 	range_key = f"range{i}"
+			# 	if row.get(range_key) and row[range_key] < 0:
+			# 		skip_row = True
+			# 		break
+ 
 			# # also check total_due and outstanding
 			# for key in ("total_due", "outstanding"):
 			# 	if row.get(key) and row[key] < 0:

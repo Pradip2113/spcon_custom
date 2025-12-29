@@ -1,23 +1,34 @@
 // Copyright (c) 2025, Sanpra and contributors
 // For license information, please see license.txt
 
+<<<<<<< HEAD
 // frappe.query_reports["Work Order Consumed Materials SPC"] = {
 // 	"filters": [
 
 // 	]
 // }; 
 
+=======
+>>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
 frappe.query_reports["Work Order Consumed Materials SPC"] = {
 	filters: [
 		{
 			label: __("Company"),
 			fieldname: "company",
+<<<<<<< HEAD
 			fieldtype: "Link",
+=======
+			fieldtype: "Link", 
+>>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
 			reqd: 1,
 		},
+<<<<<<< HEAD
 		{
+=======
+		{   
+>>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
 			label: __("From Date"),
 			fieldname: "from_date",
 			fieldtype: "Date",
@@ -74,3 +85,7 @@ frappe.query_reports["Work Order Consumed Materials SPC"] = {
 	},
 };
 
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
