@@ -52,25 +52,26 @@
 
 frappe.ui.form.on("Lead", {
     custom_add_data: function(frm) {
+        // frappe.throw("hiiiii")
         let duplicate = frm.doc.custom_project_details_items.some(r =>
             r.segment === frm.doc.custom_segment &&
             r.scope_of_work === frm.doc.custom_scope_of_work &&
             r.system === frm.doc.custom_system &&
             r.area === frm.doc.custom_area
         );
-        if (duplicate) {
+        if (duplicate) { 
             frappe.msgprint("This data already exists!");
             return;
         }
-        frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
-            system.system_items_spc.forEach(item => {
+        frappe.db.get_doc("System", frm.doc.custom_system).then(system => {
+            system.system_items.forEach(item => {
                 let row = frm.add_child("custom_project_details_items");
                 row.segment = frm.doc.custom_segment;
                 row.scope_of_work = frm.doc.custom_scope_of_work;
                 row.system = frm.doc.custom_system;
                 row.area = frm.doc.custom_area || 0;
                 row.item = item.item_code;
-                row.qty = (frm.doc.custom_area || 0) * (item.qty || 0);
+                row.qty = (frm.doc.custom_area || 0) * (item.qty || 0);  
             });
             frm.refresh_field("custom_project_details_items");
             // Clear input fields
@@ -84,7 +85,7 @@ frappe.ui.form.on("Lead", {
                 if (!totals[r.item]) totals[r.item] = 0;
                 totals[r.item] += r.qty || 0;
             });
-            frm.clear_table("custom_project_items");
+            frm.clear_table("custom_project_items"); 
             for (let item in totals) {
                 let row = frm.add_child("custom_project_items");
                 row.item_code = item;
@@ -92,5 +93,26 @@ frappe.ui.form.on("Lead", {
             }
             frm.refresh_field("custom_project_items");
         });
+    },
+    refresh(frm) {
+        frm.set_query('custom_scope_of_work', function () {
+            return {
+                filters: {
+                    segment: frm.doc.custom_segment
+                }
+            };
+        });
+
+        frm.set_query('custom_system', function () {
+            return {
+                filters: {
+                    scope_of_work: frm.doc.custom_scope_of_work
+                }
+            };
+        });
+    },
+    custom_segment(frm) {
+        // Clear scope of work when segment changes
+        frm.set_value("custom_scope_of_work", null);
     }
 });

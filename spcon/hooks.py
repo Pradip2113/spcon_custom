@@ -48,6 +48,7 @@ doctype_js = {"Stock Entry" : "public/js/custom_stock_entry.js"}
 doctype_js = {"Work Order" : "public/js/custom_work_order.js"}
 doctype_js = {"Employee Advance" : "public/js/custom_employee_advance.js"}
 doctype_js = {"Customer": "public/js/customer.js"}
+doctype_js = {"Lead": "public/js/lead.js"}
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
