@@ -160,8 +160,4 @@ def get_columns():
 			"fieldtype": "Currency",
 			"width": 100,
 		},
-<<<<<<< HEAD
 	]
-=======
-	]
->>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
