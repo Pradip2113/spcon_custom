@@ -98,7 +98,7 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 				range_key = f"range{i}"
 				if row.get(range_key) and row[range_key] < 0:
 					row[range_key] = 0
-<<<<<<< HEAD
+
 
 			# ✅ Also check total_due and outstanding safely
 			for key in ("total_due", "outstanding"):
@@ -126,13 +126,13 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 			# # if any negative found, skip this party completely
 			# if skip_row:
 			# 	continue
-=======
+
 
 			# ✅ Also check total_due and outstanding safely
 			for key in ("total_due", "outstanding"):
 				if row.get(key) and row[key] < 0:
 					row[key] = 0
->>>>>>> 41eeddb652becdbe64c6842bf5608eabc35f85af
+
 
 			# self.data.append(row)
 
