@@ -10,6 +10,8 @@
   "column_break_aech",
   "section_break_ckln",
   "overtime_request_items",
+  "get_employee",
+  "overtime_assign_leave",
   "amended_from"
  ],
  "fields": [
@@ -41,14 +43,25 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "get_employee",
+   "fieldtype": "Button",
+   "label": "Get Employee"
+  },
+  {
+   "fieldname": "overtime_assign_leave",
+   "fieldtype": "Table",
+   "label": "Overtime Assign Leave",
+   "options": "Overtime Assign Leave SPC"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-29 10:47:19.614323",
- "modified_by": "vikas@sanpra.co.in",
+ "modified": "2026-01-05 17:06:54.512494",
+ "modified_by": "Administrator",
  "module": "spcon",
  "name": "Overtime Request SPC",
  "naming_rule": "Expression",
@@ -68,6 +81,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
