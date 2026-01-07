@@ -27,10 +27,14 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/spcon/css/spcon.css"
 # app_include_js = "/assets/spcon/js/spcon.js"
+<<<<<<< HEAD
 app_include_js = "/assets/mytestapp/js/hide_item_name.js"
+=======
+app_include_js = "/assets/spcon/js/hide_item_name.js"
+>>>>>>> 7bc9168 (hide item name)
 
 # include js, css files in header of web template
-# web_include_css = "/assets/spcon/css/spcon.css"
+# web_include_css = "/assets/spcon/css/spcon.css" 
 # web_include_js = "/assets/spcon/js/spcon.js"
 
 # include custom scss in every website theme (without file extension ".scss")

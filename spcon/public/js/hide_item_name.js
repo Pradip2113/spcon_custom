@@ -1,14 +1,41 @@
+<<<<<<< HEAD
 // Hide item_name fields in forms and query reports for all users.
 (function () {
   let override_installed = false;
   let list_view_override_installed = false;
   let form_override_installed = false;
   let grid_override_installed = false;
+=======
+// Hide item_name column in all query reports for non-System Manager users.
+(function () {
+  let override_installed = false;
+>>>>>>> 7bc9168 (hide item name)
 
   function normalize(value) {
     return (value || "").toLowerCase().replace(/[\s_]+/g, "");
   }
 
+<<<<<<< HEAD
+=======
+  function get_roles() {
+    return (
+      (frappe.user && frappe.user.roles) ||
+      (frappe.boot && frappe.boot.user && frappe.boot.user.roles) ||
+      frappe.user_roles ||
+      []
+    );
+  }
+
+  function is_system_manager() {
+    const roles = get_roles();
+    return Array.isArray(roles) && roles.includes("System Manager");
+  }
+
+  function should_hide_item_name() {
+    return !is_system_manager();
+  }
+ 
+>>>>>>> 7bc9168 (hide item name)
   function is_item_name_column(column) {
     const fieldname = normalize(column.fieldname || column.id);
     const label = normalize(column.label);
@@ -18,11 +45,21 @@
   function install_override() {
     if (override_installed) return;
     if (!frappe.views || !frappe.views.QueryReport) return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7bc9168 (hide item name)
     const QueryReport = frappe.views.QueryReport;
     const original_prepare_columns = QueryReport.prototype.prepare_columns;
 
     QueryReport.prototype.prepare_columns = function (columns) {
       const prepared = original_prepare_columns.call(this, columns);
+<<<<<<< HEAD
+=======
+      if (!should_hide_item_name()) {
+        return prepared;
+      }
+>>>>>>> 7bc9168 (hide item name)
       return prepared.map((col) => {
         if (is_item_name_column(col)) {
           col.hidden = true;
@@ -34,6 +71,7 @@
     override_installed = true;
   }
 
+<<<<<<< HEAD
   function adjust_list_view_columns(listview) {
     if (!listview || !Array.isArray(listview.columns)) return;
 
@@ -183,6 +221,10 @@
   function init_when_ready() {
     init_hiding();
     log_status();
+=======
+  function init_when_ready() {
+    install_override();
+>>>>>>> 7bc9168 (hide item name)
   }
 
   if (frappe.ready) {
@@ -192,9 +234,16 @@
   }
 
   if (frappe.after_ajax) {
+<<<<<<< HEAD
     frappe.after_ajax(init_hiding);
   }
   if (frappe.router && frappe.router.on) {
     frappe.router.on("change", init_hiding);
+=======
+    frappe.after_ajax(install_override);
+  }
+  if (frappe.router && frappe.router.on) {
+    frappe.router.on("change", install_override);
+>>>>>>> 7bc9168 (hide item name)
   }
 })();
