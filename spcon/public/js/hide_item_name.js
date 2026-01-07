@@ -10,7 +10,7 @@
     return (
       (frappe.user && frappe.user.roles) ||
       (frappe.boot && frappe.boot.user && frappe.boot.user.roles) ||
-      frappe.user_roles ||
+      frappe.user_roles ||  
       []
     );
   }
