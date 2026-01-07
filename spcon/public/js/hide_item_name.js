@@ -15,10 +15,18 @@
     );
   }
 
+  // function is_system_manager() {
+  //   const roles = get_roles();
+  //   return Array.isArray(roles) && roles.includes("System Manager");
+  // }
   function is_system_manager() {
     const roles = get_roles();
-    return Array.isArray(roles) && roles.includes("System Manager");
+    return (
+      Array.isArray(roles) &&
+      (roles.includes("System Manager") || roles.includes("Item Name"))
+    );
   }
+
 
   function should_hide_item_name() {
     return !is_system_manager();
