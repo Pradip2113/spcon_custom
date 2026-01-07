@@ -27,6 +27,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/spcon/css/spcon.css"
 # app_include_js = "/assets/spcon/js/spcon.js"
+app_include_js = "/assets/mytestapp/js/hide_item_name.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/spcon/css/spcon.css"
