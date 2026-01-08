@@ -51,25 +51,24 @@
 // });
 
 frappe.ui.form.on("Lead", {
-    custom_add_data: function(frm) {
-        // frappe.throw("hiiiii")
+    custom_add_data: function(frm) {   
         let duplicate = frm.doc.custom_project_details_items.some(r =>
             r.segment === frm.doc.custom_segment &&
             r.scope_of_work === frm.doc.custom_scope_of_work &&
             r.system === frm.doc.custom_system &&
             r.area === frm.doc.custom_area
         );
-        if (duplicate) { 
+        if (duplicate) {  
             frappe.msgprint("This data already exists!");
             return;
         }
-        frappe.db.get_doc("System", frm.doc.custom_system).then(system => {
-            system.system_items.forEach(item => {
+        frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
+            system.system_items_spc.forEach(item => {
                 let row = frm.add_child("custom_project_details_items");
                 row.segment = frm.doc.custom_segment;
                 row.scope_of_work = frm.doc.custom_scope_of_work;
                 row.system = frm.doc.custom_system;
-                row.area = frm.doc.custom_area || 0;
+                row.area = frm.doc.custom_area || 0; 
                 row.item = item.item_code;
                 row.qty = (frm.doc.custom_area || 0) * (item.qty || 0);  
             });
