@@ -44,14 +44,24 @@ app_include_js = "/assets/spcon/js/hide_item_name.js"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Employee Checkin" : "public/js/custom_employee_checkin.js"}
-doctype_js = {"Stock Entry" : "public/js/custom_stock_entry.js"}
-doctype_js = {"Work Order" : "public/js/custom_work_order.js"}
-doctype_js = {"Employee Advance" : "public/js/custom_employee_advance.js"}
-doctype_js = {"Customer": "public/js/customer.js"}
-doctype_js = {"Lead": "public/js/lead.js"}
-doctype_js = {"Sales Order": "public/js/sales_order.js"}
+# doctype_js = {"Employee Checkin" : "public/js/custom_employee_checkin.js"}
+# doctype_js = {"Stock Entry" : "public/js/custom_stock_entry.js"}
+# doctype_js = {"Work Order" : "public/js/custom_work_order.js"}
+# doctype_js = {"Employee Advance" : "public/js/custom_employee_advance.js"}
+# doctype_js = {"Customer": "public/js/customer.js"}
+# doctype_js = {"Lead": "public/js/lead.js"}
+# doctype_js = {"Sales Order": "public/js/sales_order.js"}
 
+doctype_js = {
+    "Employee Checkin" : "public/js/custom_employee_checkin.js",
+    "Stock Entry" : "public/js/custom_stock_entry.js",
+    "Work Order" : "public/js/custom_work_order.js",
+    "Employee Advance" : "public/js/custom_employee_advance.js",
+    "Customer": "public/js/customer.js",
+    "Lead": "public/js/lead.js",
+    "Sales Order": "public/js/sales_order.js"
+}
+ 
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

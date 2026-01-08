@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{system}",
  "creation": "2025-12-10 10:55:23.041015",
@@ -46,7 +47,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-29 13:01:24.528489",
+ "modified": "2026-01-08 10:30:44.993807",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "System SPC",
@@ -67,6 +68,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

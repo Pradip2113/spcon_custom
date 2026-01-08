@@ -33,7 +33,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "System",
-   "options": "System"
+   "options": "System SPC"
   },
   {
    "fieldname": "area",
@@ -61,13 +61,14 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-08 17:17:02.341010",
+ "modified": "2026-01-08 11:17:05.871783",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Project Details Items",
  "owner": "vikas@sanpra.co.in",
  "permissions": [],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
