@@ -27,7 +27,10 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/spcon/css/spcon.css"
 # app_include_js = "/assets/spcon/js/spcon.js"
-app_include_js = "/assets/spcon/js/hide_item_name.js"
+app_include_js = [
+    "/assets/spcon/js/hide_item_name.js",
+    "/assets/spcon/js/hide_item_name_doctype.js"
+] 
   
 # include js, css files in header of web template
 # web_include_css = "/assets/spcon/css/spcon.css" 
@@ -59,7 +62,7 @@ doctype_js = {
     "Employee Advance" : "public/js/custom_employee_advance.js",
     "Customer": "public/js/customer.js",
     "Lead": "public/js/lead.js",
-    "Sales Order": "public/js/sales_order.js"
+    # "Sales Order": "public/js/sales_order.js"
 }
  
 # doctype_js = {"doctype" : "public/js/doctype.js"}
