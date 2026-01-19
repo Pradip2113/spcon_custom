@@ -1,41 +1,30 @@
 {
  "actions": [],
- "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:{scope_of_work}",
- "creation": "2025-12-08 14:57:48.916948",
+ "autoname": "field:firm_name",
+ "creation": "2026-01-17 17:09:02.504063",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "scope_of_work",
-  "segment"
+  "firm_name"
  ],
  "fields": [
   {
-   "fieldname": "scope_of_work",
+   "fieldname": "firm_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Scope Of Work",
-   "reqd": 1
-  },
-  {
-   "fieldname": "segment",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Segment",
-   "options": "Segment",
-   "reqd": 1
+   "label": "Firm Name",
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-15 15:37:17.745550",
+ "modified": "2026-01-17 17:09:28.565080",
  "modified_by": "Administrator",
  "module": "spcon",
- "name": "Scope Of Work",
- "naming_rule": "Expression",
- "owner": "vikas@sanpra.co.in",
+ "name": "Firm Name SPC",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
