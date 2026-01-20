@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "start_date",
+  "naming_series",
   "column_break_aech",
   "section_break_ckln",
   "overtime_request_items",
@@ -31,7 +32,7 @@
   {
    "fieldname": "overtime_request_items",
    "fieldtype": "Table",
-   "label": "Overtime Request Items",
+   "label": "Overtime Request",
    "options": "Overtime Request Items SPC"
   },
   {
@@ -54,13 +55,18 @@
    "fieldtype": "Table",
    "label": "Overtime Assign Leave",
    "options": "Overtime Assign Leave SPC"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-05 17:06:54.512494",
+ "modified": "2026-01-20 18:29:25.181365",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Overtime Request SPC",
