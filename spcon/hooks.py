@@ -62,7 +62,7 @@ doctype_js = {
     "Employee Advance" : "public/js/custom_employee_advance.js",
     "Customer": "public/js/customer.js",
     "Lead": "public/js/lead.js",
-    # "Sales Order": "public/js/sales_order.js"
+    "Sales Order": "public/js/sales_order.js"
 }
  
 # doctype_js = {"doctype" : "public/js/doctype.js"}
