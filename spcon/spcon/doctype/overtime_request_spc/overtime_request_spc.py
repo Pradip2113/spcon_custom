@@ -44,9 +44,12 @@ class OvertimeRequestSPC(Document):
 #*****************************************************************************************************
 	def update_leave_allocation(self):
 		for row in self.overtime_assign_leave:
-			allocate_leave = float(row.allocate_leave or 0)
-			if allocate_leave <= 0:
+			hrs = float(row.hrs or 0)
+			leave_days = round(hrs / 8, 1)
+
+			if leave_days <= 0:
 				continue
+
 			existing_allocation = frappe.db.get_value(
 				"Leave Allocation",
 				{
@@ -57,12 +60,12 @@ class OvertimeRequestSPC(Document):
 				as_dict=True
 			)
 			if existing_allocation and getdate(existing_allocation.from_date) >= getdate("2026-01-01"):
-				new_total = float(existing_allocation.total_leaves_allocated or 0) + allocate_leave
+				new_total = float(existing_allocation.total_leaves_allocated or 0) + leave_days
 				frappe.db.set_value(
 					"Leave Allocation",
 					existing_allocation.name,
 					{
-						"new_leaves_allocated": allocate_leave,
+						"new_leaves_allocated": leave_days,
 						"total_leaves_allocated": new_total,
 					}
 				)
@@ -73,7 +76,7 @@ class OvertimeRequestSPC(Document):
 				new_doc.leave_type = "Compensatory Off"
 				new_doc.from_date = row.date
 				new_doc.to_date = "2026-12-31"
-				new_doc.new_leaves_allocated = allocate_leave
-				new_doc.total_leaves_allocated = allocate_leave
+				new_doc.new_leaves_allocated = leave_days
+				new_doc.total_leaves_allocated = leave_days
 				new_doc.insert(ignore_permissions=True)
 				new_doc.submit()
