@@ -1,46 +1,12 @@
-
-
 import frappe
-from frappe.utils import getdate, add_days
-from frappe.utils import get_first_day, get_last_day, nowdate
-from frappe.utils import time_diff_in_hours, get_time
-from frappe.utils import flt
+from frappe.utils import get_time
+
 
 def apply_sandwich_rule_on_attendance_save(doc, method):
-    if doc.shift and doc.working_hours is not None:
-        # Fetch custom_work_hrs from the linked Shift Type
-        shift_type = frappe.get_value("Shift Type",{"name":doc.shift},"custom_working_hrs")
-        custom_work_hrs = shift_type # Ensure float type for calculations
+    in_time = getattr(doc, "in_time", None)
+    out_time = getattr(doc, "out_time", None)
+    late_in = in_time and get_time(in_time) > get_time("09:30:00")
+    early_out = out_time and get_time(out_time) < get_time("17:30:00")
 
-        # Calculate overtime
-        if doc.working_hours > custom_work_hrs:
-            doc.custom_over_time = doc.working_hours - custom_work_hrs
-        else:
-            doc.custom_over_time = 0 
-
-    # Late Entry Update Status Half Day
-    if doc.status == "Present":
-        first_day, last_day = get_first_day(nowdate()), get_last_day(nowdate())
-        late_marks_count = frappe.db.get_all(
-            "Attendance",
-            filters={
-                "employee": doc.employee,
-                "late_entry": 1,
-                "custom_late_mark_flag": 0,
-                "attendance_date": ["between", [first_day, last_day]],
-            },
-            fields=["name"]
-        )
-        # if len(late_marks_count) >= 4:
-        if len(late_marks_count) >= 3:
-            frappe.set_value("Attendance", doc.name, "status", "Half Day") 
-            # frappe.set_value("Attendance", doc.name, "half_day_status", "Present")
-            # frappe.set_value("Attendance", doc.name, "leave_type", "Allocated Leave")
-            frappe.set_value("Attendance", doc.name, "leave_type", "Leave Without Pay")
-            for att in late_marks_count:
-                frappe.set_value("Attendance", att["name"], "custom_late_mark_flag", 1)
-
-
-
-
- 
+    if late_in or early_out:
+        frappe.set_value("Attendance", doc.name, "custom_late_mark_flag", 1)

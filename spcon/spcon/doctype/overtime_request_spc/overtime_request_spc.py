@@ -69,7 +69,6 @@ class OvertimeRequestSPC(Document):
 						"total_leaves_allocated": new_total,
 					}
 				)
-
 			else:
 				new_doc = frappe.new_doc("Leave Allocation")
 				new_doc.employee = row.employee_id
