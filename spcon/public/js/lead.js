@@ -199,7 +199,7 @@ frappe.ui.form.on("Lead", {
 
                 dialog.show();
             });
-        }
+        }          
     },
     custom_segment(frm) {
         // Clear scope of work when segment changes
@@ -207,19 +207,19 @@ frappe.ui.form.on("Lead", {
     },
     // ===============17/01/2026========================
     custom_firm_name(frm){
-        frm.set_query('custom_contact_person_name', function () {
+        frm.set_query('custom_contact_person', function () {
             return {
                 filters: {
                     firm_name: frm.doc.custom_firm_name
                 }
             };
-        });
-        frm.set_value("custom_contact_person_name", null);
-    },
+        });       
+        frm.set_value("custom_contact_person", null);
+    }, 
     custom_add_contact_person(frm) {
-        frappe.db.get_doc("Contact Person SPC", frm.doc.custom_contact_person_name).then(contact_person => {
+        frappe.db.get_doc("Contact Person SPC", frm.doc.custom_contact_person).then(contact_person => {
              const is_duplicate = (
-                frm.doc.custom_architecture_contact_person_items?.some(r =>
+                frm.doc.custom_architecture_contact_person?.some(r =>
                     r.firm_name === contact_person.firm_name &&
                     r.contact_person === contact_person.name &&
                     r.designation === contact_person.designation &&
@@ -227,7 +227,7 @@ frappe.ui.form.on("Lead", {
                     r.mobile_no === contact_person.mobile_no
                 ) ||
 
-                frm.doc.custom_consultant_contact_person_items?.some(r =>
+                frm.doc.custom_consultant_contact_person?.some(r =>
                     r.firm_name === contact_person.firm_name &&
                     r.contact_person === contact_person.name &&
                     r.designation === contact_person.designation &&
@@ -235,7 +235,7 @@ frappe.ui.form.on("Lead", {
                     r.mobile_no === contact_person.mobile_no
                 ) ||
 
-                frm.doc.custom_contactor_contact_person_items?.some(r =>
+                frm.doc.custom_contactor_contact_person?.some(r =>
                     r.firm_name === contact_person.firm_name &&
                     r.contact_person === contact_person.name &&
                     r.designation === contact_person.designation &&
@@ -243,7 +243,7 @@ frappe.ui.form.on("Lead", {
                     r.mobile_no === contact_person.mobile_no
                 ) ||
 
-                frm.doc.custom_applicator_contact_person_items?.some(r =>
+                frm.doc.custom_applicator_contact_person?.some(r =>
                     r.firm_name === contact_person.firm_name &&
                     r.contact_person === contact_person.name &&
                     r.designation === contact_person.designation &&
@@ -259,40 +259,40 @@ frappe.ui.form.on("Lead", {
 
 
             if (contact_person.firm_type == "Architecture") {
-                let data = frm.add_child("custom_architecture_contact_person_items");
+                let data = frm.add_child("custom_architecture_contact_person");
                 data.firm_name = contact_person.firm_name;
                 data.contact_person = contact_person.name;
                 data.designation = contact_person.designation;
                 data.email = contact_person.email;
                 data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_architecture_contact_person_items");
+                frm.refresh_field("custom_architecture_contact_person");
             } else if (contact_person.firm_type == "Consultant") {
-                let data = frm.add_child("custom_consultant_contact_person_items");
+                let data = frm.add_child("custom_consultant_contact_person");
                 data.firm_name = contact_person.firm_name;
                 data.contact_person = contact_person.name;
                 data.designation = contact_person.designation;
                 data.email = contact_person.email;
                 data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_consultant_contact_person_items");
+                frm.refresh_field("custom_consultant_contact_person");
             } else if (contact_person.firm_type == "Contactor") {
-                let data = frm.add_child("custom_contactor_contact_person_items");
+                let data = frm.add_child("custom_contactor_contact_person");
                 data.firm_name = contact_person.firm_name;
                 data.contact_person = contact_person.name;
                 data.designation = contact_person.designation;
                 data.email = contact_person.email;
                 data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_contactor_contact_person_items");
+                frm.refresh_field("custom_contactor_contact_person");
             }else if (contact_person.firm_type == "Applicator") {
-                let data = frm.add_child("custom_applicator_contact_person_items");
+                let data = frm.add_child("custom_applicator_contact_person");
                 data.firm_name = contact_person.firm_name;
                 data.contact_person = contact_person.name;
                 data.designation = contact_person.designation;
                 data.email = contact_person.email;
                 data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_applicator_contact_person_items");
+                frm.refresh_field("custom_applicator_contact_person");
             }
         });
         frm.set_value("custom_firm_name", null);
-        frm.set_value("custom_contact_person_name", null);
+        frm.set_value("custom_contact_person", null);
     }
 });
