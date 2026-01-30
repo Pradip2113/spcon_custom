@@ -62,7 +62,8 @@ doctype_js = {
     "Employee Advance" : "public/js/custom_employee_advance.js",
     "Customer": "public/js/customer.js",
     "Lead": "public/js/lead.js",
-    "Sales Order": "public/js/sales_order.js"
+    "Sales Order": "public/js/sales_order.js",
+    "Attendance Request": "public/js/attendance_request.js",
 }
  
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -157,7 +158,7 @@ doctype_js = {
 override_doctype_class = {
 	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
     "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
-    "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary"
+    "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary",
 }
 
  
@@ -169,7 +170,9 @@ doc_events = {
         "before_save":"spcon.override.employee_checkin.geo_fencing"
     },
     "Attendance":{
+        # "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
         "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
+        "before_submit":"spcon.public.py.attendance.mark_attendance"
     },
     "Shift Type":{
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
@@ -193,7 +196,7 @@ doc_events = {
         "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
     },
     "Attendance Request": {
-        "before_save": "spcon.public.py.attendance_request.purpose_limit" 
+        "before_save": "spcon.public.py.attendance_request.purpose_limit"
     }
 } 
 # doc_events = {
@@ -300,4 +303,3 @@ doc_events = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
