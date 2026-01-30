@@ -19,7 +19,8 @@ def purpose_limit(doc,method=None):
             }
         )
 
-        if count >= 3:
+        if count >= 3: 
             frappe.throw(
                 "You can apply Attendance Request for <b>Personal Work</b> only <b>3 times</b> in a month."
             )
+
