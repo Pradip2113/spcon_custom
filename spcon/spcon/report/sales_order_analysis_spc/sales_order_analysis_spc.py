@@ -17,7 +17,7 @@ def execute(filters=None):
 
 	validate_filters(filters)
 
-	columns = get_columns(filters)
+	columns = get_columns(filters) 
 	conditions = get_conditions(filters)
 	data = get_data(conditions, filters)
 	so_elapsed_time = get_so_elapsed_time(data)
@@ -78,10 +78,13 @@ def get_data(conditions, filters):
 			(soi.base_amount - (soi.billed_amt * IFNULL(so.conversion_rate, 1))) as pending_amount,
 			soi.warehouse as warehouse,
 			so.company, soi.name,
-			soi.description as description
+			soi.description as description,
+			IFNULL(bin.actual_qty, 0) as actual_stock
 		FROM
 			`tabSales Order` so,
 			`tabSales Order Item` soi
+		LEFT JOIN `tabBin` bin
+			ON bin.item_code = soi.item_code AND bin.warehouse = soi.warehouse
 		LEFT JOIN `tabSales Invoice Item` sii
 			ON sii.so_detail = soi.name and sii.docstatus = 1
 		WHERE
@@ -184,7 +187,7 @@ def prepare_data(data, so_elapsed_time, filters):
 					"delivered_qty",
 					"pending_qty",
 					"billed_qty",
-					"qty_to_bill",
+					"qty_to_bill", 	
 					"amount",
 					"delivered_qty_amount",
 					"billed_amount",
@@ -246,6 +249,15 @@ def get_columns(filters):
 		)
 		columns.append(
 			{"label": _("Description"), "fieldname": "description", "fieldtype": "Small Text", "width": 100}
+		)
+		columns.append(
+			{
+				"label": _("Actual Stock"),
+				"fieldname": "actual_stock",
+				"fieldtype": "Float",
+				"width": 100,
+				"convertible": "qty",
+			}
 		)
 
 	columns.extend(

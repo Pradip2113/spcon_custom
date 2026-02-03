@@ -6,7 +6,8 @@ def set_leave_type_absent(doc,method):
     if leave_without_pay==1 and doc.half_day == 0:
         attendance = frappe.get_all("Attendance", {"leave_application": doc.name}, pluck="name")
         # frappe.throw(str(attendance))
-        for att in attendance: 
+        for att in attendance:
+            # pass 
             frappe.set_value("Attendance", att, "status", "Absent")
 
     # if leave_without_pay==1 and doc.half_day == 1:

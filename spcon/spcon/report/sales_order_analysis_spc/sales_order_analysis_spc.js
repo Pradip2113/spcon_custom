@@ -14,7 +14,7 @@ frappe.query_reports["Sales Order Analysis SPC"] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Company"),
+			label: __("Company"), 
 			fieldtype: "Link",
 			width: "80", 
 			options: "Company",
