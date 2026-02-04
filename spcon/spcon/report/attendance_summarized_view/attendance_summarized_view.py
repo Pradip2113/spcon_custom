@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import get_first_day, get_last_day
+from frappe.utils import add_days, get_first_day, get_last_day, getdate
 
 
 def execute(filters=None):
@@ -46,17 +46,29 @@ def get_data(filters):
 			employee_list = frappe.get_all(
 				"Employee",
 				{"name": employee},
-				["name", "employee_name", "holiday_list"],
+				["name", "employee_name"],
 			)
 		else:
+			employee_filters = {"status": "Active"}
+			if company:
+				employee_filters["company"] = company
+
 			employee_list = frappe.get_all(
 				"Employee",
-				{"status": "Active"},
-				["name", "employee_name", "holiday_list"],
+				employee_filters,
+				["name", "employee_name"],
 			)
 
 		month_start_date = get_first_day(f"{month} {year}")
 		month_end_date = get_last_day(f"{month} {year}")
+		sunday_dates = []
+		current_date = getdate(month_start_date)
+		last_date = getdate(month_end_date)
+		while current_date <= last_date:
+			if current_date.weekday() == 6:
+				sunday_dates.append(current_date)
+			current_date = add_days(current_date, 1)
+
 		leave_types = frappe.get_all("Leave Type",pluck="name")
 		for e in employee_list:
 			data_dict = {
@@ -71,21 +83,17 @@ def get_data(filters):
 
 			}
 
-			if e.holiday_list:
-				data_dict["weekly_off"] = (
-					frappe.get_all(
-						"Holiday",
-						{
-							"parent": e.holiday_list,
-							"holiday_date": [
-								"between",
-								[month_start_date, month_end_date],
-							],
-						},
-						"count(name) as cnt",
-					)[0].get("cnt")
-					or 0
+			if sunday_dates:
+				present_on_sunday = frappe.db.count(
+					"Attendance",
+					{
+						"employee": e.name,
+						"status": "Present",
+						"docstatus": 1,
+						"attendance_date": ["in", sunday_dates],
+					},
 				)
+				data_dict["weekly_off"] = max(len(sunday_dates) - present_on_sunday, 0)
 
 			for l in leave_types:
 				data_dict[f"total_{l.lower().replace(' ', '_')}"] = frappe.get_all("Attendance",{"employee":e.name,"status":"On Leave","leave_type":l,"docstatus":1,"attendance_date":["between",[month_start_date,month_end_date]]},"count(name) as cnt")[0].get("cnt")

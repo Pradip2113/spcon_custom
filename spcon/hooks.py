@@ -169,11 +169,11 @@ doc_events = {
     "Employee Checkin":{
         "before_save":"spcon.override.employee_checkin.geo_fencing"
     },
-    "Attendance":{
-        # "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
-        "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
-        "before_submit":"spcon.public.py.attendance.mark_attendance"
-    },
+    # "Attendance":{
+    #     # "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
+    #     "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
+    #     "before_submit":"spcon.public.py.attendance.mark_attendance"
+    # },
     "Shift Type":{
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
     },
@@ -186,18 +186,18 @@ doc_events = {
     "Material Request": {
         "before_cancel": "spcon.public.py.material_request.get_data"
     },
-    "Leave Application": {
-        "on_submit": "spcon.public.py.leave_application.set_leave_type_absent"
-    },
+    # "Leave Application": {
+    #     "on_submit": "spcon.public.py.leave_application.set_leave_type_absent"
+    # },
     "Expense Claim": {
         "on_submit": "spcon.public.py.employee_advance.get_outstanding"
     },
     "Purchase Order": {
         "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
     },
-    "Attendance Request": {
-        "before_save": "spcon.public.py.attendance_request.purpose_limit"
-    }
+    # "Attendance Request": {
+    #     "before_save": "spcon.public.py.attendance_request.purpose_limit"
+    # }
 } 
 # doc_events = {
 # 	"*": {
