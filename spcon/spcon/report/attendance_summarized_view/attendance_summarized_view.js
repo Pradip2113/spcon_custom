@@ -17,7 +17,7 @@ frappe.query_reports["Attendance Summarized View"] = {
 		"fieldtype": "Select",
 		"options": ["2024","2025","2026"],
 		"default":"2025",
-		"width": 150,
+		"width": 150, 
 		"reqd": 1
 	},
 	{

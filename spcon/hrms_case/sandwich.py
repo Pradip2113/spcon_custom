@@ -80,69 +80,70 @@ def _get_late_days_upto(employee, month_start, att_date):
     return sorted(set(late_days))
 @frappe.whitelist()
 def apply_sandwich_rule_on_attendance_save(doc, method=None):
-    emp = doc.employee
-    att_date = getdate(doc.attendance_date)
+    if not doc.leave_application:
+        emp = doc.employee
+        att_date = getdate(doc.attendance_date)
 
-    # ⛔ Skip Sunday
-    if att_date.weekday() == 6:
-        return
+        # ⛔ Skip Sunday
+        if att_date.weekday() == 6:
+            return
 
-    # Month start
-    start_date = get_first_day(att_date)
+        # Month start
+        start_date = get_first_day(att_date)
 
-    late_days = _get_late_days_upto(emp, start_date, att_date)
+        late_days = _get_late_days_upto(emp, start_date, att_date)
 
-    if att_date not in late_days:
-        return
+        if att_date not in late_days:
+            return
 
-    count = late_days.index(att_date) + 1
+        count = late_days.index(att_date) + 1
 
-    # 4️⃣ Apply rule
-    if count <= 3:
-        # Ensure standard rules don't force half day for the first 3 occurrences
-        if doc.status == "Half Day":
-            doc.status = "Present"
-            if doc.meta.has_field("half_day_status"):
-                doc.half_day_status = None
-            if doc.meta.has_field("half_day_date"):
-                doc.half_day_date = None
-            if doc.meta.has_field("half_day"):
-                doc.half_day = 0
-            if doc.meta.has_field("leave_type"):
-                doc.leave_type = None
-
-            if doc.docstatus == 1:
-                updates = {"status": doc.status}
+        # 4️⃣ Apply rule
+        if count <= 3:
+            # Ensure standard rules don't force half day for the first 3 occurrences
+            if doc.status == "Half Day":
+                doc.status = "Present"
                 if doc.meta.has_field("half_day_status"):
-                    updates["half_day_status"] = doc.half_day_status
+                    doc.half_day_status = None
                 if doc.meta.has_field("half_day_date"):
-                    updates["half_day_date"] = doc.half_day_date
+                    doc.half_day_date = None
                 if doc.meta.has_field("half_day"):
-                    updates["half_day"] = doc.half_day
+                    doc.half_day = 0
                 if doc.meta.has_field("leave_type"):
-                    updates["leave_type"] = doc.leave_type
-                frappe.db.set_value("Attendance", doc.name, updates)
-        return
+                    doc.leave_type = None
 
-    doc.status = "Half Day"
-    if doc.meta.has_field("half_day_status"):
-        doc.half_day_status = "Absent"
-    doc.leave_type = "Leave Without Pay"
-    if doc.meta.has_field("half_day_date"):
-        doc.half_day_date = att_date
-    if doc.meta.has_field("half_day"):
-        doc.half_day = 1
+                if doc.docstatus == 1:
+                    updates = {"status": doc.status}
+                    if doc.meta.has_field("half_day_status"):
+                        updates["half_day_status"] = doc.half_day_status
+                    if doc.meta.has_field("half_day_date"):
+                        updates["half_day_date"] = doc.half_day_date
+                    if doc.meta.has_field("half_day"):
+                        updates["half_day"] = doc.half_day
+                    if doc.meta.has_field("leave_type"):
+                        updates["leave_type"] = doc.leave_type
+                    frappe.db.set_value("Attendance", doc.name, updates)
+            return
 
-    if doc.docstatus == 1:
-        updates = {
-            "status": doc.status,
-            "leave_type": doc.leave_type,
-        }
+        doc.status = "Half Day"
         if doc.meta.has_field("half_day_status"):
-            updates["half_day_status"] = doc.half_day_status
+            doc.half_day_status = "Absent"
+        doc.leave_type = "Leave Without Pay"
         if doc.meta.has_field("half_day_date"):
-            updates["half_day_date"] = doc.half_day_date
+            doc.half_day_date = att_date
         if doc.meta.has_field("half_day"):
-            updates["half_day"] = doc.half_day
+            doc.half_day = 1
 
-        frappe.db.set_value("Attendance", doc.name, updates)
+        if doc.docstatus == 1:
+            updates = {
+                "status": doc.status,
+                "leave_type": doc.leave_type,
+            }
+            if doc.meta.has_field("half_day_status"):
+                updates["half_day_status"] = doc.half_day_status
+            if doc.meta.has_field("half_day_date"):
+                updates["half_day_date"] = doc.half_day_date
+            if doc.meta.has_field("half_day"):
+                updates["half_day"] = doc.half_day
+
+            frappe.db.set_value("Attendance", doc.name, updates)
