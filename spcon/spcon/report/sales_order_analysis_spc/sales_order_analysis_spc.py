@@ -79,7 +79,8 @@ def get_data(conditions, filters):
 			soi.warehouse as warehouse,
 			so.company, soi.name,
 			soi.description as description,
-			IFNULL(bin.actual_qty, 0) as actual_stock
+			IFNULL(bin.actual_qty, 0) as actual_stock,
+			so.po_no as customer_order_number
 		FROM
 			`tabSales Order` so,
 			`tabSales Order Item` soi
@@ -120,7 +121,7 @@ def get_so_elapsed_time(data):
 			qb.from_(so)
 			.inner_join(soi)
 			.on(soi.parent == so.name)
-			.left_join(dni)
+			.left_join(dni) 
 			.on(dni.so_detail == soi.name)
 			.left_join(dn)
 			.on(dni.parent == dn.name)
@@ -228,14 +229,15 @@ def get_columns(filters):
 			"width": 160,
 		},
 		{"label": _("Status"), "fieldname": "status", "fieldtype": "Data", "width": 130},
+		{"label": _("Customer Order Number"), "fieldname": "customer_order_number", "fieldtype": "Data", "width": 130},
 		{
 			"label": _("Customer"),
 			"fieldname": "customer",
 			"fieldtype": "Link",
 			"options": "Customer",
-			"width": 130,
+			"width": 130, 
 		},
-	]
+	] 
 
 	if not filters.get("group_by_so"):
 		columns.append(
@@ -258,12 +260,12 @@ def get_columns(filters):
 				"width": 100,
 				"convertible": "qty",
 			}
-		)
+		) 
 
 	columns.extend(
 		[
 			{
-				"label": _("Qty"),
+				"label": _("Qty"), 
 				"fieldname": "qty",
 				"fieldtype": "Float",
 				"width": 120,

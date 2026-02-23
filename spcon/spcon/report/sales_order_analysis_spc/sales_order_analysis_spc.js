@@ -9,11 +9,11 @@
 
 // Copyright (c) 2016, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
-
+ 
 frappe.query_reports["Sales Order Analysis SPC"] = {
 	filters: [
 		{
-			fieldname: "company",
+			fieldname: "company", 
 			label: __("Company"), 
 			fieldtype: "Link",
 			width: "80", 
