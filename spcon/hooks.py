@@ -31,7 +31,7 @@ app_include_js = [
     "/assets/spcon/js/hide_item_name.js",
     "/assets/spcon/js/hide_item_name_doctype.js"
 ] 
-  
+
 # include js, css files in header of web template
 # web_include_css = "/assets/spcon/css/spcon.css" 
 # web_include_js = "/assets/spcon/js/spcon.js"
