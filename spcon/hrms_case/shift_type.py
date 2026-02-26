@@ -1,5 +1,5 @@
 import frappe
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def work_hrs_cal(doc, method):
     if doc.start_time and doc.end_time:
