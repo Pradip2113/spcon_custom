@@ -2,6 +2,11 @@ import frappe
 from frappe.utils import getdate
 
 def hrs_ot(doc, method):
+    set_present_days_from_monthly_attendance_sheet(doc, method)
+    set_paid_holidays_from_spc_holidays(doc, method)
+    set_leave_application(doc, method)
+    set_weekly_off_spc_from_employee_holiday_list(doc, method)
+
     month_start_date = getdate(doc.start_date)
 
     # Fetch the relevant Monthly Overtime records
@@ -16,25 +21,207 @@ def hrs_ot(doc, method):
     )
 
     if not overtime_records:
+        doc.custom_ot = "0"
+        doc.custom_ot_hrs = 0
         frappe.msgprint(f"No Monthly Overtime record found for Employee {doc.employee} on {month_start_date}.")
         return
-    
 
-    # Fetch overtime pay for the employee from the child table
-    overtime_pay = sum(
-        child.get("overtime_pay", 0)
-        for record in overtime_records
-        for child in frappe.get_all(
-            "Monthly OT Item",  # Replace with correct child table name
-            filters={"parent": record["name"], "employee": doc.employee},
-            fields=["overtime_pay"]
-        )
-    )
+    # Fetch overtime pay by looping `item_ot` child table on Monthly Overtime.
+    overtime_pay = 0
+    for record in overtime_records:
+        monthly_ot_doc = frappe.get_doc("Monthly Overtime", record["name"])
+        for row in monthly_ot_doc.get("item_ot", []):
+            if row.get("employee") == doc.employee:
+                overtime_pay += float(row.get("overtime_pay") or 0)
+
+    doc.custom_ot = str(overtime_pay or 0)
 
     if overtime_pay <= 0:
+        doc.custom_ot_hrs = 0
         frappe.msgprint(f"No valid overtime pay found for Employee {doc.employee} on {month_start_date}.Ot Hrs - {overtime_pay}")
         return
+
     doc.custom_ot_hrs = overtime_pay
+
+
+
+
+def salary_slip_before_insert(doc, method):
+    # Backward-compatible alias for any cached hook path.
+    hrs_ot(doc, method)
+
+
+def set_paid_holidays_from_spc_holidays(doc, method=None):
+    if not doc.employee:
+        return
+
+    employee_doc = frappe.get_doc("Employee", doc.employee)
+    spc_holidays_name = employee_doc.get("custom_spc_holidays")
+    if not spc_holidays_name:
+        doc.custom_paid_holidays = "0"
+        return
+
+    spc_holidays_doc = frappe.get_doc("SPC Holidays", spc_holidays_name)
+    holiday_count = 0
+    for _row in spc_holidays_doc.get("spc_holiday_item", []):
+        holiday_count += 1  
+
+    doc.custom_paid_holidays = str(holiday_count)
+
+def set_leave_application(doc, method=None):
+    if not doc.employee:
+        doc.custom_paid_holidays = "0"
+        doc.custom_co = "0"
+        return
+
+    reference_date = getdate(doc.start_date) if doc.start_date else getdate()
+    month_start = frappe.utils.get_first_day(reference_date)
+    month_end = frappe.utils.get_last_day(reference_date)
+
+    base_filters = {
+        "employee": doc.employee,
+        "docstatus": 1,
+        "from_date": ["<=", month_end],
+        "to_date": [">=", month_start],
+    }
+
+    allocated_leaves = frappe.get_all(
+        "Leave Application",
+        filters={**base_filters, "leave_type": "Allocated Leave"},
+        fields=["total_leave_days"],
+    )
+    compensatory_off_leaves = frappe.get_all(
+        "Leave Application",
+        filters={**base_filters, "leave_type": "Compensatory Off"},
+        fields=["total_leave_days"],
+    )
+
+    allocated_leave_days = sum((row.get("total_leave_days") or 0) for row in allocated_leaves)
+    compensatory_off_days = sum((row.get("total_leave_days") or 0) for row in compensatory_off_leaves)
+
+    doc.custom_leave_spc = str(allocated_leave_days or 0)
+    doc.custom_co = str(compensatory_off_days or 0)
+
+
+def set_weekly_off_spc_from_employee_holiday_list(doc, method=None):
+    if not doc.employee:
+        doc.custom_weekly_off_spc = "0"
+        return
+
+    employee_doc = frappe.get_doc("Employee", doc.employee)
+    holiday_list_name = employee_doc.get("holiday_list")
+    if not holiday_list_name:
+        doc.custom_weekly_off_spc = "0"
+        return
+
+    reference_date = getdate(doc.start_date) if doc.start_date else getdate()
+    month_start = frappe.utils.get_first_day(reference_date)
+    month_end = frappe.utils.get_last_day(reference_date)
+
+    holiday_list_doc = frappe.get_doc("Holiday List", holiday_list_name)
+    weekly_off_count = 0
+
+    for row in holiday_list_doc.get("holidays", []):
+        holiday_date = row.get("holiday_date")
+        if not holiday_date:
+            continue
+
+        holiday_date = getdate(holiday_date)
+        if month_start <= holiday_date <= month_end and row.get("weekly_off"):
+            weekly_off_count += 1
+
+    doc.custom_weekly_off_spc = str(weekly_off_count)
+
+def set_present_days_from_monthly_attendance_sheet(doc, method):
+    total_present = _get_total_present_from_monthly_attendance_sheet(doc)
+    if total_present is None:
+        return
+
+    doc.custom_presents_days_spc = str(total_present)
+
+
+def _get_total_present_from_monthly_attendance_sheet(doc):
+    from frappe.desk.query_report import run
+
+    filter_sets = [
+        {
+            "filter_based_on": "Date Range",
+            "start_date": doc.start_date,
+            "end_date": doc.end_date,
+            "employee": doc.employee,
+            "company": doc.company,
+            "summarized_view": 1,
+        },
+        {
+            "filter_based_on": "Month",
+            "month": getdate(doc.start_date).month,
+            "year": getdate(doc.start_date).year,
+            "employee": doc.employee,
+            "company": doc.company,
+            "summarized_view": 1,
+        },
+    ]
+
+    for filters in filter_sets:
+        try:
+            report_output = run(
+                "Monthly Attendance Sheet",
+                filters=filters,
+                ignore_prepared_report=True,
+            )
+        except Exception:
+            continue
+
+        value = _extract_total_present(report_output, doc.employee)
+        if value is not None:
+            return value
+
+    return None
+
+
+def _extract_total_present(report_output, employee):
+    if not report_output:
+        return None
+
+    columns = report_output.get("columns") or []
+    rows = report_output.get("result") or report_output.get("data") or []
+
+    def normalize(txt):
+        return (txt or "").strip().lower().replace(" ", "_")
+
+    present_keys = {"total_present", "present", "total_presents", "present_days"}
+    employee_keys = {"employee", "employee_id"}
+
+    def col_key(col):
+        if isinstance(col, dict):
+            return normalize(col.get("fieldname") or col.get("label"))
+        return normalize(str(col))
+
+    col_keys = [col_key(col) for col in columns]
+    present_idx = next((i for i, key in enumerate(col_keys) if key in present_keys), None)
+    employee_idx = next((i for i, key in enumerate(col_keys) if key in employee_keys), None)
+
+    for row in rows:
+        row_employee = None
+        total_present = None
+
+        if isinstance(row, dict):
+            normalized = {normalize(k): v for k, v in row.items()}
+            total_present = next((normalized.get(k) for k in present_keys if k in normalized), None)
+            row_employee = next((normalized.get(k) for k in employee_keys if k in normalized), None)
+        elif isinstance(row, (list, tuple)):
+            if present_idx is not None and len(row) > present_idx:
+                total_present = row[present_idx]
+            if employee_idx is not None and len(row) > employee_idx:
+                row_employee = row[employee_idx]
+
+        if row_employee and row_employee != employee:
+            continue
+
+        if total_present is not None and str(total_present).strip():
+            return total_present
+
+    return None
 
 
 #     # Add or update the Overtime component in the earnings table
@@ -179,5 +366,3 @@ class CustomSalarySlip(SalarySlip):
                     ),
                     alert=True,
                 )
-
-    
