@@ -15,4 +15,4 @@ def work_hrs_cal(doc, method):
 
         # Calculate hours
         hours = (end_delta - start_delta).total_seconds() / 3600
-        doc.custom_working_hrs = hours
+        doc.custom_working_hrs = hours   
