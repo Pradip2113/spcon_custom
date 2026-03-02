@@ -215,6 +215,7 @@ def set_weekly_off_spc_from_employee_holiday_list(doc, method=None):
 
     holiday_list_doc = frappe.get_doc("Holiday List", holiday_list_name)
     weekly_off_count = 0
+    weekly_off_dates = set()
 
     for row in holiday_list_doc.get("holidays", []):
         holiday_date = row.get("holiday_date")
@@ -224,8 +225,25 @@ def set_weekly_off_spc_from_employee_holiday_list(doc, method=None):
         holiday_date = getdate(holiday_date)
         if month_start <= holiday_date <= month_end and row.get("weekly_off"):
             weekly_off_count += 1
+            weekly_off_dates.add(holiday_date)
 
-    doc.custom_weekly_off_spc = str(weekly_off_count)
+    present_on_weekly_off_count = 0
+    if weekly_off_dates:
+        present_attendance = frappe.get_all(
+            "Attendance",
+            filters={
+                "employee": doc.employee,
+                "docstatus": 1,
+                "status": "Present",
+                "attendance_date": ["between", [month_start, month_end]],
+            },
+            fields=["attendance_date"],
+        )
+        present_dates = {getdate(row.get("attendance_date")) for row in present_attendance if row.get("attendance_date")}
+        present_on_weekly_off_count = len(weekly_off_dates.intersection(present_dates))
+
+    adjusted_weekly_off_count = max(weekly_off_count - present_on_weekly_off_count, 0)
+    doc.custom_weekly_off_spc = str(adjusted_weekly_off_count)
 
 def set_present_days_from_monthly_attendance_sheet(doc, method):
     total_present = _get_total_present_from_monthly_attendance_sheet(doc)
