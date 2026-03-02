@@ -5,6 +5,7 @@ def hrs_ot(doc, method):
     set_present_days_from_monthly_attendance_sheet(doc, method)
     set_paid_holidays_from_spc_holidays(doc, method)
     set_leave_application(doc, method)
+    set_leaveco_balance_from_employee_leave_balance(doc, method)
     set_weekly_off_spc_from_employee_holiday_list(doc, method)
 
     month_start_date = getdate(doc.start_date)
@@ -61,10 +62,20 @@ def set_paid_holidays_from_spc_holidays(doc, method=None):
         doc.custom_paid_holidays = "0"
         return
 
+    reference_date = getdate(doc.start_date) if doc.start_date else getdate()
+    month_start = frappe.utils.get_first_day(reference_date)
+    month_end = frappe.utils.get_last_day(reference_date)
+
     spc_holidays_doc = frappe.get_doc("SPC Holidays", spc_holidays_name)
     holiday_count = 0
-    for _row in spc_holidays_doc.get("spc_holiday_item", []):
-        holiday_count += 1  
+    for row in spc_holidays_doc.get("spc_holiday_item", []):
+        holiday_date = row.get("date")
+        if not holiday_date:
+            continue
+
+        holiday_date = getdate(holiday_date)
+        if month_start <= holiday_date <= month_end:
+            holiday_count += 1
 
     doc.custom_paid_holidays = str(holiday_count)
 
@@ -101,6 +112,90 @@ def set_leave_application(doc, method=None):
 
     doc.custom_leave_spc = str(allocated_leave_days or 0)
     doc.custom_co = str(compensatory_off_days or 0)
+
+def set_leaveco_balance_from_employee_leave_balance(doc, method=None):
+    if not doc.employee:
+        doc.custom_leaveco_balance = "0 / 0"
+        return
+
+    from hrms.hr.report.employee_leave_balance.employee_leave_balance import execute as leave_balance_execute
+
+    reference_date = getdate(doc.start_date) if doc.start_date else getdate()
+    month_end_reference = getdate(doc.end_date) if doc.end_date else reference_date
+    from_date = frappe.utils.get_first_day(month_end_reference)
+    to_date = frappe.utils.get_last_day(month_end_reference)
+    if getdate(from_date) >= getdate(to_date):
+        to_date = frappe.utils.add_days(from_date, 1)
+
+    filters = frappe._dict({
+        "from_date": from_date,
+        "to_date": to_date,
+        "company": doc.company,
+        "employee": doc.employee,
+        "consolidate_leave_types": 0,
+    })
+
+    try:
+        columns, rows = leave_balance_execute(filters=filters)[:2]
+    except Exception:
+        from frappe.desk.query_report import run
+
+        try:
+            report_output = run(
+                "Employee Leave Balance",
+                filters=filters,
+                ignore_prepared_report=True,
+            )
+        except Exception:
+            doc.custom_leaveco_balance = "0 / 0"
+            return
+
+        rows = report_output.get("result") or report_output.get("data") or []
+        columns = report_output.get("columns") or []
+
+    allocated_leave_balance = 0
+    compensatory_off_balance = 0
+
+    def normalize(txt):
+        return (txt or "").strip().lower().replace(" ", "_")
+
+    def col_key(col):
+        if isinstance(col, dict):
+            return normalize(col.get("fieldname") or col.get("label"))
+        return normalize(str(col))
+
+    col_keys = [col_key(col) for col in columns]
+    leave_type_idx = next((i for i, key in enumerate(col_keys) if key == "leave_type"), None)
+    employee_idx = next((i for i, key in enumerate(col_keys) if key == "employee"), None)
+    closing_balance_idx = next((i for i, key in enumerate(col_keys) if key == "closing_balance"), None)
+
+    for row in rows:
+        row_employee = None
+        leave_type = ""
+        closing_balance = 0
+
+        if isinstance(row, dict):
+            row_employee = row.get("employee")
+            leave_type = (row.get("leave_type") or "").strip().lower()
+            closing_balance = row.get("closing_balance") or 0
+        elif isinstance(row, (list, tuple)):
+            if employee_idx is not None and len(row) > employee_idx:
+                row_employee = row[employee_idx]
+            if leave_type_idx is not None and len(row) > leave_type_idx:
+                leave_type = str(row[leave_type_idx] or "").strip().lower()
+            if closing_balance_idx is not None and len(row) > closing_balance_idx:
+                closing_balance = row[closing_balance_idx] or 0
+
+        if row_employee != doc.employee:
+            continue
+
+        normalized_leave_type = leave_type.replace("_", " ")
+        if normalized_leave_type == "allocated leave" or normalized_leave_type.startswith("allocated"):
+            allocated_leave_balance = closing_balance
+        elif normalized_leave_type == "compensatory off" or normalized_leave_type.startswith("compensatory off"):
+            compensatory_off_balance = closing_balance
+
+    doc.custom_leaveco_balance = f"{allocated_leave_balance} / {compensatory_off_balance}"
 
 
 def set_weekly_off_spc_from_employee_holiday_list(doc, method=None):
