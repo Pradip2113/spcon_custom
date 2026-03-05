@@ -64,6 +64,7 @@ doctype_js = {
     "Lead": "public/js/lead.js",
     "Sales Order": "public/js/sales_order.js",
     "Attendance Request": "public/js/attendance_request.js",
+    "BOM": "public/js/bom.js"
 }
  
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -197,6 +198,14 @@ doc_events = {
     },
     "Attendance Request": {
         "before_save": "spcon.public.py.attendance_request.purpose_limit"
+    },
+    "Sales Order": {
+        "before_validate": "spcon.public.py.sales_order.set_valid_delivery_dates",
+        "before_save": "spcon.public.py.sales_order.set_items_created_date",
+        "on_update_after_submit": "spcon.public.py.sales_order.set_update_date"
+    },
+    "Sales Invoice": {
+        "before_save": "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save"
     }
 } 
 # doc_events = {
