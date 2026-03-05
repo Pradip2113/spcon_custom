@@ -15,7 +15,7 @@ def get_employee_day_salary(employee):
             "start_date",
             "end_date",
             "posting_date",
-            "net_pay",
+            "net_pay", 
         ],
         order_by="end_date desc, posting_date desc",
         limit=1,

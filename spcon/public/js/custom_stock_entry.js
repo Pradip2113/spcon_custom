@@ -28,7 +28,7 @@ frappe.ui.form.on('Landed Cost Taxes and Charges', {
         
         frappe.model.set_value(cdt, cdn, "description", row.expense_account);
 
-        frappe.model.set_value(cdt, cdn, "custom_readings", "");
+        frappe.model.set_value(cdt, cdn, "custom_readings", ""); 
 
         if (row.expense_account == "Manpower Exps. - SPC") {
             // row.amount == frm.doc.custom_employee_day_salary
