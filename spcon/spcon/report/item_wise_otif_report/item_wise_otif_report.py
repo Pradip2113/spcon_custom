@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.utils import date_diff, getdate
 
 
 def execute(filters=None):
@@ -48,7 +49,7 @@ def get_columns():
 		{ 
 			"label": "Sales Order Qty",
 			"fieldname": "qty",
-			"fieldtype": "float",
+			"fieldtype": "float",   
 			"width": 100
 		},
 		# { 
@@ -69,19 +70,24 @@ def get_columns():
 			"fieldtype": "Date",
 			"width": 100
 		},
-		# { 
-		# 	"label": "Delay Days",
-		# 	"fieldname": "data",
-		# 	"fieldtype": "",
-		# 	"width": 100
-		# },
-		# { 
-		# 	"label": "On Time",
-		# 	"fieldname": "",
-		# 	"fieldtype": "Select",
-		# 	"options": ["Yes", "No"]
-		# 	"width": 100
-		# },
+		{ 
+			"label": "Sales Invoice Date",
+			"fieldname": "sales_invoice_date",
+			"fieldtype": "Date",
+			"width": 120
+		},
+		{ 
+			"label": "Delay Days",
+			"fieldname": "delay_days",
+			"fieldtype": "Int",
+			"width": 100
+		},
+		{ 
+			"label": "On Time",
+			"fieldname": "on_time",
+			"fieldtype": "Data",
+			"width": 100
+		},
 		# { 
 		# 	"label": "In Full",
 		# 	"fieldname": "",
@@ -92,7 +98,7 @@ def get_columns():
 		{ 
 			"label": "Failure Reason",
 			"fieldname": "custom_otif_reason",
-			"fieldtype": "Date",
+			"fieldtype": "Data",
 			"width": 100
 		},
 		# { 
@@ -137,18 +143,45 @@ def get_data(filters):
 			soi.item_name,
 			soi.qty,
 			soi.delivery_date,
-			soi.custom_actual_dispatch_date
+			soi.custom_actual_dispatch_date,
+			soi.custom_otif_reason,
+			MAX(si.posting_date) AS sales_invoice_date
 		FROM `tabSales Order` so
 		LEFT JOIN `tabSales Order Item` soi
 			ON so.name = soi.parent
+		LEFT JOIN `tabSales Invoice Item` sii
+			ON sii.sales_order = so.name
+			AND sii.so_detail = soi.name
+		LEFT JOIN `tabSales Invoice` si
+			ON si.name = sii.parent
+			AND si.docstatus = 1
 		WHERE so.docstatus = 1
 		{condition_sql}
+		GROUP BY
+			so.name,
+			so.customer,
+			so.status,
+			so.transaction_date,
+			soi.name,
+			soi.item_code,
+			soi.item_name,
+			soi.qty,
+			soi.delivery_date,
+			soi.custom_actual_dispatch_date,
+			soi.custom_otif_reason
 		ORDER BY so.transaction_date DESC
 	"""
 
 	all_data = frappe.db.sql(query, values, as_dict=True)
 
 	for row in all_data:
+		sales_order_date = getdate(row.transaction_date) if row.transaction_date else None
+		sales_invoice_date = getdate(row.sales_invoice_date) if row.sales_invoice_date else None
+		delivery_date = getdate(row.delivery_date) if row.delivery_date else None
+
+		delay_days = date_diff(sales_invoice_date, sales_order_date) if sales_order_date and sales_invoice_date else None
+		on_time = "Yes" if delivery_date and sales_invoice_date and delivery_date == sales_invoice_date else "No"
+
 		data.append({
 			"name": row.name,
 			"customer": row.customer,
@@ -157,7 +190,11 @@ def get_data(filters):
 			"status": row.status,
 			"qty": row.qty,
 			"dispatch_date": row.delivery_date,
-			"actual_dispatch_date": row.custom_actual_dispatch_date
+			"actual_dispatch_date": row.custom_actual_dispatch_date,
+			"sales_invoice_date": row.sales_invoice_date,
+			"delay_days": delay_days,
+			"on_time": on_time,
+			"custom_otif_reason": row.custom_otif_reason or ""
 		})
 
 	return data
@@ -173,7 +210,7 @@ def get_data(filters):
 		
 # 	if filters.get("to_date"):
 # 		conditions += " AND so.transaction_date <= %(to_date)s"
-
+ 
 # 	# all_data = frappe.get_all("Sales Order", ["name", "customer"])
 # 	all_data = frappe.db.sql("""
 # 		SELECT
