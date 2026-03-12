@@ -1,5 +1,4 @@
 
-
 import frappe
 from frappe.utils import getdate, add_days
 from frappe.utils import get_first_day, get_last_day, nowdate
@@ -16,7 +15,7 @@ from frappe.utils import flt
 #         if doc.working_hours > custom_work_hrs:
 #             doc.custom_over_time = doc.working_hours - custom_work_hrs
 #         else:
-#             doc.custom_over_time = 0 
+#             doc.custom_over_time = 0
 
 #     # Late Entry Update Status Half Day
 #     if doc.status == "Present":
@@ -33,7 +32,7 @@ from frappe.utils import flt
 #         )co
 #         # if len(late_marks_count) >= 4:
 #         if len(late_marks_count) >= 3:
-#             frappe.set_value("Attendance", doc.name, "status", "Half Day") 
+#             frappe.set_value("Attendance", doc.name, "status", "Half Day")
 #             # frappe.set_value("Attendance", doc.name, "half_day_status", "Present")
 #             # frappe.set_value("Attendance", doc.name, "leave_type", "Allocated Leave")
 #             frappe.set_value("Attendance", doc.name, "leave_type", "Leave Without Pay")
@@ -56,6 +55,7 @@ def _get_late_days_upto(employee, month_start, att_date):
         """
         select
             date(`time`) as day,
+            max(nullif(shift, '')) as shift,
             min(case when log_type='IN' then `time` end) as first_in,
             max(case when log_type='OUT' then `time` end) as last_out
         from `tabEmployee Checkin`
@@ -67,10 +67,27 @@ def _get_late_days_upto(employee, month_start, att_date):
     )
 
     late_days = []
+    neglect_shift_cache = {}
     for row in rows:
         day = getdate(row.day)
         if day.weekday() == 6:
             continue
+
+        shift = row.get("shift")
+        if shift not in neglect_shift_cache:
+            neglect_shift_cache[shift] = bool(
+                shift
+                and frappe.get_value(
+                    "Shift Type",
+                    shift,
+                    "custom_neglect_late_entry_for_half_day_condition",
+                )
+            )
+
+        # If enabled on Shift Type, don't count this day for half-day due to late/early
+        if neglect_shift_cache.get(shift):
+            continue
+
         in_time = get_time(row.first_in) if row.first_in else None
         out_time = get_time(row.last_out) if row.last_out else None
         late = in_time is not None and in_time > LATE_IN_TIME
