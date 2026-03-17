@@ -145,6 +145,9 @@ doctype_js = {
 # 	# "Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 #     "Lead": "spcon.public.py.permissions.get_permission_query_conditions",
 # }
+permission_query_conditions = {
+    "*": "spcon.permissions.permissions.get_company_condition"
+}
 
 
 
