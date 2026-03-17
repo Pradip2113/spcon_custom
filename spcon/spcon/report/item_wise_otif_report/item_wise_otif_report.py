@@ -48,10 +48,17 @@ def get_columns():
 		},
 		{ 
 			"label": "Sales Order Qty",
-			"fieldname": "qty",
-			"fieldtype": "float",   
+			"fieldname": "sales_order_qty",
+			"fieldtype": "Float",
 			"width": 100
 		},
+		{
+			"label": "Sales Invoice Qty",
+			"fieldname": "sales_invoice_qty",
+			"fieldtype": "Float",
+			"width": 140
+		},
+
 		# { 
 		# 	"label": "Delivered Qty",
 		# 	"fieldname": "qty",
@@ -65,8 +72,9 @@ def get_columns():
 			"width": 100
 		},
 		{ 
-			"label": "Actual Dispatch Date",
-			"fieldname": "actual_dispatch_date",
+			# "label": "Actual Dispatch Date",
+			"label": "SO Update Date",
+			"fieldname": "custom_updated_date",
 			"fieldtype": "Date",
 			"width": 100
 		},
@@ -141,10 +149,12 @@ def get_data(filters):
 			so.transaction_date,
 			soi.item_code,
 			soi.item_name,
-			soi.qty,
+			soi.qty AS sales_order_qty,
 			soi.delivery_date,
-			soi.custom_actual_dispatch_date,
+			soi.custom_updated_date,
 			soi.custom_otif_reason,
+
+			COALESCE(SUM(CASE WHEN si.name IS NOT NULL THEN sii.qty ELSE 0 END), 0) AS sales_invoice_qty,
 			MAX(si.posting_date) AS sales_invoice_date
 		FROM `tabSales Order` so
 		LEFT JOIN `tabSales Order Item` soi
@@ -167,7 +177,7 @@ def get_data(filters):
 			soi.item_name,
 			soi.qty,
 			soi.delivery_date,
-			soi.custom_actual_dispatch_date,
+			soi.custom_updated_date,
 			soi.custom_otif_reason
 		ORDER BY so.transaction_date DESC
 	"""
@@ -175,12 +185,17 @@ def get_data(filters):
 	all_data = frappe.db.sql(query, values, as_dict=True)
 
 	for row in all_data:
-		sales_order_date = getdate(row.transaction_date) if row.transaction_date else None
+		# sales_order_date = getdate(row.transaction_date) if row.transaction_date else None
+		sales_order_date = getdate(row.delivery_date) if row.delivery_date else None
 		sales_invoice_date = getdate(row.sales_invoice_date) if row.sales_invoice_date else None
 		delivery_date = getdate(row.delivery_date) if row.delivery_date else None
 
 		delay_days = date_diff(sales_invoice_date, sales_order_date) if sales_order_date and sales_invoice_date else None
-		on_time = "Yes" if delivery_date and sales_invoice_date and delivery_date == sales_invoice_date else "No"
+		# on_time = "Yes" if delivery_date and sales_invoice_date and delivery_date == sales_invoice_date else "No"
+		on_time = "No"
+		if delivery_date and sales_invoice_date:
+			if sales_invoice_date <= delivery_date:
+				on_time = "Yes"
 
 		data.append({
 			"name": row.name,
@@ -188,9 +203,10 @@ def get_data(filters):
 			"item_code": row.item_code,
 			"item_name": row.item_name,
 			"status": row.status,
-			"qty": row.qty,
+			"sales_order_qty": row.sales_order_qty,
+			"sales_invoice_qty": row.sales_invoice_qty,
 			"dispatch_date": row.delivery_date,
-			"actual_dispatch_date": row.custom_actual_dispatch_date,
+			"custom_updated_date": row.custom_updated_date,
 			"sales_invoice_date": row.sales_invoice_date,
 			"delay_days": delay_days,
 			"on_time": on_time,
