@@ -62,7 +62,6 @@ doctype_js = {
     "Employee Advance" : "public/js/custom_employee_advance.js",
     "Customer": "public/js/customer.js",
     "Lead": "public/js/lead.js",
-    "Sales Order": "public/js/sales_order.js",
     "Attendance Request": "public/js/attendance_request.js",
     "BOM": "public/js/bom.js"
 }
@@ -203,9 +202,7 @@ doc_events = {
         "before_save": "spcon.public.py.attendance_request.purpose_limit"
     },
     "Sales Order": {
-        "before_validate": "spcon.public.py.sales_order.set_valid_delivery_dates",
-        "before_save": "spcon.public.py.sales_order.set_items_created_date",
-        "on_update_after_submit": "spcon.public.py.sales_order.set_update_date"
+        "before_save": "spcon.override.sales_order_dates.sync_draft_item_dates"
     },
     "Sales Invoice": {
         "before_save": "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save"
@@ -248,9 +245,10 @@ doc_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "spcon.event.get_events"
-# }
+override_whitelisted_methods = {
+    "erpnext.controllers.accounts_controller.update_child_qty_rate":
+        "spcon.override.sales_order_dates.update_child_qty_rate"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

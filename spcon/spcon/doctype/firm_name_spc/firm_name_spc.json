@@ -6,7 +6,15 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "firm_name"
+  "firm_name",
+  "section_break_oaty",
+  "architecture",
+  "column_break_irfh",
+  "contractor",
+  "column_break_odeq",
+  "applicator",
+  "column_break_teoe",
+  "consultant"
  ],
  "fields": [
   {
@@ -14,12 +22,52 @@
    "fieldtype": "Data",
    "label": "Firm Name",
    "unique": 1
+  },
+  {
+   "fieldname": "section_break_oaty",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "architecture",
+   "fieldtype": "Check",
+   "label": "Architecture"
+  },
+  {
+   "fieldname": "column_break_irfh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "contractor",
+   "fieldtype": "Check",
+   "label": "Contractor"
+  },
+  {
+   "fieldname": "column_break_odeq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "applicator",
+   "fieldtype": "Check",
+   "label": "Applicator"
+  },
+  {
+   "fieldname": "column_break_teoe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "consultant",
+   "fieldtype": "Check",
+   "label": "Consultant"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-17 17:09:28.565080",
+ "modified": "2026-03-24 12:21:04.449968",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Firm Name SPC",
