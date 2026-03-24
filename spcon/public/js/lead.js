@@ -7,7 +7,7 @@ frappe.ui.form.on("Lead", {
             r.segment === frm.doc.custom_segment &&
             r.scope_of_work === frm.doc.custom_scope_of_work &&
             r.system === frm.doc.custom_system &&
-            r.area === frm.doc.custom_area
+            r.area === frm.doc.custom_area 
         );
         if (duplicate) {  
             frappe.msgprint("This data already exists!");
@@ -29,7 +29,7 @@ frappe.ui.form.on("Lead", {
             
 
                 frm.set_value("custom_segment", "");  
-                frm.set_value("custom_scope_of_work", "");
+                frm.set_value("custom_scope_of_work", ""); 
                 frm.set_value("custom_system", "");
                 frm.set_value("custom_area", "");
                 frm.doc.custom_other_item_details = [];
@@ -93,13 +93,41 @@ frappe.ui.form.on("Lead", {
             };
         });
 
-        frm.set_query('custom_system', function () {
+        frm.set_query('custom_architecture', function () {
             return {
                 filters: {
-                    scope_of_work: frm.doc.custom_scope_of_work
+                    scope_of_work: frm.doc.custom_scope_of_work,
+                    architecture: 1
                 }
             };
         });
+
+        frm.set_query('custom_consultant', function () {
+            return {
+                filters: {
+                    consultant: 1
+                }
+            };
+        });
+
+        frm.set_query('custom_contractor', function () {
+            return {
+                filters: {
+                    contractor: 1
+                }
+            };
+        });
+        frm.set_query('custom_applicator', function () {
+            return {
+                filters: {
+                    applicator: 1
+                }
+            };
+        });
+
+
+
+        
 
         if (!frm.is_new()) {
             frm.add_custom_button(__('Add Event'), () => {
@@ -129,7 +157,7 @@ frappe.ui.form.on("Lead", {
                             label: __('Description'),
                             fieldname: 'description',
                             fieldtype: 'Small Text'
-                        },
+                        }, 
                         {
                             label: __('Contact Person'),
                             fieldname: 'custom_contact_person',
@@ -179,6 +207,7 @@ frappe.ui.form.on("Lead", {
                                                 message: __('Event created'),
                                                 indicator: 'green'
                                             });
+                                            frm.reload_doc()
                                         }
                                     });
                                 }
@@ -297,6 +326,32 @@ frappe.ui.form.on("Lead", {
         });
         frm.set_value("custom_firm_name", null);
         frm.set_value("custom_contact_person", null);
+    },
+
+    custom_lead_type(frm) {
+        // frappe.call({
+        //     method: "spcon.public.py.lead.set_firm_name",
+        //     args: {
+        //         firm_name : frm.doc.custom_firm_name_lead
+        //     },
+        //     callback: function(r) {
+        //         console.log(r.message)
+        //     }
+        // })
+        frappe.db.get_doc("Firm Name SPC", frm.doc.custom_firm_name_lead).then(system => {
+            if (system.architecture == 1) {
+                frm.set_value("custom_architecture", frm.doc.custom_firm_name_lead);
+            } 
+            else if (system.contractor == 1) {
+                frm.set_value("custom_contractor", frm.doc.custom_firm_name_lead);
+            } 
+            else if (system.applicator == 1) {
+                frm.set_value("custom_applicator", frm.doc.custom_firm_name_lead);
+            } 
+            else if (system.consultant == 1) {
+                frm.set_value("custom_consultant", frm.doc.custom_firm_name_lead);
+            }
+        })
     }
 });
 
