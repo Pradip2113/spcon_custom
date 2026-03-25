@@ -89,11 +89,16 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 
 			if self.filters.show_future_payments:
 				row.remaining_balance = flt(row.outstanding) - flt(row.future_amount)
-			ranges = ["range1","range2","range3","range4","range5", "total_due", "outstanding"]
-			for range in ranges:
-				if row[str(range)]<0:
-					row[str(range)] = 0
-				# frappe.throw(str(row))
+
+			for i in getattr(self, "range_numbers", []):
+				range_key = f"range{i}"
+				if flt(row.get(range_key)) < 0:
+					row[range_key] = 0
+
+			for key in ("total_due", "outstanding"):
+				if flt(row.get(key)) < 0:
+					row[key] = 0
+
 			self.data.append(row)
 	def get_party_total(self, args):
 		self.party_total = frappe._dict()

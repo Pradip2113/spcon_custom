@@ -9,7 +9,7 @@ frappe.ui.form.on('Attendance Request', {
         }
     },
 
-    // Employee goes out
+    // Employee goes out 
     custom_add_out_time(frm) {
         let now = frappe.datetime.now_time(); // HH:mm:ss
         frm.set_value('custom_out_time', now);
