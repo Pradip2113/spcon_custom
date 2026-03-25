@@ -11,7 +11,7 @@ def purpose_limit(doc,method=None):
         count = frappe.db.count(
             "Attendance Request",
             {
-                "employee": doc.employee,
+                "employee": doc.employee, 
                 "custom_purpose": "Personal Work",
                 "from_date": ["between", [start_date, end_date]],
                 "docstatus": ["!=", 2],
