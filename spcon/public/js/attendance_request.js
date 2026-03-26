@@ -48,7 +48,7 @@ function apply_half_day_rule(frm) {
 
     // ✅ RULE:
     // more than 30 minutes AND up to 4 hours (240 minutes)
-    if (diff_minutes > 30 && diff_minutes <= 240) {
+    if (diff_minutes > 30 && diff_minutes <= 240 && frm.doc.custom_purpose == "Personal Work") {
         frm.set_value('half_day', 1);
         frm.set_value('half_day_date', frm.doc.from_date);
         frm.set_df_property('half_day', 'read_only', 1);

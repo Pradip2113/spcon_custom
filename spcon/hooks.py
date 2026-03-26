@@ -206,6 +206,9 @@ doc_events = {
     },
     "Sales Invoice": {
         "before_save": "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save"
+    },
+    "Quality Inspection": {
+        "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
     }
 } 
 # doc_events = {
