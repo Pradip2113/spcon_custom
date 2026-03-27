@@ -65,6 +65,10 @@ doctype_js = {
     "Attendance Request": "public/js/attendance_request.js",
     "BOM": "public/js/bom.js"
 }
+
+doctype_list_js = {
+    "BOM": "public/js/bom_list.js"
+}
  
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}

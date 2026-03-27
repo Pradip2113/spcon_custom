@@ -57,22 +57,18 @@
 
 import frappe
 from frappe import _
-@frappe.whitelist()
-def calculate_rmc(doc):
-    if isinstance(doc, str):
-        doc = frappe.parse_json(doc)
 
+
+def _calculate_rmc_for_doc(doc):
     total_amount = 0
     updated_rows = []
 
     for row in doc.get("items", []):
-
         if not row.get("item_code"):
             continue
 
         qty = row.get("qty") or 0
         rmc_cost = row.get("custom_rmc_cost") or 0
-
         amount = qty * rmc_cost
 
         frappe.db.set_value(
@@ -86,17 +82,46 @@ def calculate_rmc(doc):
             "name": row.get("name"),
             "amount": amount
         })
-
         total_amount += amount
 
     quantity = doc.get("quantity") or 1
     single_rate = total_amount / quantity
+
     frappe.db.set_value("BOM", doc.get("name"), {
         "custom_final_product_amount": total_amount,
         "custom_single_unit_rate": single_rate
     })
+
     return {
         "rows": updated_rows,
         "total": total_amount,
         "rate": single_rate
+    }
+
+
+@frappe.whitelist()
+def calculate_rmc(doc):
+    if isinstance(doc, str):
+        doc = frappe.parse_json(doc)
+
+    return _calculate_rmc_for_doc(doc)
+
+
+@frappe.whitelist()
+def calculate_rmc_for_boms(bom_names):
+    if isinstance(bom_names, str):
+        bom_names = frappe.parse_json(bom_names)
+
+    if not bom_names:
+        frappe.throw(_("Please select at least one BOM."))
+
+    processed_boms = []
+
+    for bom_name in bom_names:
+        doc = frappe.get_doc("BOM", bom_name)
+        _calculate_rmc_for_doc(doc)
+        processed_boms.append(bom_name)
+
+    return {
+        "processed_boms": processed_boms
     }
