@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-27 10:14:20.807076",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "column_break_ajhr",
+  "set_rate",
+  "section_break_vtjd",
+  "items"
+ ],
+ "fields": [
+  {
+   "default": "Now",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_ajhr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "set_rate",
+   "fieldtype": "Button",
+   "label": "Set Rate"
+  },
+  {
+   "fieldname": "section_break_vtjd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "RCM Rate Items"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-27 10:16:47.941374",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "RCM Rate Set",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
