@@ -31,5 +31,5 @@ def mark_attendance(doc, method=None):
 
     diff_hours = (in_dt - out_dt).total_seconds() / 3600
 
-    if diff_hours > 4:
+    if diff_hours > 4 and request.custom_purpose == "Personal Work":
         doc.status = "Absent"   
