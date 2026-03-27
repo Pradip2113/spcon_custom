@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "creation": "2026-03-27 10:14:20.807076",
  "doctype": "DocType",
@@ -41,7 +42,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-27 10:16:47.941374",
+ "modified": "2026-03-27 12:33:10.148201",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "RCM Rate Set",
