@@ -519,6 +519,7 @@ class CustomSalarySlip(SalarySlip):
         if extra_days:
             self.total_working_days = flt(self.total_working_days) + extra_days
             self.payment_days = flt(self.payment_days) + extra_days
+            
 
     # def _get_extra_working_days_from_holidays(self) -> int:
     #     holiday_list = get_holiday_list_for_employee(self.employee)
