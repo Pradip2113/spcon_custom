@@ -329,7 +329,7 @@ frappe.ui.form.on("Lead", {
     },
 
     custom_lead_type(frm) {
-        // frappe.call({
+        // frappe.call({ 
         //     method: "spcon.public.py.lead.set_firm_name",
         //     args: {
         //         firm_name : frm.doc.custom_firm_name_lead
