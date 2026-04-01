@@ -436,23 +436,23 @@ class CustomSalarySlip(SalarySlip):
             self.total_working_days = flt(self.total_working_days) + extra_days
             self.payment_days = flt(self.payment_days) + extra_days
 
-    def _get_extra_working_days_from_holidays(self) -> int:
-        holiday_list = get_holiday_list_for_employee(self.employee)
-        if not holiday_list:
-            return 0
+    # def _get_extra_working_days_from_holidays(self) -> int:
+    #     holiday_list = get_holiday_list_for_employee(self.employee)
+    #     if not holiday_list:
+    #         return 0
 
-        holiday_dates = frappe.get_all(
-            "Holiday",
-            filters={
-                "parent": holiday_list,
-                "parenttype": "Holiday List",
-                "holiday_date": ("between", [self.start_date, self.end_date]),
-                "custom__add_hd_in_sp": 1,
-            },
-            pluck="holiday_date",
-        )
+    #     holiday_dates = frappe.get_all(
+    #         "Holiday",
+    #         filters={
+    #             "parent": holiday_list,
+    #             "parenttype": "Holiday List",
+    #             "holiday_date": ("between", [self.start_date, self.end_date]),
+    #             "custom__add_hd_in_sp": 1,
+    #         },
+    #         pluck="holiday_date",
+    #     )
 
-        return len(set(holiday_dates))
+    #     return len(set(holiday_dates))
     
     def validate(self):
         self.check_salary_withholding()
@@ -519,23 +519,25 @@ class CustomSalarySlip(SalarySlip):
         if extra_days:
             self.total_working_days = flt(self.total_working_days) + extra_days
             self.payment_days = flt(self.payment_days) + extra_days
+            
+            
 
-    def _get_extra_working_days_from_holidays(self) -> int:
-        holiday_list = get_holiday_list_for_employee(self.employee)
-        if not holiday_list:
-            return 0
+    # def _get_extra_working_days_from_holidays(self) -> int:
+    #     holiday_list = get_holiday_list_for_employee(self.employee)
+    #     if not holiday_list:
+    #         return 0
 
-        holiday_dates = frappe.get_all(
-            "Holiday",
-            filters={
-                "parent": holiday_list,
-                "parenttype": "Holiday List",
-                "holiday_date": ("between", [self.start_date, self.end_date]),
-                "custom__add_hd_in_sp": 1,
-            },
-            pluck="holiday_date",
-        )
+    #     holiday_dates = frappe.get_all(
+    #         "Holiday",
+    #         filters={
+    #             "parent": holiday_list,
+    #             "parenttype": "Holiday List",
+    #             "holiday_date": ("between", [self.start_date, self.end_date]),
+    #             "custom__add_hd_in_sp": 1,
+    #         },
+    #         pluck="holiday_date",
+    #     )
 
-        return len(set(holiday_dates))
+    #     return len(set(holiday_dates))
                 
 
