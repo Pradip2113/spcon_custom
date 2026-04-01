@@ -60,7 +60,8 @@ def set_paid_holidays_from_spc_holidays(doc, method=None):
         return
 
     employee_doc = frappe.get_doc("Employee", doc.employee)
-    spc_holidays_name = employee_doc.get("custom_spc_holidays")
+    # spc_holidays_name = employee_doc.get("custom_spc_holidays")
+    spc_holidays_name = employee_doc.get("holiday_list")
     if not spc_holidays_name:
         doc.custom_paid_holidays = "0"
         return
@@ -69,11 +70,14 @@ def set_paid_holidays_from_spc_holidays(doc, method=None):
     month_start = frappe.utils.get_first_day(reference_date)
     month_end = frappe.utils.get_last_day(reference_date)
 
-    spc_holidays_doc = frappe.get_doc("SPC Holidays", spc_holidays_name)
+    # spc_holidays_doc = frappe.get_doc("SPC Holidays", spc_holidays_name)
+    spc_holidays_doc = frappe.get_doc("Holiday List", spc_holidays_name)
     holiday_count = 0
-    for row in spc_holidays_doc.get("spc_holiday_item", []):
-        holiday_date = row.get("date")
-        if not holiday_date:
+    # for row in spc_holidays_doc.get("spc_holiday_item", []):
+    for row in spc_holidays_doc.get("holidays", []):
+        holiday_date = row.get("holiday_date")
+        add_hd = row.get("custom_add_hd_in_sp")
+        if not holiday_date and add_hd == 1:
             continue
 
         holiday_date = getdate(holiday_date)
@@ -426,15 +430,15 @@ TAX_COMPONENTS_BY_COMPANY = "tax_components_by_company"
 
 
 class CustomSalarySlip(SalarySlip):
-    def get_working_days_details(self, lwp=None, for_preview=0):
-        super().get_working_days_details(lwp=lwp, for_preview=for_preview)
-        if for_preview:
-            return
+    # def get_working_days_details(self, lwp=None, for_preview=0):
+    #     super().get_working_days_details(lwp=lwp, for_preview=for_preview)
+    #     if for_preview:
+    #         return
 
-        extra_days = self._get_extra_working_days_from_holidays()
-        if extra_days:
-            self.total_working_days = flt(self.total_working_days) + extra_days
-            self.payment_days = flt(self.payment_days) + extra_days
+    #     extra_days = self._get_extra_working_days_from_holidays()
+    #     if extra_days:
+    #         self.total_working_days = flt(self.total_working_days) + extra_days
+    #         self.payment_days = flt(self.payment_days) + extra_days
 
     # def _get_extra_working_days_from_holidays(self) -> int:
     #     holiday_list = get_holiday_list_for_employee(self.employee)
@@ -447,7 +451,7 @@ class CustomSalarySlip(SalarySlip):
     #             "parent": holiday_list,
     #             "parenttype": "Holiday List",
     #             "holiday_date": ("between", [self.start_date, self.end_date]),
-    #             "custom__add_hd_in_sp": 1,
+    #             "custom_add_hd_in_sp": 1,
     #         },
     #         pluck="holiday_date",
     #     )
@@ -519,25 +523,23 @@ class CustomSalarySlip(SalarySlip):
         if extra_days:
             self.total_working_days = flt(self.total_working_days) + extra_days
             self.payment_days = flt(self.payment_days) + extra_days
-            
-            
 
-    # def _get_extra_working_days_from_holidays(self) -> int:
-    #     holiday_list = get_holiday_list_for_employee(self.employee)
-    #     if not holiday_list:
-    #         return 0
+    def _get_extra_working_days_from_holidays(self) -> int:
+        holiday_list = get_holiday_list_for_employee(self.employee)
+        if not holiday_list:
+            return 0
 
-    #     holiday_dates = frappe.get_all(
-    #         "Holiday",
-    #         filters={
-    #             "parent": holiday_list,
-    #             "parenttype": "Holiday List",
-    #             "holiday_date": ("between", [self.start_date, self.end_date]),
-    #             "custom__add_hd_in_sp": 1,
-    #         },
-    #         pluck="holiday_date",
-    #     )
+        holiday_dates = frappe.get_all(
+            "Holiday",
+            filters={
+                "parent": holiday_list,
+                "parenttype": "Holiday List",
+                "holiday_date": ("between", [self.start_date, self.end_date]),
+                "custom_add_hd_in_sp": 1,
+            },
+            pluck="holiday_date",
+        )
 
-    #     return len(set(holiday_dates))
+        return len(set(holiday_dates))
                 
 
