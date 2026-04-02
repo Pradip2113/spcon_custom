@@ -92,6 +92,14 @@ frappe.ui.form.on("Lead", {
                 }
             };
         });
+        
+        frm.set_query('custom_system', function () {
+            return {
+                filters: {
+                    scope_of_work: frm.doc.custom_scope_of_work
+                }
+            };
+        });
 
         frm.set_query('custom_architecture', function () {
             return {
@@ -338,20 +346,22 @@ frappe.ui.form.on("Lead", {
         //         console.log(r.message)
         //     }
         // })
-        frappe.db.get_doc("Firm Name SPC", frm.doc.custom_firm_name_lead).then(system => {
-            if (system.architecture == 1) {
-                frm.set_value("custom_architecture", frm.doc.custom_firm_name_lead);
-            } 
-            else if (system.contractor == 1) {
-                frm.set_value("custom_contractor", frm.doc.custom_firm_name_lead);
-            } 
-            else if (system.applicator == 1) {
-                frm.set_value("custom_applicator", frm.doc.custom_firm_name_lead);
-            } 
-            else if (system.consultant == 1) {
-                frm.set_value("custom_consultant", frm.doc.custom_firm_name_lead);
-            }
-        })
+        if(frm.doc.custom_firm_name_lead){
+            frappe.db.get_doc("Firm Name SPC", frm.doc.custom_firm_name_lead).then(system => {
+                if (system.architecture == 1) {
+                    frm.set_value("custom_architecture", frm.doc.custom_firm_name_lead);
+                } 
+                else if (system.contractor == 1) {
+                    frm.set_value("custom_contractor", frm.doc.custom_firm_name_lead);
+                } 
+                else if (system.applicator == 1) {
+                    frm.set_value("custom_applicator", frm.doc.custom_firm_name_lead);
+                } 
+                else if (system.consultant == 1) {
+                    frm.set_value("custom_consultant", frm.doc.custom_firm_name_lead);
+                }
+            })
+        }
     }
 });
 
@@ -376,7 +386,8 @@ function thickness_calculation(frm){
         ) { 
 
             frm.set_df_property("custom_area", "hidden", 1);
-            // frm.set_df_property("custom_other_item_details", "hidden", 0);
+            frm.set_df_property("custom_other_item_details", "hidden", 0);
+            frm.refresh_field("custom_other_item_details");
 
             frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
                 system.system_items_spc.forEach(item => {
@@ -390,5 +401,7 @@ function thickness_calculation(frm){
         }
         else {
             frm.set_df_property("custom_area", "hidden", 0);
+            frm.set_df_property("custom_other_item_details", "hidden", 1);
+            frm.refresh_field("custom_other_item_details");
         }
 }
