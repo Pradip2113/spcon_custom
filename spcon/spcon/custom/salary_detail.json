@@ -17,7 +17,7 @@
    "field_name": "depends_on_payment_days",
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2025-09-02 12:49:38.656949",
+   "modified": "2026-04-01 21:19:15.707213",
    "modified_by": "Administrator",
    "module": "spcon",
    "name": "Salary Detail-depends_on_payment_days-read_only",

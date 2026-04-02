@@ -77,11 +77,11 @@ def set_paid_holidays_from_spc_holidays(doc, method=None):
     for row in spc_holidays_doc.get("holidays", []):
         holiday_date = row.get("holiday_date")
         add_hd = row.get("custom_add_hd_in_sp")
-        if not holiday_date and add_hd == 1:
+        if not holiday_date:
             continue
 
         holiday_date = getdate(holiday_date)
-        if month_start <= holiday_date <= month_end:
+        if month_start <= holiday_date <= month_end and add_hd == 1:
             holiday_count += 1
 
     doc.custom_paid_holidays = str(holiday_count)
