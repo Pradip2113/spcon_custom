@@ -14,7 +14,9 @@
   "column_break_odeq",
   "applicator",
   "column_break_teoe",
-  "consultant"
+  "consultant",
+  "column_break_enct",
+  "other"
  ],
  "fields": [
   {
@@ -62,12 +64,22 @@
    "fieldname": "consultant",
    "fieldtype": "Check",
    "label": "Consultant"
+  },
+  {
+   "fieldname": "column_break_enct",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "other",
+   "fieldtype": "Check",
+   "label": "Other"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 12:21:04.449968",
+ "modified": "2026-04-09 10:00:30.541519",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Firm Name SPC",

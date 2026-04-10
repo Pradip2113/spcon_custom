@@ -63,7 +63,8 @@ doctype_js = {
     "Customer": "public/js/customer.js",
     "Lead": "public/js/lead.js",
     "Attendance Request": "public/js/attendance_request.js",
-    "BOM": "public/js/bom.js"
+    "BOM": "public/js/bom.js",
+    "Quotation": "public/js/quotation.js",
 }
 
 doctype_list_js = {
@@ -213,6 +214,9 @@ doc_events = {
     },
     "Quality Inspection": {
         "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
+    },
+    "Lead": {
+        "before_save": "spcon.public.py.lead.set_title_field"
     }
 } 
 # doc_events = {
