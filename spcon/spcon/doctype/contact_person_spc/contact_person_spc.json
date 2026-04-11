@@ -43,15 +43,15 @@
   },
   {
    "fieldname": "firm_type",
-   "fieldtype": "Select",
+   "fieldtype": "Table MultiSelect",
    "label": "Firm Type",
-   "options": "\nArchitecture\nConsultant\nContractor\nApplicator\nClient/Owner"
+   "options": "Firm Type Items"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-29 16:56:31.429544",
+ "modified": "2026-04-09 10:17:27.491510",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Contact Person SPC",

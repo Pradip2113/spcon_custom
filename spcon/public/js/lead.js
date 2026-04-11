@@ -1,7 +1,7 @@
 
 
 frappe.ui.form.on("Lead", {
-    
+        
     custom_add_data: function(frm) {   
         let duplicate = frm.doc.custom_project_details_items.some(r =>
             r.segment === frm.doc.custom_segment &&
@@ -258,78 +258,61 @@ frappe.ui.form.on("Lead", {
     }, 
     custom_add_contact_person(frm) {
         frappe.db.get_doc("Contact Person SPC", frm.doc.custom_contact_person).then(contact_person => {
-             const is_duplicate = (
-                frm.doc.custom_architecture_contact_person?.some(r =>
-                    r.firm_name === contact_person.firm_name &&
-                    r.contact_person === contact_person.name &&
-                    r.designation === contact_person.designation &&
-                    r.email === contact_person.email &&
-                    r.mobile_no === contact_person.mobile_no
-                ) ||
+            const firm_type_field_map = {
+                Architecture: "custom_architecture_contact_person",
+                Consultant: "custom_consultant_contact_person",
+                Contractor: "custom_contactor_contact_person",
+                Applicator: "custom_applicator_contact_person",
+                Other: "custom_other_contact_person",
+            };
 
-                frm.doc.custom_consultant_contact_person?.some(r =>
-                    r.firm_name === contact_person.firm_name &&
-                    r.contact_person === contact_person.name &&
-                    r.designation === contact_person.designation &&
-                    r.email === contact_person.email &&
-                    r.mobile_no === contact_person.mobile_no
-                ) ||
+            const selected_firm_types = Array.isArray(contact_person.firm_type)
+                ? contact_person.firm_type
+                    .map(row => row?.firm_type || row)
+                    .filter(Boolean)
+                : [];
 
-                frm.doc.custom_contactor_contact_person?.some(r =>
-                    r.firm_name === contact_person.firm_name &&
-                    r.contact_person === contact_person.name &&
-                    r.designation === contact_person.designation &&
-                    r.email === contact_person.email &&
-                    r.mobile_no === contact_person.mobile_no
-                ) ||
-
-                frm.doc.custom_applicator_contact_person?.some(r =>
-                    r.firm_name === contact_person.firm_name &&
-                    r.contact_person === contact_person.name &&
-                    r.designation === contact_person.designation &&
-                    r.email === contact_person.email &&
-                    r.mobile_no === contact_person.mobile_no
-                )
-            );
-
-            if (is_duplicate) {
-                frappe.msgprint(__("This Contact Person already exists!"));
+            if (!selected_firm_types.length) {
+                frappe.msgprint(__("Firm Type is required in Contact Person SPC."));
                 return;
             }
 
+            const is_duplicate_in_table = (table_field) =>
+                frm.doc[table_field]?.some(r =>
+                    r.firm_name === contact_person.firm_name &&
+                    r.contact_person === contact_person.name &&
+                    r.designation === contact_person.designation &&
+                    r.email === contact_person.email &&
+                    r.mobile_no === contact_person.mobile_no
+                );
 
-            if (contact_person.firm_type == "Architecture") {
-                let data = frm.add_child("custom_architecture_contact_person");
+            let row_added = false;
+            let duplicate_found = false;
+
+            selected_firm_types.forEach((firm_type) => {
+                const child_table_field = firm_type_field_map[firm_type];
+
+                if (!child_table_field) {
+                    return;
+                }
+
+                if (is_duplicate_in_table(child_table_field)) {
+                    duplicate_found = true;
+                    return;
+                }
+
+                let data = frm.add_child(child_table_field);
                 data.firm_name = contact_person.firm_name;
                 data.contact_person = contact_person.name;
                 data.designation = contact_person.designation;
                 data.email = contact_person.email;
                 data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_architecture_contact_person");
-            } else if (contact_person.firm_type == "Consultant") {
-                let data = frm.add_child("custom_consultant_contact_person");
-                data.firm_name = contact_person.firm_name; 
-                data.contact_person = contact_person.name;
-                data.designation = contact_person.designation;
-                data.email = contact_person.email;
-                data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_consultant_contact_person");
-            } else if (contact_person.firm_type == "Contactor") {
-                let data = frm.add_child("custom_contactor_contact_person");
-                data.firm_name = contact_person.firm_name;
-                data.contact_person = contact_person.name;
-                data.designation = contact_person.designation;
-                data.email = contact_person.email;
-                data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_contactor_contact_person");
-            }else if (contact_person.firm_type == "Applicator") {
-                let data = frm.add_child("custom_applicator_contact_person");
-                data.firm_name = contact_person.firm_name;
-                data.contact_person = contact_person.name;
-                data.designation = contact_person.designation;
-                data.email = contact_person.email;
-                data.mobile_no = contact_person.mobile_no;
-                frm.refresh_field("custom_applicator_contact_person");
+                frm.refresh_field(child_table_field);
+                row_added = true;
+            });
+
+            if (!row_added && duplicate_found) {
+                frappe.msgprint(__("This Contact Person already exists!"));
             }
         });
         frm.set_value("custom_firm_name", null);
@@ -359,6 +342,9 @@ frappe.ui.form.on("Lead", {
                 } 
                 else if (system.consultant == 1) {
                     frm.set_value("custom_consultant", frm.doc.custom_firm_name_lead);
+                }
+                else if (system.other == 1) {
+                    frm.set_value("custom_other", frm.doc.custom_firm_name_lead);
                 }
             })
         }
