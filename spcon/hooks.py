@@ -29,7 +29,8 @@ app_license = "mit"
 # app_include_js = "/assets/spcon/js/spcon.js"
 app_include_js = [
     "/assets/spcon/js/hide_item_name.js",
-    "/assets/spcon/js/hide_item_name_doctype.js"
+    "/assets/spcon/js/hide_item_name_doctype.js",
+    "/assets/spcon/js/custom_navbar.js"
 ] 
 
 # include js, css files in header of web template
