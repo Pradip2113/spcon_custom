@@ -66,6 +66,7 @@ doctype_js = {
     "Attendance Request": "public/js/attendance_request.js",
     "BOM": "public/js/bom.js",
     "Quotation": "public/js/quotation.js",
+    "Sales Order": "public/js/sales_order.js",
 }
 
 doctype_list_js = {
@@ -208,10 +209,19 @@ doc_events = {
         "before_save": "spcon.public.py.attendance_request.purpose_limit"
     },
     "Sales Order": {
-        "before_save": "spcon.override.sales_order_dates.sync_draft_item_dates"
+        "before_save": [
+            "spcon.override.sales_order_dates.sync_draft_item_dates",
+            "spcon.public.py.sales_order.set_minimum_qty",
+        ]
     },
     "Sales Invoice": {
-        "before_save": "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save"
+        "before_save": [
+            "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save",
+            "spcon.public.py.sales_order.set_minimum_qty"
+        ] 
+    },
+    "Delivery Note": {
+        "before_save": "spcon.public.py.sales_order.set_minimum_qty"
     },
     "Quality Inspection": {
         "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
