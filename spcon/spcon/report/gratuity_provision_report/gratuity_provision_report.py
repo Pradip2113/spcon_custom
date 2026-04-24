@@ -41,7 +41,9 @@ def get_data(filters):
         conditions["start_date"] = ["<=", f"{year}-03-31"]
     employees = frappe.get_all(
         "Employee",
-        filters={"employment_type": "Employee"},
+        filters={
+        "employment_type": ["in", ["Employee", "Probationary Employee"]]
+    },
         pluck="name"
     )
     if not employees:

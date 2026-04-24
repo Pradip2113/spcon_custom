@@ -182,7 +182,7 @@ doc_events = {
     "Attendance":{
         # "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
         "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
-        "before_submit":"spcon.public.py.attendance.mark_attendance"
+        "before_submit":"spcon.public.py.attendance.mark_attendance",
     },
     "Shift Type":{
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
@@ -206,7 +206,11 @@ doc_events = {
         "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
     },
     "Attendance Request": {
-        "before_save": "spcon.public.py.attendance_request.purpose_limit"
+        "before_save": "spcon.public.py.attendance_request.purpose_limit",
+        "on_submit": [
+            "spcon.public.py.attendance_request.validate_late_entry_attendance",
+            "spcon.public.py.attendance_request.made_attachment_required"
+        ] 
     },
     "Sales Order": {
         "before_save": [
@@ -228,6 +232,9 @@ doc_events = {
     },
     "Lead": {
         "before_save": "spcon.public.py.lead.set_title_field"
+    },
+    "Purchase Receipt": {
+        "before_save": "spcon.public.py.purchase_receipt.validate_over_receipt_with_draft"
     }
 } 
 # doc_events = {
