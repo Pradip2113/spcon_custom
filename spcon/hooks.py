@@ -66,6 +66,7 @@ doctype_js = {
     "Attendance Request": "public/js/attendance_request.js",
     "BOM": "public/js/bom.js",
     "Quotation": "public/js/quotation.js",
+    "Sales Order": "public/js/sales_order.js",
 }
 
 doctype_list_js = {
@@ -181,7 +182,7 @@ doc_events = {
     "Attendance":{
         # "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
         "on_submit":"spcon.hrms_case.sandwich.apply_sandwich_rule_on_attendance_save",
-        "before_submit":"spcon.public.py.attendance.mark_attendance"
+        "before_submit":"spcon.public.py.attendance.mark_attendance",
     },
     "Shift Type":{
         "before_save":"spcon.hrms_case.shift_type.work_hrs_cal"
@@ -205,19 +206,35 @@ doc_events = {
         "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
     },
     "Attendance Request": {
-        "before_save": "spcon.public.py.attendance_request.purpose_limit"
+        "before_save": "spcon.public.py.attendance_request.purpose_limit",
+        "on_submit": [
+            "spcon.public.py.attendance_request.validate_late_entry_attendance",
+            "spcon.public.py.attendance_request.made_attachment_required"
+        ] 
     },
     "Sales Order": {
-        "before_save": "spcon.override.sales_order_dates.sync_draft_item_dates"
+        "before_save": [
+            "spcon.override.sales_order_dates.sync_draft_item_dates",
+            "spcon.public.py.sales_order.set_minimum_qty",
+        ]
     },
     "Sales Invoice": {
-        "before_save": "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save"
+        "before_save": [
+            "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save",
+            "spcon.public.py.sales_order.set_minimum_qty"
+        ] 
+    },
+    "Delivery Note": {
+        "before_save": "spcon.public.py.sales_order.set_minimum_qty"
     },
     "Quality Inspection": {
         "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
     },
     "Lead": {
         "before_save": "spcon.public.py.lead.set_title_field"
+    },
+    "Purchase Receipt": {
+        "before_save": "spcon.public.py.purchase_receipt.validate_over_receipt_with_draft"
     }
 } 
 # doc_events = {

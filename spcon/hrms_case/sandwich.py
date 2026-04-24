@@ -155,6 +155,7 @@ def apply_sandwich_rule_on_attendance_save(doc, method=None):
             updates = {
                 "status": doc.status,
                 "leave_type": doc.leave_type,
+                "custom_late_entry_early_exit": 1,
             }
             if doc.meta.has_field("half_day_status"):
                 updates["half_day_status"] = doc.half_day_status

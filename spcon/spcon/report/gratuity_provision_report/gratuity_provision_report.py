@@ -3,6 +3,7 @@
 
 import frappe
 from datetime import date
+from datetime import datetime
 year = date.today().year
 
 def execute(filters=None):
@@ -13,8 +14,11 @@ def execute(filters=None):
 def get_columns():
     return [
         {"label": "Employee", "fieldname": "employee", "fieldtype": "Link", "options": "Employee", "width": 200},
+        {"label": "Employee Name", "fieldname": "employee_name", "fieldtype": "Link", "options": "Employee", "width": 200},
         {"label": "Department", "fieldname": "department", "fieldtype": "Link", "options": "Department", "width": 200},
         {"label": "Date of Joining", "fieldname": "date_of_joining", "fieldtype": "Date", "width": 200},
+        {"label": "Date of Resign", "fieldname": "relieving_date", "fieldtype": "Link", "options": "Employment Type", "width": 200},
+        {"label": "No Of Years", "fieldname": "no_of_year", "fieldtype": "Float","width": 150},
         {"label": "Year", "fieldname": "march", "fieldtype": "Date","width": 150},
         {"label": "Working Days", "fieldname": "working_days", "fieldtype": "Float", "width": 150},
         {"label": "Basic Salary", "fieldname": "basic", "fieldtype": "Float", "width": 150},
@@ -22,36 +26,92 @@ def get_columns():
     ]
 def get_data(filters):
     data = []
+    conditions = {}
+
+    if filters.get("from_date") and filters.get("to_date"):
+        conditions["start_date"] = ["between", [filters.get("from_date"), filters.get("to_date")]]
+
+    elif filters.get("from_date"):
+        conditions["start_date"] = [">=", filters.get("from_date")]
+
+    elif filters.get("to_date"):
+        conditions["start_date"] = ["<=", filters.get("to_date")]
+
+    else:
+        conditions["start_date"] = ["<=", f"{year}-03-31"]
+    employees = frappe.get_all(
+        "Employee",
+        filters={
+        "employment_type": ["in", ["Employee", "Probationary Employee"]]
+    },
+        pluck="name"
+    )
+    if not employees:
+        return []
     all_data = frappe.get_all(
         "Salary Slip",
         filters={
-            "start_date": ["between", [f"{year}-03-01", f"{year}-03-31"]]
+            **conditions,
+            "employee": ["in", employees]
         },
-        fields=["name", "employee", "employee_name", "start_date", "end_date", "department","total_working_days"])
+        fields=[
+            "name", "employee", "employee_name",
+            "start_date", "end_date",
+            "department", "total_working_days"
+        ],
+        order_by="employee, start_date desc"
+    )
     for row in all_data:
-        joining_date = frappe.db.get_value(
-            "Employee", row.employee, "date_of_joining"
+        if row.start_date.month not in [3]:
+            continue
+        emp_details = frappe.db.get_value(
+            "Employee",
+            row.employee,
+            ["date_of_joining", "employment_type"],
+            as_dict=True
         )
 
+        joining_date = emp_details.date_of_joining if emp_details else None
+        relieving_date = emp_details.relieving_date if emp_details else None
+        
+
+        slip_year = row.end_date.year
+        march_date = datetime(slip_year, 3, 31).date()
+
+        # Basic salary per slip year
         earnings = frappe.get_all(
-			"Salary Structure Assignment",
-			filters={
-				"employee": row.employee,
-				"from_date": ["<=", f"{year}-03-31"]
-			},
-			fields=["base", "from_date"],
-			order_by="from_date desc",
-			limit=1
-		)
+            "Salary Structure Assignment",
+            filters={
+                "employee": row.employee,
+                "from_date": ["<=", march_date]
+            },
+            fields=["base", "from_date"],
+            order_by="from_date desc",
+            limit=1
+        )
+
         basic = (earnings[0].base / 2) if earnings else 0
+
+        # No of years
+        if joining_date:
+            no_of_year = march_date.year - joining_date.year
+            if (march_date.month, march_date.day) < (joining_date.month, joining_date.day):
+                no_of_year -= 1
+        else:
+            no_of_year = 0
+
+        # Gratuity
+        gratuity = round(basic / 26 * 15)
         data.append({
             "employee": row.employee,
             "employee_name": row.employee_name,
             "department": row.department,
+            "relieving_date": relieving_date, 
             "date_of_joining": joining_date,
             "march": row.end_date,
             "working_days": row.total_working_days,
             "basic": basic,
             "gratuity": round(basic / 26 * 15),
+            "no_of_year": no_of_year
         })
     return data

@@ -14,6 +14,19 @@ frappe.query_reports["Gratuity Provision Report"] = {
             "label": "To Date",
             "fieldtype": "Date",
             // "default": frappe.datetime.month_end()
+        },
+        {
+            "fieldname": "employee",
+            "label": "Employee",
+            "fieldtype": "Link",
+            "options": "Employee",
+            "get_query": function() {
+                return {
+                    "filters": {
+                        "employment_type": "Employee"
+                    }
+                };
+            }
         }
     ]
 };

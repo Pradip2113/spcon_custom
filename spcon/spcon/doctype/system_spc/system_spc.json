@@ -10,6 +10,7 @@
   "system",
   "column_break_ovgv",
   "scope_of_work",
+  "consumption_per",
   "section_break_agil",
   "system_items_spc"
  ],
@@ -43,16 +44,23 @@
    "fieldtype": "Table",
    "label": "System Items SPC",
    "options": "System Items SPC"
+  },
+  {
+   "fieldname": "consumption_per",
+   "fieldtype": "Select",
+   "label": "Consumption Per",
+   "options": "\nArea(SQM)\nVolume of Concrete(Cub.M)\nLength(RMT)",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-15 16:08:47.229012",
+ "modified": "2026-04-21 12:52:58.255899",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "System SPC",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "vikas@sanpra.co.in",
  "permissions": [
   {

@@ -3,87 +3,63 @@
 frappe.ui.form.on("Lead", {
         
     custom_add_data: function(frm) {   
-        let duplicate = frm.doc.custom_project_details_items.some(r =>
-            r.segment === frm.doc.custom_segment &&
-            r.scope_of_work === frm.doc.custom_scope_of_work &&
-            r.system === frm.doc.custom_system &&
-            r.area === frm.doc.custom_area 
-        );
-        if (duplicate) {  
-            frappe.msgprint("This data already exists!");
+        if (!frm.doc.custom_system) {
+            frappe.msgprint(__("Please select System."));
             return;
         }
-        
-        if (frm.doc.custom_other_item_details && frm.doc.custom_other_item_details.length > 0) {
-            frm.doc.custom_other_item_details.forEach(r => {
+
+        frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
+            const measurement_field = get_consumption_field(system.consumption_per);
+
+            if (!measurement_field) {
+                frappe.msgprint(__("Please set Consumption Per in System SPC."));
+                return;
+            }
+
+            const measurement_value = flt(frm.doc[measurement_field]);
+
+            if (!measurement_value) {
+                frappe.msgprint(__("Please enter {0}.", [frm.get_docfield(measurement_field).label]));
+                return;
+            }
+
+            let duplicate = (frm.doc.custom_project_details_items || []).some(r =>
+                r.segment === frm.doc.custom_segment &&
+                r.scope_of_work === frm.doc.custom_scope_of_work &&
+                r.system === frm.doc.custom_system &&
+                flt(r.area) === measurement_value
+            );
+
+            if (duplicate) {
+                frappe.msgprint(__("This data already exists!"));
+                return;
+            }
+
+            const source_items = system.system_items_spc || [];
+
+            if (!source_items.length) {
+                frappe.msgprint(__("No items found for selected System."));
+                return;
+            }
+
+            source_items.forEach(item => {
                 let row = frm.add_child("custom_project_details_items");
+
                 row.segment = frm.doc.custom_segment;
                 row.scope_of_work = frm.doc.custom_scope_of_work;
                 row.system = frm.doc.custom_system;
-                row.item = r.item_code;
-                row.qty = r.qty * r.thickness || 0;
-                row.uom = r.uom;
-                row.area = r.thickness || 0; 
-            })
-            frm.refresh_field("custom_project_details_items");
-            
-
-                frm.set_value("custom_segment", "");  
-                frm.set_value("custom_scope_of_work", ""); 
-                frm.set_value("custom_system", "");
-                frm.set_value("custom_area", "");
-                frm.doc.custom_other_item_details = [];
-                // frm.clear_table("custom_other_item_details");
-                frm.refresh_field("custom_other_item_details");
-                // Calculate total qty per item
-                let totals = {};
-                frm.doc.custom_project_details_items.forEach(r => {
-                    if (!totals[r.item]) totals[r.item] = 0;
-                    totals[r.item] += r.qty || 0;
-                });
-                frm.clear_table("custom_project_items"); 
-                for (let item in totals) {
-                    let row = frm.add_child("custom_project_items");
-                    row.item_code = item;
-                    row.total_qty = totals[item];
-                }
-                frm.refresh_field("custom_project_items");
-
-        }
-        else {    
-            frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
-                system.system_items_spc.forEach(item => {
-                    let row = frm.add_child("custom_project_details_items");
-                    row.segment = frm.doc.custom_segment;
-                    row.scope_of_work = frm.doc.custom_scope_of_work;
-                    row.system = frm.doc.custom_system;
-                    row.area = frm.doc.custom_area || 0; 
-                    row.item = item.item_code;
-                    row.qty = (frm.doc.custom_area || 0) * (item.qty || 0);  
-                });
-                frm.refresh_field("custom_project_details_items");
-                // Clear input fields
-                frm.set_value("custom_segment", "");
-                frm.set_value("custom_scope_of_work", "");
-                frm.set_value("custom_system", "");
-                frm.set_value("custom_area", "");
-                // Calculate total qty per item
-                let totals = {};
-                frm.doc.custom_project_details_items.forEach(r => {
-                    if (!totals[r.item]) totals[r.item] = 0;
-                    totals[r.item] += r.qty || 0;
-                });
-                frm.clear_table("custom_project_items"); 
-                for (let item in totals) {
-                    let row = frm.add_child("custom_project_items");
-                    row.item_code = item;
-                    row.total_qty = totals[item];
-                }
-                frm.refresh_field("custom_project_items");
+                row.area = measurement_value;
+                row.item = item.item_code;
+                row.qty = measurement_value * flt(item.qty);
             });
-        }
+
+            frm.refresh_field("custom_project_details_items");
+            clear_project_detail_inputs(frm);
+            update_project_item_totals(frm);
+        });
     },
     refresh(frm) {
+        update_project_detail_inputs(frm);
 
         frm.set_query('custom_scope_of_work', function () {
             return {
@@ -134,8 +110,6 @@ frappe.ui.form.on("Lead", {
         });
 
 
-
-        
 
         if (!frm.is_new()) {
             frm.add_custom_button(__('Add Event'), () => {
@@ -232,17 +206,17 @@ frappe.ui.form.on("Lead", {
     custom_segment(frm) {
         // Clear scope of work when segment changes
         frm.set_value("custom_scope_of_work", null);
-        thickness_calculation(frm)
+        update_project_detail_inputs(frm)
         
     },
     custom_scope_of_work(frm) {
         // Clear scope of work when segment changes
-        thickness_calculation(frm)
+        update_project_detail_inputs(frm)
         
     },
     custom_system(frm) {
         // Clear scope of work when segment changes
-        thickness_calculation(frm)
+        update_project_detail_inputs(frm, true)
         
     },
     // ===============17/01/2026========================
@@ -352,42 +326,74 @@ frappe.ui.form.on("Lead", {
 });
 
 
-function thickness_calculation(frm){
-     if (
-            frm.doc.custom_segment === "TILE/BLOCK/PLASTER SOLUTIONS" &&
-            (
-                frm.doc.custom_scope_of_work === "TILE/BLOCK SOLUTIONS" ||
-                frm.doc.custom_scope_of_work === "PLASTER SOLUTIONS"
-            ) &&
-            (
-                frm.doc.custom_system === "Type 1 - Cementitious Tile adhesive" ||
-                frm.doc.custom_system === "Type 2 - Cementitious Tile adhesive" ||
-                frm.doc.custom_system === "Type 2 - Cementitious Tile adhesive ( Grey)" ||
-                frm.doc.custom_system === "PU resin based Tile adhesive" ||
-                frm.doc.custom_system === "Primer for tile" ||
-                frm.doc.custom_system === "Block adhesive" ||
-                frm.doc.custom_system === "Ready Mix plaster" ||
-                frm.doc.custom_system === "Bonding agent for plaster"
-            )
-        ) { 
+const consumption_field_map = {
+    "Area(SQM)": "custom_area",
+    "Volume of Concrete(Cub.M)": "custom_volume_of_concretecubm",
+    "Length(RMT)": "custom_lengthrmt"
+};
 
-            frm.set_df_property("custom_area", "hidden", 1);
-            frm.set_df_property("custom_other_item_details", "hidden", 0);
-            frm.refresh_field("custom_other_item_details");
+const consumption_fields = Object.values(consumption_field_map);
 
-            frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
-                system.system_items_spc.forEach(item => {
-                    let row = frm.add_child("custom_other_item_details");
-                    row.item_code = item.item_code;
-                    row.qty = item.qty || 0;
-                    row.uom = item.uom;  
-                })
-                frm.refresh_field("custom_other_item_details");
-            }) 
+function get_consumption_field(consumption_per) {
+    return consumption_field_map[consumption_per];
+}
+
+function set_consumption_field_visibility(frm, consumption_per, clear_inactive) {
+    const active_field = get_consumption_field(consumption_per);
+
+    consumption_fields.forEach(fieldname => {
+        frm.set_df_property(fieldname, "hidden", fieldname !== active_field);
+
+        if (clear_inactive && fieldname !== active_field) {
+            frm.set_value(fieldname, null);
         }
-        else {
-            frm.set_df_property("custom_area", "hidden", 0);
-            frm.set_df_property("custom_other_item_details", "hidden", 1);
-            frm.refresh_field("custom_other_item_details");
+    });
+}
+
+function update_project_detail_inputs(frm, clear_inactive) {
+    if (!frm.doc.custom_system) {
+        set_consumption_field_visibility(frm, null, clear_inactive);
+        return;
+    }
+
+    frappe.db.get_doc("System SPC", frm.doc.custom_system).then(system => {
+        if (frm.doc.custom_system !== system.name) {
+            return;
         }
+
+        set_consumption_field_visibility(frm, system.consumption_per, clear_inactive);
+    });
+}
+
+function clear_project_detail_inputs(frm) {
+    frm.set_value("custom_segment", "");
+    frm.set_value("custom_scope_of_work", "");
+    frm.set_value("custom_system", "");
+    consumption_fields.forEach(fieldname => frm.set_value(fieldname, null));
+}
+
+function update_project_item_totals(frm) {
+    let totals = {};
+
+    (frm.doc.custom_project_details_items || []).forEach(r => {
+        if (!r.item) {
+            return;
+        }
+
+        if (!totals[r.item]) {
+            totals[r.item] = 0;
+        }
+
+        totals[r.item] += flt(r.qty);
+    });
+
+    frm.clear_table("custom_project_items");
+
+    for (let item in totals) {
+        let row = frm.add_child("custom_project_items");
+        row.item_code = item;
+        row.total_qty = totals[item];
+    }
+
+    frm.refresh_field("custom_project_items");
 }
