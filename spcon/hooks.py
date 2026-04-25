@@ -206,11 +206,15 @@ doc_events = {
         "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
     },
     "Attendance Request": {
-        "before_save": "spcon.public.py.attendance_request.purpose_limit",
-        "on_submit": [
-            "spcon.public.py.attendance_request.validate_late_entry_attendance",
+        "before_save": [
+            "spcon.public.py.attendance_request.purpose_limit",
+            "spcon.public.py.attendance_request.validate_late_entry_attendance",   
             "spcon.public.py.attendance_request.made_attachment_required"
         ] 
+        # "on_submit": [
+        #     "spcon.public.py.attendance_request.validate_late_entry_attendance",
+        #     "spcon.public.py.attendance_request.made_attachment_required"
+        # ] 
     },
     "Sales Order": {
         "before_save": [
