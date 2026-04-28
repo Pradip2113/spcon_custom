@@ -47,7 +47,7 @@ def validate_late_entry_attendance(doc, method=None):
 
     if attendance:
         frappe.throw(
-            f"Attendance already marked on {from_date} as Half Day because of late entry. You cannot create this request."
+            f"Attendance already marked on {from_date} as Half Day because of late entry. You cannot create this request. Kindly fill the Leave Application"
         )
     
 
