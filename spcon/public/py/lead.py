@@ -1,3 +1,9 @@
+from erpnext.crm.doctype.lead.lead import Lead
+
+class CustomLead(Lead):
+    def set_status(self):
+        # DO NOTHING → disable ERPNext logic
+        pass
 
 
 import frappe
@@ -12,3 +18,4 @@ def set_firm_name(firm_name):
 @frappe.whitelist()
 def set_title_field(doc,method=None):
     doc.title = doc.custom_firm_name_lead
+

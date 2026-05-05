@@ -66,11 +66,18 @@ doctype_js = {
     "Attendance Request": "public/js/attendance_request.js",
     "BOM": "public/js/bom.js",
     "Quotation": "public/js/quotation.js",
+    "Purchase Order": "public/js/purchase_order.js",
+    "Purchase Receipt": "public/js/purchase_receipt.js",
+    "Purchase Invoice": "public/js/purchase_invoice.js",
     "Sales Order": "public/js/sales_order.js",
+    "Sales Invoice": "public/js/sales_invoice.js",
+    "Delivery Note": "public/js/delivery_note.js",
+    "Cost Center": "public/js/cost_center.js",
 }
 
 doctype_list_js = {
-    "BOM": "public/js/bom_list.js"
+    "BOM": "public/js/bom_list.js",
+    "Purchase Order": "public/listview/purchase_order_list.js",
 }
  
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -169,6 +176,7 @@ override_doctype_class = {
 	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
     "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
     "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary",
+    "Lead": "spcon.public.py.lead.CustomLead"
 }
 
  
@@ -202,9 +210,6 @@ doc_events = {
     "Expense Claim": {
         "on_submit": "spcon.public.py.employee_advance.get_outstanding"
     },
-    "Purchase Order": {
-        "before_save": "spcon.public.py.purchase_order.set_po_pending_status"
-    },
     "Attendance Request": {
         "before_save": [
             "spcon.public.py.attendance_request.purpose_limit",
@@ -216,30 +221,50 @@ doc_events = {
         #     "spcon.public.py.attendance_request.made_attachment_required"
         # ] 
     },
+    "Quality Inspection": {
+        "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
+    },
+    "Lead": {
+        "before_save": "spcon.public.py.lead.set_title_field",
+    },
+    "Purchase Order": {
+        "before_save": [
+            "spcon.public.py.purchase_order.set_po_pending_status",
+            "spcon.public.py.set_cost_center.set_cost_center"
+        ] 
+    },
+    "Purchase Receipt": {
+        "before_save": [
+            "spcon.public.py.purchase_receipt.validate_over_receipt_with_draft",
+            "spcon.public.py.set_cost_center.set_cost_center"
+        ] 
+    },
+    "Purchase Invoice": {
+        "before_save" : "spcon.public.py.set_cost_center.set_cost_center"
+    },
     "Sales Order": {
         "before_save": [
             "spcon.override.sales_order_dates.sync_draft_item_dates",
             "spcon.public.py.sales_order.set_minimum_qty",
+            "spcon.public.py.set_cost_center.set_cost_center"
         ]
     },
     "Sales Invoice": {
         "before_save": [
             "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save",
-            "spcon.public.py.sales_order.set_minimum_qty"
+            "spcon.public.py.sales_order.set_minimum_qty",
+            "spcon.public.py.set_cost_center.set_cost_center"
         ] 
     },
     "Delivery Note": {
-        "before_save": "spcon.public.py.sales_order.set_minimum_qty"
+        "before_save": [
+            "spcon.public.py.sales_order.set_minimum_qty",
+            "spcon.public.py.set_cost_center.set_cost_center"
+        ]
     },
-    "Quality Inspection": {
-        "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
+    "Payment Entry": {
+        "before_save": "spcon.public.py.set_cost_center.set_cost_center_payment_entry"
     },
-    "Lead": {
-        "before_save": "spcon.public.py.lead.set_title_field"
-    },
-    "Purchase Receipt": {
-        "before_save": "spcon.public.py.purchase_receipt.validate_over_receipt_with_draft"
-    }
 } 
 # doc_events = {
 # 	"*": {
