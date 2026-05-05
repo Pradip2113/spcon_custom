@@ -12,4 +12,4 @@ frappe.query_reports["Item Price SPC"] = {
 		},
 	],
 };
-      
+       
