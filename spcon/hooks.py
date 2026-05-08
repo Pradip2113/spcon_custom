@@ -252,7 +252,7 @@ doc_events = {
     "Sales Invoice": {
         "before_save": [
             "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save",
-            "spcon.public.py.sales_order.set_minimum_qty",
+            "spcon.public.py.sales_invoice.set_minimum_qty",
             "spcon.public.py.set_cost_center.set_cost_center"
         ] 
     },
