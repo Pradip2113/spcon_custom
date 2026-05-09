@@ -247,7 +247,8 @@ doc_events = {
             "spcon.override.sales_order_dates.sync_draft_item_dates",
             "spcon.public.py.sales_order.set_minimum_qty",
             "spcon.public.py.set_cost_center.set_cost_center"
-        ]
+        ],
+        "on_update_after_submit": "spcon.public.py.set_cost_center.on_update_set_cost_center"
     },
     "Sales Invoice": {
         "before_save": [
