@@ -47,6 +47,32 @@ LATE_IN_TIME = time(9, 30)
 EARLY_OUT_TIME = time(17, 30)
 
 
+def _get_working_hours(first_in, last_out):
+    if not first_in or not last_out:
+        return 0
+
+    return flt(time_diff_in_hours(last_out, first_in))
+
+
+def _is_actual_half_day(working_hours, shift):
+    if not shift or not working_hours:
+        return False
+
+    absent_threshold, half_day_threshold = frappe.get_value(
+        "Shift Type",
+        shift,
+        ["working_hours_threshold_for_absent", "working_hours_threshold_for_half_day"],
+    ) or (None, None)
+
+    absent_threshold = flt(absent_threshold)
+    half_day_threshold = flt(half_day_threshold)
+
+    if not absent_threshold or not half_day_threshold:
+        return False
+
+    return absent_threshold < flt(working_hours) < half_day_threshold
+
+
 def _get_late_days_upto(employee, month_start, att_date):
     start_dt = datetime.combine(month_start, time.min)
     end_dt = datetime.combine(att_date, time.max)
@@ -88,6 +114,10 @@ def _get_late_days_upto(employee, month_start, att_date):
         if neglect_shift_cache.get(shift):
             continue
 
+        working_hours = _get_working_hours(row.first_in, row.last_out)
+        if _is_actual_half_day(working_hours, shift):
+            continue
+
         in_time = get_time(row.first_in) if row.first_in else None
         out_time = get_time(row.last_out) if row.last_out else None
         late = in_time is not None and in_time > LATE_IN_TIME
@@ -100,6 +130,9 @@ def apply_sandwich_rule_on_attendance_save(doc, method=None):
     if not doc.leave_application:
         emp = doc.employee
         att_date = getdate(doc.attendance_date)
+
+        if doc.status == "Half Day" or _is_actual_half_day(doc.working_hours, doc.shift):
+            return
 
         # ⛔ Skip Sunday
         if att_date.weekday() == 6:
@@ -115,31 +148,8 @@ def apply_sandwich_rule_on_attendance_save(doc, method=None):
 
         count = late_days.index(att_date) + 1
 
-        # 4️⃣ Apply rule
+        # Apply late entry / early exit rule only for full-day attendance.
         if count <= 3:
-            # Ensure standard rules don't force half day for the first 3 occurrences
-            if doc.status == "Half Day":
-                doc.status = "Present"
-                if doc.meta.has_field("half_day_status"):
-                    doc.half_day_status = None
-                if doc.meta.has_field("half_day_date"):
-                    doc.half_day_date = None
-                if doc.meta.has_field("half_day"):
-                    doc.half_day = 0
-                if doc.meta.has_field("leave_type"):
-                    doc.leave_type = None
-
-                if doc.docstatus == 1:
-                    updates = {"status": doc.status}
-                    if doc.meta.has_field("half_day_status"):
-                        updates["half_day_status"] = doc.half_day_status
-                    if doc.meta.has_field("half_day_date"):
-                        updates["half_day_date"] = doc.half_day_date
-                    if doc.meta.has_field("half_day"):
-                        updates["half_day"] = doc.half_day
-                    if doc.meta.has_field("leave_type"):
-                        updates["leave_type"] = doc.leave_type
-                    frappe.db.set_value("Attendance", doc.name, updates)
             return
 
         doc.status = "Half Day"
