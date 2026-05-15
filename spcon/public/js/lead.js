@@ -51,6 +51,7 @@ frappe.ui.form.on("Lead", {
                 row.area = measurement_value;
                 row.item = item.item_code;
                 row.qty = measurement_value * flt(item.qty);
+                row.unit = item.unit;
             });
 
             frm.refresh_field("custom_project_details_items");
@@ -329,7 +330,9 @@ frappe.ui.form.on("Lead", {
 const consumption_field_map = {
     "Area(SQM)": "custom_area",
     "Volume of Concrete(Cub.M)": "custom_volume_of_concretecubm",
-    "Length(RMT)": "custom_lengthrmt"
+    "Length(RMT)": "custom_lengthrmt",
+    "Qty (KG)": "custom_qty_kg",
+    "Qty (Nos)": "custom_qty_nos"
 };
 
 const consumption_fields = Object.values(consumption_field_map);
@@ -384,15 +387,16 @@ function update_project_item_totals(frm) {
             totals[r.item] = 0;
         }
 
-        totals[r.item] += flt(r.qty);
+        totals[r.item] += flt(r.qty); 
     });
 
-    frm.clear_table("custom_project_items");
+    frm.clear_table("custom_project_items");  
 
     for (let item in totals) {
         let row = frm.add_child("custom_project_items");
         row.item_code = item;
         row.total_qty = totals[item];
+        row.unit = item.uom;
     }
 
     frm.refresh_field("custom_project_items");
