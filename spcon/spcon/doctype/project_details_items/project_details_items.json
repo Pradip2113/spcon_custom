@@ -11,7 +11,8 @@
   "system",
   "area",
   "item",
-  "qty"
+  "qty",
+  "unit"
  ],
  "fields": [
   {
@@ -55,13 +56,21 @@
    "in_list_view": 1,
    "label": "Qty",
    "precision": "2"
+  },
+  {
+   "fetch_from": "item.stock_uom",
+   "fieldname": "unit",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Unit",
+   "options": "UOM"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-08 11:17:05.871783",
+ "modified": "2026-05-14 12:02:43.573538",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Project Details Items",

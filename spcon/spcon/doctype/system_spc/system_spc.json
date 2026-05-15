@@ -49,14 +49,14 @@
    "fieldname": "consumption_per",
    "fieldtype": "Select",
    "label": "Consumption Per",
-   "options": "\nArea(SQM)\nVolume of Concrete(Cub.M)\nLength(RMT)",
+   "options": "\nArea(SQM)\nVolume of Concrete(Cub.M)\nLength(RMT)\nQty (KG)\nQty (Nos)",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-21 12:52:58.255899",
+ "modified": "2026-05-14 11:43:44.967442",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "System SPC",
