@@ -1,6 +1,3 @@
-// Copyright (c) 2026, Sanpra and contributors
-// For license information, please see license.txt
-
 frappe.query_reports["Forcast"] = {
 	"filters": [
 		{
@@ -19,6 +16,13 @@ frappe.query_reports["Forcast"] = {
 			"fieldtype": "Link",
 			"options": "Item",
 		},
+		{
+			"fieldname": "view_type",
+			"label": __("View Type"),
+			"fieldtype": "Select",
+			"options": "Item Wise\nEntry Wise",
+			"default": "Item Wise",
+			"reqd": 1,
+		},
 	]
 };
- 
