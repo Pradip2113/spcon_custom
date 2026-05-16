@@ -100,3 +100,5 @@
         frappe.after_ajax(install_override);
     }
 })();
+
+
