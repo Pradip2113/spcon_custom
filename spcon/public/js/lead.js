@@ -375,6 +375,33 @@ function clear_project_detail_inputs(frm) {
     consumption_fields.forEach(fieldname => frm.set_value(fieldname, null));
 }
 
+// function update_project_item_totals(frm) {
+//     let totals = {};
+
+//     (frm.doc.custom_project_details_items || []).forEach(r => {
+//         if (!r.item) {
+//             return;
+//         }
+
+//         if (!totals[r.item]) {
+//             totals[r.item] = 0;
+//         }
+
+//         totals[r.item] += flt(r.qty); 
+//     });
+
+//     frm.clear_table("custom_project_items");  
+
+//     for (let item in totals) {
+//         let row = frm.add_child("custom_project_items");
+//         row.item_code = item;
+//         row.total_qty = totals[item];
+//     }
+
+//     frm.refresh_field("custom_project_items");
+// }
+
+
 function update_project_item_totals(frm) {
     let totals = {};
 
@@ -384,19 +411,23 @@ function update_project_item_totals(frm) {
         }
 
         if (!totals[r.item]) {
-            totals[r.item] = 0;
+            totals[r.item] = {
+                qty: 0,
+                uom: r.unit || r.uom
+            };
         }
 
-        totals[r.item] += flt(r.qty); 
+        totals[r.item].qty += flt(r.qty);
     });
 
-    frm.clear_table("custom_project_items");  
+    frm.clear_table("custom_project_items");
 
     for (let item in totals) {
         let row = frm.add_child("custom_project_items");
+
         row.item_code = item;
-        row.total_qty = totals[item];
-        row.unit = item.uom;
+        row.total_qty = totals[item].qty;
+        row.unit = totals[item].uom;
     }
 
     frm.refresh_field("custom_project_items");
