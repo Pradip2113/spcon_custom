@@ -31,6 +31,7 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 
 	def get_data(self, args):
 		self.data = []
+		self.filters.show_sales_person = 1
 		self.receivables = ReceivablePayableReport(self.filters).run(args)[1]
 		self.currency_precision = get_currency_precision() or 2
 
@@ -86,6 +87,8 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 
 			if self.filters.show_future_payments:
 				row.remaining_balance = flt(row.outstanding) - flt(row.future_amount)
+
+			row.sales_person = self.get_custom_sales_person(row.party)
 
 			for i in getattr(self, "range_numbers", []):
 				range_key = f"range{i}"
@@ -143,6 +146,23 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 		if self.filters.sales_partner:
 			self.party_total[row.party]["default_sales_partner"] = row.get("default_sales_partner", "")
 
+	def get_custom_sales_person(self, party):
+		if not hasattr(self, "_custom_sales_person_field_cache"):
+			self._custom_sales_person_field_cache = {}
+
+		if self.account_type != "Receivable" or not self.has_field("Customer", "custom_sales_person"):
+			return ""
+
+		custom_sales_person = frappe.get_cached_value("Customer", party, "custom_sales_person")
+		return custom_sales_person or ""
+
+	def has_field(self, doctype, fieldname):
+		cache_key = (doctype, fieldname)
+		if cache_key not in self._custom_sales_person_field_cache:
+			self._custom_sales_person_field_cache[cache_key] = frappe.get_meta(doctype).has_field(fieldname)
+
+		return self._custom_sales_person_field_cache[cache_key]
+
 	def get_columns(self):
 		self.columns = []
 		self.add_column(
@@ -195,8 +215,7 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 				fieldtype="Link",
 				options="Customer Group",
 			)
-			if self.filters.show_sales_person:
-				self.add_column(label=_("Sales Person"), fieldname="sales_person", fieldtype="Data")
+			self.add_column(label=_("Sales Person"), fieldname="sales_person", fieldtype="Data")
 
 			if self.filters.sales_partner:
 				self.add_column(label=_("Sales Partner"), fieldname="default_sales_partner", fieldtype="Data")
