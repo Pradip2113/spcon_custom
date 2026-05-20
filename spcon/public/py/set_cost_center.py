@@ -22,3 +22,9 @@ def set_cost_center_payment_entry(doc, method):
     if doc.taxes:
         for row in doc.taxes:
             row.cost_center = doc.cost_center
+        
+@frappe.whitelist()
+def set_cost_center_journal_entry(doc, method):
+    if doc.accounts:
+        for row in doc.accounts:
+            row.cost_center = doc.custom_cost_center
