@@ -266,6 +266,9 @@ doc_events = {
     "Payment Entry": {
         "before_save": "spcon.public.py.set_cost_center.set_cost_center_payment_entry"
     },
+    "Journal Entry": {
+        "before_save": "spcon.public.py.set_cost_center.set_cost_center_journal_entry"
+    },
 } 
 # doc_events = {
 # 	"*": {
