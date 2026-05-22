@@ -74,6 +74,12 @@ frappe.ui.form.on('Employee Day Salary Calculation', {
 });
 
 frappe.ui.form.on('Stock Entry', {
+    setup: function(frm) {
+        set_warehouse_queries(frm);
+    },
+    refresh: function(frm) {
+        set_warehouse_queries(frm);
+    },
     custom_employee_day_salary_add: function(frm) {
         set_total_salary(frm);
         set_custom_total_salary(frm)
@@ -81,8 +87,30 @@ frappe.ui.form.on('Stock Entry', {
     custom_employee_day_salary_remove: function(frm) {
         set_total_salary(frm);
         set_custom_total_salary(frm)
+    },
+    cost_center: function (frm) {
+        set_warehouse_queries(frm);
     }
 });
+
+function set_warehouse_queries(frm) {
+    frm.set_query("s_warehouse", "items", function () {
+        return get_cost_center_warehouse_query(frm);
+    });
+
+    frm.set_query("t_warehouse", "items", function () {
+        return get_cost_center_warehouse_query(frm);
+    });
+}
+
+function get_cost_center_warehouse_query(frm) {
+    return {
+        query: "spcon.public.py.warehouse.warehouse_query",
+        filters: {
+            cost_center: frm.doc.cost_center
+        }
+    };
+}
 
 function set_total_salary(frm) {
     let total = 0;

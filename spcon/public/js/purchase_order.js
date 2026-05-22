@@ -4,7 +4,7 @@ frappe.ui.form.on('Purchase Order', {
 			frm.set_value('billing_address', '');
 			return;
 		}
-
+ 
 		const r = await frappe.db.get_value('Cost Center', frm.doc.cost_center, 'custom_address');
 		const address = r.message?.custom_address || '';
 		frm.set_value('billing_address', address);
