@@ -8,7 +8,7 @@
 # class RCMRateSet(Document):
 # 	@frappe.whitelist()
 # 	def set_rcm_rate(self):
-# 		if not self.items:
+# 		if not self.items: 
 # 			return
 # 		for row in self.items:
 # 			data = frappe.get_all("BOM Item", {"item_code": row.item_code,  "docstatus": ["!=", 2]}, ["name", "item_code", "custom_rmc_cost", "custom_rmc_amount", "qty"])
@@ -39,7 +39,15 @@ class RCMRateSet(Document):
 		)
 
 		frappe.msgprint("RCM Rate update started in background")
-
+	
+	@frappe.whitelist()
+	def set_base_rate(self):
+		for row in self.items:
+			data = frappe.get_all("BOM", {"item": row.item_code, "custom_bom_type": "Base", "docstatus": ["!=", 2]}, ["name", "item", "custom_single_unit_rate"])
+			for d in data:
+				row.rate = d.custom_single_unit_rate
+		self.save()
+				# frappe.msgprint(str(d))
 
 # -----------------------------------------
 # BACKGROUND FUNCTION
@@ -77,3 +85,6 @@ def update_rcm_rate(doc):
 
 	# Commit once at end
 	frappe.db.commit()
+
+
+

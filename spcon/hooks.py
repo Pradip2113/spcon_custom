@@ -173,6 +173,8 @@ permission_query_conditions = {
 # Override standard doctype classes
 
 override_doctype_class = {
+    "Customer": "spcon.override.customer.CustomCustomer",
+    "Supplier": "spcon.override.supplier.CustomSupplier",
 	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
     "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
     "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary",

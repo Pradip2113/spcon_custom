@@ -8,7 +8,7 @@
 //             doc: frm.doc,
 //             callback: function(r){
 //                 console.log(r)
-//             }
+//             } 
 //         })
 // 	},
 // });
@@ -30,4 +30,15 @@ frappe.ui.form.on("RCM Rate Set", {
 			}
 		});
 	},
+	base_set_rate(frm){
+		frappe.call({
+			method: "set_base_rate",
+			doc: frm.doc,
+			freeze: true,
+			freeze_message: "Processing in background...",
+			callback: function(r) {
+				frappe.msgprint("Base Rate update started in background");
+			}
+		})
+	}
 });

@@ -9,6 +9,8 @@
   "date",
   "column_break_ajhr",
   "set_rate",
+  "column_break_xcnu",
+  "base_set_rate",
   "section_break_vtjd",
   "items"
  ],
@@ -37,12 +39,21 @@
    "fieldtype": "Table",
    "label": "Items",
    "options": "RCM Rate Items"
+  },
+  {
+   "fieldname": "column_break_xcnu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "base_set_rate",
+   "fieldtype": "Button",
+   "label": "Base Set Rate"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-27 12:33:10.148201",
+ "modified": "2026-05-23 12:44:37.898698",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "RCM Rate Set",
