@@ -89,7 +89,7 @@
    "hide_border": 0,
    "hide_days": 0,
    "hide_seconds": 0,
-   "idx": 16,
+   "idx": 17,
    "ignore_user_permissions": 0,
    "ignore_xss_filter": 0,
    "in_global_search": 0,
@@ -292,7 +292,7 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2025-02-24 16:12:15.155653",
+   "creation": "2026-05-25 18:28:05.306760",
    "default_value": null,
    "doc_type": "Journal Entry",
    "docstatus": 0,
@@ -300,7 +300,7 @@
    "field_name": "company_gstin",
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2026-05-15 11:37:40.081115",
+   "modified": "2026-05-25 18:28:05.306760",
    "modified_by": "Administrator",
    "module": null,
    "name": "Journal Entry-company_gstin-hidden",
@@ -308,7 +308,7 @@
    "property": "hidden",
    "property_type": "Check",
    "row_name": null,
-   "value": "1"
+   "value": "0"
   },
   {
    "_assign": null,
@@ -384,7 +384,7 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2026-05-20 15:54:33.743458",
+   "creation": "2026-05-25 18:28:05.269581",
    "default_value": null,
    "doc_type": "Journal Entry",
    "docstatus": 0,
@@ -392,7 +392,7 @@
    "field_name": null,
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2026-05-20 15:54:33.743458",
+   "modified": "2026-05-25 18:28:05.269581",
    "modified_by": "Administrator",
    "module": null,
    "name": "Journal Entry-main-field_order",
@@ -400,7 +400,7 @@
    "property": "field_order",
    "property_type": "Data",
    "row_name": null,
-   "value": "[\"entry_type_and_date\", \"is_system_generated\", \"title\", \"voucher_type\", \"ineligibility_reason\", \"naming_series\", \"finance_book\", \"process_deferred_accounting\", \"reversal_of\", \"tax_withholding_category\", \"column_break1\", \"company\", \"from_template\", \"company_gstin\", \"posting_date\", \"apply_tds\", \"cost_center\", \"2_add_edit_gl_entries\", \"accounts\", \"section_break99\", \"cheque_no\", \"cheque_date\", \"user_remark\", \"column_break99\", \"total_debit\", \"total_credit\", \"difference\", \"get_balance\", \"multi_currency\", \"total_amount_currency\", \"total_amount\", \"total_amount_in_words\", \"reference\", \"clearance_date\", \"remark\", \"paid_loan\", \"inter_company_journal_entry_reference\", \"column_break98\", \"bill_no\", \"bill_date\", \"due_date\", \"write_off\", \"write_off_based_on\", \"get_outstanding_invoices\", \"column_break_30\", \"write_off_amount\", \"printing_settings\", \"pay_to_recd_from\", \"column_break_35\", \"letter_head\", \"select_print_heading\", \"addtional_info\", \"mode_of_payment\", \"payment_order\", \"party_not_required\", \"column_break3\", \"is_opening\", \"stock_entry\", \"subscription_section\", \"auto_repeat\", \"amended_from\"]"
+   "value": "[\"entry_type_and_date\", \"is_system_generated\", \"title\", \"voucher_type\", \"ineligibility_reason\", \"naming_series\", \"finance_book\", \"process_deferred_accounting\", \"reversal_of\", \"tax_withholding_category\", \"column_break1\", \"company\", \"from_template\", \"company_gstin\", \"posting_date\", \"apply_tds\", \"custom_cost_center\", \"2_add_edit_gl_entries\", \"accounts\", \"section_break99\", \"cheque_no\", \"cheque_date\", \"user_remark\", \"column_break99\", \"total_debit\", \"total_credit\", \"difference\", \"get_balance\", \"multi_currency\", \"total_amount_currency\", \"total_amount\", \"total_amount_in_words\", \"reference\", \"clearance_date\", \"remark\", \"paid_loan\", \"inter_company_journal_entry_reference\", \"column_break98\", \"bill_no\", \"bill_date\", \"due_date\", \"write_off\", \"write_off_based_on\", \"get_outstanding_invoices\", \"column_break_30\", \"write_off_amount\", \"printing_settings\", \"pay_to_recd_from\", \"column_break_35\", \"letter_head\", \"select_print_heading\", \"addtional_info\", \"mode_of_payment\", \"payment_order\", \"party_not_required\", \"column_break3\", \"is_opening\", \"stock_entry\", \"subscription_section\", \"auto_repeat\", \"amended_from\"]"
   },
   {
    "_assign": null,

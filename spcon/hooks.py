@@ -242,7 +242,10 @@ doc_events = {
         ] 
     },
     "Purchase Invoice": {
-        "before_save" : "spcon.public.py.set_cost_center.set_cost_center"
+        "before_save" : [
+            "spcon.public.py.set_cost_center.set_cost_center",
+            "spcon.public.py.sales_invoice.validate_naming_series"
+        ] 
     },
     "Sales Order": {
         "before_save": [
@@ -256,7 +259,8 @@ doc_events = {
         "before_save": [
             "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save",
             "spcon.public.py.sales_invoice.set_minimum_qty",
-            "spcon.public.py.set_cost_center.set_cost_center"
+            "spcon.public.py.set_cost_center.set_cost_center",
+            "spcon.public.py.sales_invoice.validate_naming_series"
         ] 
     },
     "Delivery Note": {
