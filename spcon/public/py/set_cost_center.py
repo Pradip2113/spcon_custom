@@ -28,3 +28,8 @@ def set_cost_center_journal_entry(doc, method):
     if doc.accounts:
         for row in doc.accounts:
             row.cost_center = doc.custom_cost_center
+
+def set_material_request_cost_center(doc, method=None):
+    if doc.items:
+        for row in doc.items:
+            row.cost_center = doc.custom_cost_center

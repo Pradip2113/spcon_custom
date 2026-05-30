@@ -73,6 +73,7 @@ doctype_js = {
     "Sales Invoice": "public/js/sales_invoice.js",
     "Delivery Note": "public/js/delivery_note.js",
     "Cost Center": "public/js/cost_center.js",
+    "Material Request": "public/js/material_request.js",
 }
 
 doctype_list_js = {
@@ -204,7 +205,8 @@ doc_events = {
         "after_save":"spcon.manufacuring.custom_work_order.bom_set_name"
     },
     "Material Request": {
-        "before_cancel": "spcon.public.py.material_request.get_data"
+        "before_cancel": "spcon.public.py.material_request.get_data",
+        "validate": "spcon.public.py.set_cost_center.set_material_request_cost_center"
     },
     "Leave Application": {
         "on_submit": "spcon.public.py.leave_application.set_leave_type_absent"

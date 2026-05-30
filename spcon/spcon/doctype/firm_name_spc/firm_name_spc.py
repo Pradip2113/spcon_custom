@@ -11,5 +11,5 @@ class FirmNameSPC(Document):
 		self.set_checkbox_mandetory()
 
 	def set_checkbox_mandetory(self):
-		if not (self.architecture or self.contractor or self.applicator or self.consultant or self.other):
+		if not (self.architect or self.contractor or self.applicator or self.consultant or self.other):
 			frappe.throw("Please select at least one checkbox")

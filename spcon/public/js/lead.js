@@ -234,7 +234,7 @@ frappe.ui.form.on("Lead", {
     custom_add_contact_person(frm) {
         frappe.db.get_doc("Contact Person SPC", frm.doc.custom_contact_person).then(contact_person => {
             const firm_type_field_map = {
-                Architecture: "custom_architecture_contact_person",
+                Architect: "custom_architecture_contact_person",
                 Consultant: "custom_consultant_contact_person",
                 Contractor: "custom_contactor_contact_person",
                 Applicator: "custom_applicator_contact_person",

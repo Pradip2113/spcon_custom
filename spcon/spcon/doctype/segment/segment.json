@@ -13,17 +13,19 @@
   {
    "fieldname": "segment",
    "fieldtype": "Data",
-   "label": "Segment"
+   "in_list_view": 1,
+   "label": "Segment",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-15 15:20:12.672643",
+ "modified": "2026-05-29 11:25:58.666368",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Segment",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "vikas@sanpra.co.in",
  "permissions": [
   {
@@ -39,6 +41,7 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
