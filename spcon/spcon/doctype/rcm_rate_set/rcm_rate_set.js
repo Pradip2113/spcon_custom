@@ -23,7 +23,7 @@ frappe.ui.form.on("RCM Rate Set", {
 		frappe.call({
 			method: "set_rcm_rate",
 			doc: frm.doc,
-			freeze: true,
+			freeze: true, 
 			freeze_message: "Processing in background...",
 			callback: function(r) {
 				frappe.msgprint("RCM Rate update started in background");

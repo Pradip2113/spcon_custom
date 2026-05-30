@@ -1,7 +1,7 @@
 import frappe
 
 
-@frappe.whitelist()
+@frappe.whitelist() 
 def set_actual_dispatch_date_on_save(doc, method=None):
     for item in doc.items:
         
@@ -29,3 +29,20 @@ def set_minimum_qty(doc, method=None):
 
     if errors:
         frappe.throw("<br>".join(errors))
+
+
+@frappe.whitelist()
+def validate_naming_series(doc, method=None):
+
+    data = frappe.get_all(
+        "Cost Center Naming Series",
+        {"parent": doc.cost_center},
+        ["naming_series"]
+    )
+
+    allowed_series = [d.naming_series for d in data]
+
+    if doc.naming_series not in allowed_series:
+        frappe.throw(
+            f"Invalid naming series for the selected cost center."
+        )

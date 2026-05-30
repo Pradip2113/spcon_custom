@@ -13,6 +13,7 @@
  ],
  "fields": [
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "item_code",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -20,12 +21,14 @@
    "options": "Item"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "qty",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Qty"
   },
   {
+   "allow_in_quick_entry": 1,
    "fetch_from": "item_code.stock_uom",
    "fieldname": "uom",
    "fieldtype": "Link",
@@ -34,6 +37,7 @@
    "options": "UOM"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "unit",
    "fieldtype": "Link",
    "label": "Unit",
@@ -44,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-10 13:24:28.374188",
+ "modified": "2026-05-29 11:39:56.286309",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "System Items SPC",

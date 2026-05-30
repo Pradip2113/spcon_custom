@@ -16,6 +16,7 @@
  ],
  "fields": [
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "system",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -28,6 +29,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "scope_of_work",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -40,12 +42,14 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "system_items_spc",
    "fieldtype": "Table",
    "label": "System Items SPC",
    "options": "System Items SPC"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "consumption_per",
    "fieldtype": "Select",
    "label": "Consumption Per",
@@ -56,7 +60,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-14 11:43:44.967442",
+ "modified": "2026-05-29 11:40:34.577028",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "System SPC",
@@ -76,6 +80,7 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",

@@ -15,33 +15,39 @@
  ],
  "fields": [
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "contact_person_name",
    "fieldtype": "Data",
    "label": "Contact Person Name",
    "unique": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "designation",
    "fieldtype": "Data",
    "label": "Designation"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "mobile_no",
    "fieldtype": "Data",
    "label": "Mobile No"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "firm_name",
    "fieldtype": "Link",
    "label": "Firm Name",
    "options": "Firm Name SPC"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "firm_type",
    "fieldtype": "Table MultiSelect",
    "label": "Firm Type",
@@ -51,7 +57,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-09 10:17:27.491510",
+ "modified": "2026-05-29 11:36:39.663128",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Contact Person SPC",
@@ -71,6 +77,7 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",

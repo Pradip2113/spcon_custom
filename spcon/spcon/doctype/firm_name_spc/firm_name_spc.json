@@ -8,7 +8,7 @@
  "field_order": [
   "firm_name",
   "section_break_oaty",
-  "architecture",
+  "architect",
   "column_break_irfh",
   "contractor",
   "column_break_odeq",
@@ -20,6 +20,7 @@
  ],
  "fields": [
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "firm_name",
    "fieldtype": "Data",
    "label": "Firm Name",
@@ -30,16 +31,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "default": "0",
-   "fieldname": "architecture",
-   "fieldtype": "Check",
-   "label": "Architecture"
-  },
-  {
    "fieldname": "column_break_irfh",
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "contractor",
    "fieldtype": "Check",
@@ -50,6 +46,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "applicator",
    "fieldtype": "Check",
@@ -60,6 +57,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "consultant",
    "fieldtype": "Check",
@@ -70,16 +68,24 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "other",
    "fieldtype": "Check",
    "label": "Other"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "0",
+   "fieldname": "architect",
+   "fieldtype": "Check",
+   "label": "Architect"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-09 10:00:30.541519",
+ "modified": "2026-05-29 11:34:45.677467",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Firm Name SPC",
@@ -99,6 +105,7 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
