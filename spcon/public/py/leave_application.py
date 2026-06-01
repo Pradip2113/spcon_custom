@@ -1,4 +1,6 @@
 import frappe
+from frappe import _
+from frappe.utils import getdate, nowdate
 
 @frappe.whitelist()
 def set_leave_type_absent(doc,method):
@@ -15,3 +17,21 @@ def set_leave_type_absent(doc,method):
     #     for att in attendance:
     #         frappe.set_value("Attendance", att, "status", "Half Day")
     #         frappe.set_value("Attendance", att, "half_day_status", "Absent") 
+
+
+
+def validate_backdated_leave(doc, method=None):
+    # Skip for Leave Approvers
+    if "Leave Approver" in frappe.get_roles():
+        return
+
+    today = getdate(nowdate())
+    from_date = getdate(doc.from_date)
+
+    days_difference = (today - from_date).days
+
+    # Allow today, future dates, and only 1 day backdated
+    if days_difference > 1:
+        frappe.throw(
+            _("You can apply leave only for yesterday or a future date. Leave applications older than 1 day are not allowed.")
+        )
