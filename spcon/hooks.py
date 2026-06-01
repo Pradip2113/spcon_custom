@@ -179,7 +179,10 @@ override_doctype_class = {
 	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
     "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
     "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary",
-    "Lead": "spcon.public.py.lead.CustomLead"
+    "Lead": "spcon.public.py.lead.CustomLead",
+    "Attendance Request": "spcon.override.attendance_request.CustomAttendanceRequest",
+    # "Leave Application": "spcon.override.leave_application.CustomLeaveApplication"
+    
 }
 
  
@@ -217,13 +220,15 @@ doc_events = {
     "Attendance Request": {
         "before_save": [
             "spcon.public.py.attendance_request.purpose_limit",
-            "spcon.public.py.attendance_request.validate_late_entry_attendance",   
-            "spcon.public.py.attendance_request.made_attachment_required"
+            "spcon.public.py.attendance_request.validate_late_entry_attendance",
+        ],
+       
+        "on_submit": [
+            "spcon.public.py.attendance_request.attendance_submit",
+            # "spcon.public.py.attendance_request.validate_late_entry_attendance",
+             "spcon.public.py.attendance_request.made_attachment_required",
+             "spcon.public.py.attendance_request.validate_attendance_request",
         ] 
-        # "on_submit": [
-        #     "spcon.public.py.attendance_request.validate_late_entry_attendance",
-        #     "spcon.public.py.attendance_request.made_attachment_required"
-        # ] 
     },
     "Quality Inspection": {
         "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
@@ -277,7 +282,10 @@ doc_events = {
     "Journal Entry": {
         "before_save": "spcon.public.py.set_cost_center.set_cost_center_journal_entry"
     },
-} 
+    "Leave Application": {
+        "before_save": "spcon.public.py.leave_application.validate_backdated_leave"  
+    }
+}   
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",
@@ -316,8 +324,7 @@ doc_events = {
 # ------------------------------
 #
 override_whitelisted_methods = {
-    "erpnext.controllers.accounts_controller.update_child_qty_rate":
-        "spcon.override.sales_order_dates.update_child_qty_rate"
+    "erpnext.controllers.accounts_controller.update_child_qty_rate":"spcon.override.sales_order_dates.update_child_qty_rate"
 }
 #
 # each overriding function accepts a `data` argument;
