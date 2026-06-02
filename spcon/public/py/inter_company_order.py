@@ -5,6 +5,10 @@ PREFERRED_CUSTOMERS = {
 	"SP Concare Private Limited": "Sp Concare Private Limited - Gujrat",
 }
 
+PREFERRED_SUPPLIERS = {
+	"SP Concare Private Limited": "Sp Concare Private Limited Sangli",
+}
+
 
 @frappe.whitelist()
 def make_inter_company_sales_order(source_name, target_doc=None):
@@ -73,4 +77,73 @@ def validate_mapped_inter_company_sales_order(source_name):
 		"customer": doc.customer,
 		"company": doc.company,
 		"inter_company_order_reference": doc.inter_company_order_reference,
+	}
+
+
+@frappe.whitelist()
+def make_inter_company_purchase_invoice(source_name, target_doc=None):
+	from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
+		make_inter_company_purchase_invoice as make_core_purchase_invoice,
+	)
+
+	purchase_invoice = make_core_purchase_invoice(source_name, target_doc)
+	sales_invoice = frappe.get_doc("Sales Invoice", source_name)
+	supplier = PREFERRED_SUPPLIERS.get(sales_invoice.company)
+
+	if supplier and frappe.db.exists(
+		"Supplier",
+		{
+			"name": supplier,
+			"is_internal_supplier": 1,
+			"represents_company": sales_invoice.company,
+			"disabled": 0,
+		},
+	):
+		purchase_invoice.supplier = supplier
+		purchase_invoice.supplier_name = frappe.get_cached_value("Supplier", supplier, "supplier_name")
+		purchase_invoice.is_internal_supplier = 1
+
+		supplier_address = frappe.db.get_value(
+			"Dynamic Link",
+			{
+				"link_doctype": "Supplier",
+				"link_name": supplier,
+				"parenttype": "Address",
+			},
+			"parent",
+		)
+		if supplier_address:
+			purchase_invoice.supplier_address = supplier_address
+			address_display = frappe.get_cached_value("Address", supplier_address, "address_line1") or supplier_address
+			purchase_invoice.address_display = address_display
+
+	return purchase_invoice
+
+
+@frappe.whitelist()
+def diagnose_make_inter_company_purchase_invoice(source_name):
+	doc = make_inter_company_purchase_invoice(source_name)
+	return {
+		"supplier": doc.supplier,
+		"supplier_name": doc.supplier_name,
+		"company": doc.company,
+		"is_internal_supplier": doc.is_internal_supplier,
+		"inter_company_invoice_reference": doc.inter_company_invoice_reference,
+	}
+
+
+@frappe.whitelist()
+def validate_mapped_inter_company_purchase_invoice(source_name, cost_center=None):
+	doc = make_inter_company_purchase_invoice(source_name)
+	if cost_center:
+		doc.cost_center = cost_center
+	for item in doc.items:
+		if cost_center:
+			item.cost_center = cost_center
+	doc.validate()
+	return {
+		"validated": True,
+		"supplier": doc.supplier,
+		"company": doc.company,
+		"inter_company_invoice_reference": doc.inter_company_invoice_reference,
 	}

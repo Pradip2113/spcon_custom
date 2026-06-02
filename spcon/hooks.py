@@ -177,6 +177,7 @@ override_doctype_class = {
     "Customer": "spcon.override.customer.CustomCustomer",
     "Supplier": "spcon.override.supplier.CustomSupplier",
     "Sales Order": "spcon.override.sales_order.CustomSalesOrder",
+    "Purchase Invoice": "spcon.override.purchase_invoice.CustomPurchaseInvoice",
 	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
     "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
     "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary",
@@ -324,7 +325,8 @@ doc_events = {
 # ------------------------------
 #
 override_whitelisted_methods = {
-    "erpnext.controllers.accounts_controller.update_child_qty_rate":"spcon.override.sales_order_dates.update_child_qty_rate"
+    "erpnext.controllers.accounts_controller.update_child_qty_rate":"spcon.override.sales_order_dates.update_child_qty_rate",
+    "erpnext.accounts.doctype.sales_invoice.sales_invoice.make_inter_company_purchase_invoice":"spcon.public.py.inter_company_order.make_inter_company_purchase_invoice",
 }
 #
 # each overriding function accepts a `data` argument;
