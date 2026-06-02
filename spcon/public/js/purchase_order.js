@@ -28,3 +28,31 @@ function apply_warehouse_filter(frm) {
         };
     });
 }
+(function () {
+    function use_spcon_inter_company_mapper() {
+        if (!window.erpnext || !erpnext.buying || !erpnext.buying.PurchaseOrderController) {
+            return;
+        }
+
+        if (erpnext.buying.PurchaseOrderController.prototype._spcon_inter_company_mapper) {
+            return;
+        }
+
+        erpnext.buying.PurchaseOrderController.prototype.make_inter_company_order = function(frm) {
+            frappe.model.open_mapped_doc({
+                method: "spcon.public.py.inter_company_order.make_inter_company_sales_order",
+                frm: frm,
+            });
+        };
+        erpnext.buying.PurchaseOrderController.prototype._spcon_inter_company_mapper = true;
+    }
+
+    frappe.ui.form.on("Purchase Order", {
+        setup() {
+            use_spcon_inter_company_mapper();
+        },
+        refresh() {
+            use_spcon_inter_company_mapper();
+        },
+    });
+})();

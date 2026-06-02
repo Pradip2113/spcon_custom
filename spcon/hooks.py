@@ -176,6 +176,7 @@ permission_query_conditions = {
 override_doctype_class = {
     "Customer": "spcon.override.customer.CustomCustomer",
     "Supplier": "spcon.override.supplier.CustomSupplier",
+    "Sales Order": "spcon.override.sales_order.CustomSalesOrder",
 	"Salary Slip": "spcon.override.salary_slip.CustomSalarySlip",
     "Employee Advance": "spcon.override.employee_advance.CustomEmployeeAdvance",
     "Additional Salary": "spcon.override.additional_salary.CustomAdditionalSalary",
@@ -273,7 +274,6 @@ doc_events = {
     "Delivery Note": {
         "before_save": [
             "spcon.public.py.sales_order.set_minimum_qty",
-            "spcon.public.py.set_cost_center.set_cost_center"
         ]
     },
     "Payment Entry": {
