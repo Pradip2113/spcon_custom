@@ -43,7 +43,7 @@ class RCMRateSet(Document):
 	@frappe.whitelist()
 	def set_base_rate(self):
 		for row in self.items:
-			data = frappe.get_all("BOM", {"item": row.item_code, "custom_bom_type": "Base", "docstatus": ["!=", 2]}, ["name", "item", "custom_single_unit_rate"])
+			data = frappe.get_all("BOM", {"item": row.item_code, "is_default": 1, "custom_bom_type": "Base", "docstatus": ["!=", 2]}, ["name", "item", "custom_single_unit_rate"])
 			# frappe.msgprint(str(data))
 			# frappe.msgprint(str(f"{data.item} - {data.custom_single_unit_rate}"))
 			for d in data:
