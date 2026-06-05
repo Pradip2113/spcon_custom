@@ -4,6 +4,7 @@ from frappe.utils import get_first_day, get_last_day, getdate, add_days
 from frappe.utils import get_link_to_form
 from frappe import _
 
+
 @frappe.whitelist()
 def purpose_limit(doc,method=None):
 
@@ -97,28 +98,68 @@ def attendance_submit(doc, method=None):
         )
 
 
+# def validate_attendance_request(doc, method=None):
+#     current_date = getdate(doc.from_date)
+
+#     while current_date <= getdate(doc.to_date):
+
+#         checkin_exists = frappe.db.exists(
+#             "Employee Checkin",
+#             {
+#                 "employee": doc.employee,
+#                 "time": ["between", [f"{current_date} 00:00:00", f"{current_date} 23:59:59"]]
+#             }
+#         )
+
+#         if checkin_exists:
+#             frappe.throw(
+#                 _(
+#                     "Employee Checkin/Checkout record already exists for Employee {0} on {1}. Attendance Request cannot be submitted."
+#                 ).format(doc.employee, current_date)
+#             )
+
+#         current_date = add_days(current_date, 1)
+    
+#     if doc.custom_purpose == "Personal Work":
+#         frappe.throw(
+#             _("Attendance Request with purpose 'Personal Work' cannot be submitted.")
+#         )
+
+
+
 def validate_attendance_request(doc, method=None):
     current_date = getdate(doc.from_date)
 
     while current_date <= getdate(doc.to_date):
 
-        checkin_exists = frappe.db.exists(
+        in_exists = frappe.db.exists(
             "Employee Checkin",
             {
                 "employee": doc.employee,
+                "log_type": "IN",
                 "time": ["between", [f"{current_date} 00:00:00", f"{current_date} 23:59:59"]]
             }
         )
 
-        if checkin_exists:
+        out_exists = frappe.db.exists(
+            "Employee Checkin",
+            {
+                "employee": doc.employee,
+                "log_type": "OUT",
+                "time": ["between", [f"{current_date} 00:00:00", f"{current_date} 23:59:59"]]
+            }
+        )
+
+        # Throw only when both Check In and Check Out exist
+        if in_exists and out_exists:
             frappe.throw(
                 _(
-                    "Employee Checkin/Checkout record already exists for Employee {0} on {1}. Attendance Request cannot be submitted."
+                    "Employee Check In and Check Out records already exist for Employee {0} on {1}. Attendance Request cannot be submitted."
                 ).format(doc.employee, current_date)
             )
 
         current_date = add_days(current_date, 1)
-    
+
     if doc.custom_purpose == "Personal Work":
         frappe.throw(
             _("Attendance Request with purpose 'Personal Work' cannot be submitted.")

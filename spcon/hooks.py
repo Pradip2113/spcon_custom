@@ -285,6 +285,9 @@ doc_events = {
     },
     "Leave Application": {
         "before_save": "spcon.public.py.leave_application.validate_backdated_leave"  
+    },
+    "Item": {
+        "before_save": "spcon.public.py.item.validate_item"
     }
 }   
 # doc_events = {
