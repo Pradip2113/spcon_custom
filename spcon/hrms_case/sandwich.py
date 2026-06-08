@@ -127,7 +127,7 @@ def _get_late_days_upto(employee, month_start, att_date):
     return sorted(set(late_days))
 @frappe.whitelist()
 def apply_sandwich_rule_on_attendance_save(doc, method=None):
-    if not doc.leave_application:
+    if not doc.leave_application and not doc.custom_negligent_late_entry:
         emp = doc.employee
         att_date = getdate(doc.attendance_date)
 
