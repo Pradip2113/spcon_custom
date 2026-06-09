@@ -27,3 +27,25 @@ def get_employee_day_salary(employee):
     slip = slips[0]
     per_day = flt((slip.get("net_pay") or 0) / 26, 2)
     return {"salary_per_day": per_day, "salary_slip": slip.get("name")}
+
+
+
+
+def validate_Cost_center(doc, method=None):
+    for row in doc.items:
+        warehouse = row.s_warehouse or row.t_warehouse
+
+        if not warehouse:
+            continue
+
+        warehouse_doc = frappe.get_doc("Warehouse", warehouse)
+
+        allowed_cost_centers = []
+
+        for d in warehouse_doc.custom_cost_center:
+            allowed_cost_centers.append(d.cost_center)
+
+        if doc.cost_center not in allowed_cost_centers:
+            frappe.throw(
+                f"Cost Center {doc.cost_center} is not allowed for Warehouse {warehouse}"
+            )

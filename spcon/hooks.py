@@ -288,6 +288,9 @@ doc_events = {
     },
     "Item": {
         "before_save": "spcon.public.py.item.validate_item"
+    },
+    "Stock Entry": {
+        "on_submit": "spcon.public.py.stock_entry.validate_Cost_center"
     }
 }   
 # doc_events = {
