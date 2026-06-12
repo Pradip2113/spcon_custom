@@ -169,7 +169,7 @@ frappe.query_reports["Accounts Receivable With Sales Person"] = {
 			fieldname: "show_sales_person",
 			label: __("Show Sales Person"),
 			fieldtype: "Check",
-			default: 1,
+			default: 0,
 		},
 		{
 			fieldname: "show_remarks",

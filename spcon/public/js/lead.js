@@ -51,7 +51,7 @@ frappe.ui.form.on("Lead", {
                 row.area = measurement_value;
                 row.item = item.item_code;
                 row.qty = measurement_value * flt(item.qty);
-                row.unit = item.unit;
+                row.unit = item.uom;
             });
 
             frm.refresh_field("custom_project_details_items");
@@ -81,8 +81,7 @@ frappe.ui.form.on("Lead", {
         frm.set_query('custom_architecture', function () {
             return {
                 filters: {
-                    scope_of_work: frm.doc.custom_scope_of_work,
-                    architecture: 1
+                    architect: 1
                 }
             };
         });
@@ -102,10 +101,18 @@ frappe.ui.form.on("Lead", {
                 }
             };
         });
+
         frm.set_query('custom_applicator', function () {
             return {
                 filters: {
                     applicator: 1
+                }
+            };
+        });
+        frm.set_query('custom_other', function () {
+            return {
+                filters: {
+                    other: 1
                 }
             };
         });
@@ -306,7 +313,7 @@ frappe.ui.form.on("Lead", {
         // })
         if(frm.doc.custom_firm_name_lead){
             frappe.db.get_doc("Firm Name SPC", frm.doc.custom_firm_name_lead).then(system => {
-                if (system.architecture == 1) {
+                if (system.architect == 1) {
                     frm.set_value("custom_architecture", frm.doc.custom_firm_name_lead);
                 } 
                 else if (system.contractor == 1) {
