@@ -463,11 +463,8 @@ class ReceivablePayableReport:
 				self.data.append(self.total_row_map.get("Total", {}))
 
 	def get_receivable_sort_key(self, row):
-		invoice_details = self.invoice_details.get(row.voucher_no, {})
-		sales_person = ", ".join(invoice_details.get("sales_team") or [])
-
 		return (
-			cstr(sales_person).lower(),
+			cstr(self.get_custom_sales_person(row.party)).lower(),
 			cstr(row.party).lower(),
 			cstr(row.voucher_no).lower(),
 		)
@@ -492,6 +489,8 @@ class ReceivablePayableReport:
 			invoice_details.pop("due_date", None)
 		row.update(invoice_details)
 
+		row.customer_sales_person = self.get_custom_sales_person(row.party)
+
 		if row.voucher_type == "Sales Invoice":
 			if self.filters.show_delivery_notes:
 				self.set_delivery_notes(row)
@@ -499,6 +498,23 @@ class ReceivablePayableReport:
 			if self.filters.show_sales_person and row.sales_team:
 				row.sales_person = ", ".join(row.sales_team)
 				del row["sales_team"]
+
+	def get_custom_sales_person(self, party):
+		if not hasattr(self, "_custom_sales_person_field_cache"):
+			self._custom_sales_person_field_cache = {}
+
+		if self.account_type != "Receivable" or not self.has_field("Customer", "custom_sales_person"):
+			return ""
+
+		custom_sales_person = frappe.get_cached_value("Customer", party, "custom_sales_person")
+		return custom_sales_person or ""
+
+	def has_field(self, doctype, fieldname):
+		cache_key = (doctype, fieldname)
+		if cache_key not in self._custom_sales_person_field_cache:
+			self._custom_sales_person_field_cache[cache_key] = frappe.get_meta(doctype).has_field(fieldname)
+
+		return self._custom_sales_person_field_cache[cache_key]
 
 	def set_delivery_notes(self, row):
 		delivery_notes = self.delivery_notes.get(row.voucher_no, [])
@@ -1197,6 +1213,7 @@ class ReceivablePayableReport:
 			fieldtype="Data",
 			width=100,
 		)
+		self.add_column(label=_("Sales Person"), fieldname="customer_sales_person", fieldtype="Data")
 		if self.filters.show_sales_person:
 			self.add_column(label=_("Sales Person"), fieldname="sales_person", fieldtype="Data")
 		self.add_column(

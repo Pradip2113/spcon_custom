@@ -23,7 +23,7 @@
 
 frappe.ui.form.on('BOM', {
     refresh(frm) {
-        calculate_cost(frm);
+        // calculate_cost(frm);
         frm.add_custom_button('Calculate RMC', function() {
             frappe.call({
                 method: "spcon.public.py.bom.calculate_rmc",
