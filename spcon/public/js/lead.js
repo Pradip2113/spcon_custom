@@ -440,6 +440,5 @@ function update_project_item_totals(frm) {
         row.unit = totals[item].uom;
         row.item_name = totals[item].item_name;
     }
-
     frm.refresh_field("custom_project_items");
 }

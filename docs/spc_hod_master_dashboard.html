@@ -1,0 +1,270 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem}
+.dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.dh-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.dh-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{font-size:12px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer}
+.tab.active{background:#185FA5;color:#E6F1FB;border-color:#185FA5}
+.sec{margin-bottom:1.5rem}
+.sec-head{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--color-text-tertiary);display:flex;align-items:center;gap:8px;margin-bottom:.75rem}
+.sec-head::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem}
+.mcard{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem}
+.mlabel{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.mval{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.mval.red{color:#A32D2D}
+.mval.green{color:#3B6D11}
+.mval.blue{color:#185FA5}
+.mval.amber{color:#854F0B}
+.msub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.funnel-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.funnel{display:flex;flex-direction:column;gap:3px}
+.fstage{display:flex;align-items:center;gap:8px;cursor:pointer}
+.fbar-wrap{flex:1;background:var(--color-background-secondary);border-radius:4px;height:28px;overflow:hidden;position:relative}
+.fbar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;transition:width .4s}
+.fbar-label{font-size:11px;font-weight:500}
+.fstage-name{font-size:11px;color:var(--color-text-secondary);min-width:90px;text-align:right}
+.fstage-count{font-size:12px;font-weight:500;color:var(--color-text-primary);min-width:28px;text-align:center}
+.fstage-val{font-size:10px;color:var(--color-text-secondary);min-width:48px;text-align:right}
+.funnel-detail{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.75rem 1rem}
+.fd-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px}
+.fd-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+.fd-row:last-child{border-bottom:none}
+.fd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.fd-proj{font-size:11px;color:var(--color-text-primary);flex:1}
+.fd-client{font-size:10px;color:var(--color-text-secondary)}
+.fd-sp{font-size:10px;color:var(--color-text-tertiary)}
+.fd-badge{font-size:10px;padding:1px 6px;border-radius:6px}
+.act-list{display:flex;flex-direction:column;gap:6px}
+.arow{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 10px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.arow:hover{border-color:var(--color-border-secondary)}
+.arow-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.arow-title{font-size:12px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow-sub{font-size:11px;color:var(--color-text-secondary)}
+.arow-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;white-space:nowrap}
+.b-gray{background:#F1EFE8;color:#5F5E5A}
+.b-blue{background:#E6F1FB;color:#185FA5}
+.b-green{background:#EAF3DE;color:#3B6D11}
+.b-amber{background:#FAEEDA;color:#854F0B}
+.b-red{background:#FCEBEB;color:#A32D2D}
+.b-purple{background:#EEEDFE;color:#534AB7}
+.b-teal{background:#E1F5EE;color:#085041}
+.forecast-table{width:100%;border-collapse:collapse;font-size:12px}
+.forecast-table th{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:0.5px solid var(--color-border-secondary);text-align:left;background:var(--color-background-secondary)}
+.forecast-table td{padding:7px 8px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle}
+.forecast-table tr:last-child td{border-bottom:none}
+.forecast-table tr:hover td{background:var(--color-background-secondary)}
+.week-pill{font-size:10px;padding:2px 7px;border-radius:8px}
+.prog-bar{height:5px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden;width:60px}
+.prog-fill{height:100%;border-radius:3px}
+.sp-perf{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.sp-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.75rem 1rem}
+.sp-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sp-name{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.sp-role{font-size:10px;color:var(--color-text-secondary)}
+.sp-stats{display:flex;flex-direction:column;gap:4px}
+.sp-stat{display:flex;justify-content:space-between;font-size:11px}
+.sp-stat-label{color:var(--color-text-secondary)}
+.sp-stat-val{font-weight:500;color:var(--color-text-primary)}
+.section-panel{display:none}
+.section-panel.active{display:block}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">SP Concare Pvt. Ltd — HOD master CRM dashboard showing sales funnel, activity panel, product forecast and team performance</h2>
+
+<div class="dh">
+  <div>
+    <div class="dh-title"><i class="ti ti-layout-dashboard" aria-hidden="true" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>SPC — HOD master dashboard</div>
+    <div class="dh-sub">SP Concare Pvt. Ltd &nbsp;·&nbsp; Construction Chemicals &nbsp;·&nbsp; June 2025</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showSection('overview',this)">Overview</div>
+    <div class="tab" onclick="showSection('funnel',this)">Sales funnel</div>
+    <div class="tab" onclick="showSection('activities',this)">Activities</div>
+    <div class="tab" onclick="showSection('forecast',this)">Product forecast</div>
+    <div class="tab" onclick="showSection('team',this)">Team</div>
+  </div>
+</div>
+
+<div id="sec-overview" class="section-panel active">
+  <div class="metrics">
+    <div class="mcard"><div class="mlabel">Total enquiries</div><div class="mval blue">47</div><div class="msub">this quarter</div></div>
+    <div class="mcard"><div class="mlabel">Active projects</div><div class="mval">23</div><div class="msub">in pipeline</div></div>
+    <div class="mcard"><div class="mlabel">Converted</div><div class="mval green">11</div><div class="msub">PO received</div></div>
+    <div class="mcard"><div class="mlabel">Lost</div><div class="mval red">5</div><div class="msub">this quarter</div></div>
+    <div class="mcard"><div class="mlabel">Overdue actions</div><div class="mval red">4</div><div class="msub">need attention</div></div>
+    <div class="mcard"><div class="mlabel">Forecast value</div><div class="mval amber" style="font-size:16px">₹38.6L</div><div class="msub">next 30 days</div></div>
+  </div>
+
+  <div class="sec"><div class="sec-head">Sales funnel snapshot</div>
+  <div class="funnel">
+    <div class="fstage"><div class="fstage-name">New enquiry</div><div class="fbar-wrap"><div class="fbar" style="width:100%;background:#E6F1FB"><span class="fbar-label" style="color:#185FA5">14 projects</span></div></div><div class="fstage-val" style="color:#185FA5">₹22L</div></div>
+    <div class="fstage"><div class="fstage-name">Interested</div><div class="fbar-wrap"><div class="fbar" style="width:82%;background:#EEEDFE"><span class="fbar-label" style="color:#534AB7">9 projects</span></div></div><div class="fstage-val" style="color:#534AB7">₹18L</div></div>
+    <div class="fstage"><div class="fstage-name">Sampling / demo</div><div class="fbar-wrap"><div class="fbar" style="width:60%;background:#E1F5EE"><span class="fbar-label" style="color:#085041">6 projects</span></div></div><div class="fstage-val" style="color:#085041">₹14L</div></div>
+    <div class="fstage"><div class="fstage-name">Quotation sent</div><div class="fbar-wrap"><div class="fbar" style="width:44%;background:#FAEEDA"><span class="fbar-label" style="color:#854F0B">5 projects</span></div></div><div class="fstage-val" style="color:#854F0B">₹11L</div></div>
+    <div class="fstage"><div class="fstage-name">Negotiation</div><div class="fbar-wrap"><div class="fbar" style="width:28%;background:#FAEEDA"><span class="fbar-label" style="color:#633806">3 projects</span></div></div><div class="fstage-val" style="color:#633806">₹8.6L</div></div>
+    <div class="fstage"><div class="fstage-name">PO received</div><div class="fbar-wrap"><div class="fbar" style="width:20%;background:#EAF3DE"><span class="fbar-label" style="color:#3B6D11">2 this month</span></div></div><div class="fstage-val" style="color:#3B6D11">₹6.2L</div></div>
+    <div class="fstage"><div class="fstage-name">Lost</div><div class="fbar-wrap"><div class="fbar" style="width:12%;background:#FCEBEB"><span class="fbar-label" style="color:#A32D2D">2 this month</span></div></div><div class="fstage-val" style="color:#A32D2D">₹4L</div></div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">Today's activities</div>
+  <div class="act-list">
+    <div class="arow"><div class="av" style="background:#EEEDFE;color:#534AB7">RM</div><div class="arow-left"><div class="arow-title">Intro visit — Garware Technical Fibres, Sangli</div><div class="arow-sub">Rahul M. &nbsp;·&nbsp; 11:00 AM &nbsp;·&nbsp; Sangli MIDC</div></div><div class="arow-right"><span class="badge b-blue">Meeting</span><span style="font-size:10px;color:var(--color-text-tertiary)">Today</span></div></div>
+    <div class="arow"><div class="av" style="background:#FAEEDA;color:#633806">AS</div><div class="arow-left"><div class="arow-title">PO follow-up call — CM Constructions, Miraj</div><div class="arow-sub">Ankit S. &nbsp;·&nbsp; 3:00 PM &nbsp;·&nbsp; Miraj</div></div><div class="arow-right"><span class="badge b-amber">Follow-up</span><span style="font-size:10px;color:var(--color-text-tertiary)">Today</span></div></div>
+    <div class="arow" style="border-color:#F09595"><div class="av" style="background:#FCEBEB;color:#791F1F">RM</div><div class="arow-left"><div class="arow-title">Quotation overdue — Nashik Bridge Project</div><div class="arow-sub">Rahul M. &nbsp;·&nbsp; Due 8 Jun &nbsp;·&nbsp; Nashik Bridge Infra</div></div><div class="arow-right"><span class="badge b-red">Overdue</span><span style="font-size:10px;color:#A32D2D">5 days</span></div></div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">Product forecast — next 2 weeks</div>
+  <table class="forecast-table">
+    <thead><tr><th>Product</th><th>Project</th><th>Qty</th><th>Forecast date</th><th>Confidence</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge b-purple">SPC Crystalline WP</span></td><td style="font-size:11px">Greenfields Society, Pune</td><td style="font-weight:500">2 MT</td><td><span class="week-pill" style="background:#EAF3DE;color:#3B6D11">16–20 Jun</span></td><td><div class="prog-bar"><div class="prog-fill" style="width:80%;background:#3B6D11"></div></div></td></tr>
+      <tr><td><span class="badge b-blue">SPC Epoxy Grout</span></td><td style="font-size:11px">Pune Metro Phase 3</td><td style="font-weight:500">500 kg</td><td><span class="week-pill" style="background:#EAF3DE;color:#3B6D11">18–22 Jun</span></td><td><div class="prog-bar"><div class="prog-fill" style="width:70%;background:#3B6D11"></div></div></td></tr>
+      <tr><td><span class="badge b-amber">SPC Tile Adhesive</span></td><td style="font-size:11px">Kolhapur Housing Society</td><td style="font-weight:500">15 MT</td><td><span class="week-pill" style="background:#FAEEDA;color:#854F0B">22–25 Jun</span></td><td><div class="prog-bar"><div class="prog-fill" style="width:55%;background:#BA7517"></div></div></td></tr>
+      <tr><td><span class="badge b-teal">SPC Micro Concrete</span></td><td style="font-size:11px">Solapur Flyover, MSRDC</td><td style="font-weight:500">1 MT</td><td><span class="week-pill" style="background:#FAEEDA;color:#854F0B">25–28 Jun</span></td><td><div class="prog-bar"><div class="prog-fill" style="width:45%;background:#BA7517"></div></div></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div id="sec-funnel" class="section-panel">
+  <div class="metrics">
+    <div class="mcard"><div class="mlabel">Conversion rate</div><div class="mval green">23%</div><div class="msub">enquiry to PO</div></div>
+    <div class="mcard"><div class="mlabel">Avg. cycle time</div><div class="mval">38 days</div><div class="msub">enquiry to PO</div></div>
+    <div class="mcard"><div class="mlabel">Pipeline value</div><div class="mval amber" style="font-size:16px">₹74L</div><div class="msub">total active</div></div>
+    <div class="mcard"><div class="mlabel">Lost this month</div><div class="mval red">₹4L</div><div class="msub">2 projects</div></div>
+  </div>
+  <div class="sec"><div class="sec-head">All stages — project list</div>
+  <div class="funnel-detail">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="stage-filter">
+      <span class="badge b-blue" style="cursor:pointer;padding:3px 10px" onclick="filterStage('all',this)">All</span>
+      <span class="badge b-blue" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('enquiry',this)">New enquiry</span>
+      <span class="badge b-purple" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('interested',this)">Interested</span>
+      <span class="badge b-teal" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('demo',this)">Demo / sampling</span>
+      <span class="badge b-amber" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('quotation',this)">Quotation</span>
+      <span class="badge b-amber" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('negotiation',this)">Negotiation</span>
+      <span class="badge b-green" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('converted',this)">Converted</span>
+      <span class="badge b-red" style="cursor:pointer;padding:3px 10px;opacity:.5" onclick="filterStage('lost',this)">Lost</span>
+    </div>
+    <div id="proj-list">
+      <div class="fd-row" data-stage="demo"><div class="fd-dot" style="background:#1D9E75"></div><div style="flex:1"><div class="fd-proj">Greenfields Housing Society Ph.2 — Pune</div><div class="fd-client">Ramesh Shinde &nbsp;·&nbsp; G+14, 120 flats</div></div><div class="fd-sp">Priya D.</div><div><span class="badge b-teal">Demo done</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹8.4L</div></div>
+      <div class="fd-row" data-stage="quotation"><div class="fd-dot" style="background:#BA7517"></div><div style="flex:1"><div class="fd-proj">Nashik Bridge Infra — RCC waterproofing</div><div class="fd-client">Deepak Patil &nbsp;·&nbsp; Bridge structure</div></div><div class="fd-sp">Rahul M.</div><div><span class="badge b-red">Overdue</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹3.2L</div></div>
+      <div class="fd-row" data-stage="negotiation"><div class="fd-dot" style="background:#BA7517"></div><div style="flex:1"><div class="fd-proj">Kolhapur Housing Society — tile adhesive</div><div class="fd-client">Suresh Builders &nbsp;·&nbsp; Bulk 15MT</div></div><div class="fd-sp">Ankit S.</div><div><span class="badge b-amber">Negotiation</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹6.8L</div></div>
+      <div class="fd-row" data-stage="demo"><div class="fd-dot" style="background:#1D9E75"></div><div style="flex:1"><div class="fd-proj">Pune Metro Phase 3 — Epoxy Grout</div><div class="fd-client">Pune Metro Corp &nbsp;·&nbsp; Infrastructure</div></div><div class="fd-sp">Priya D.</div><div><span class="badge b-teal">Approval stage</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹5.1L</div></div>
+      <div class="fd-row" data-stage="interested"><div class="fd-dot" style="background:#7F77DD"></div><div style="flex:1"><div class="fd-proj">Garware Technical Fibres — Epoxy Flooring</div><div class="fd-client">Maintenance head &nbsp;·&nbsp; Warehouse floor</div></div><div class="fd-sp">Rahul M.</div><div><span class="badge b-purple">Interested</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹4.2L</div></div>
+      <div class="fd-row" data-stage="converted"><div class="fd-dot" style="background:#3B6D11"></div><div style="flex:1"><div class="fd-proj">Miraj Hospital Construction — Admixture</div><div class="fd-client">CM Constructions &nbsp;·&nbsp; Hospital building</div></div><div class="fd-sp">Ankit S.</div><div><span class="badge b-green">PO received</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹5.8L</div></div>
+      <div class="fd-row" data-stage="lost"><div class="fd-dot" style="background:#E24B4A"></div><div style="flex:1"><div class="fd-proj">Sangli Municipal Building — Waterproofing</div><div class="fd-client">ABC Contractors &nbsp;·&nbsp; Competitor chosen</div></div><div class="fd-sp">Rahul M.</div><div><span class="badge b-red">Lost</span></div><div style="font-size:11px;color:var(--color-text-secondary);min-width:36px;text-align:right">₹2.1L</div></div>
+    </div>
+  </div></div>
+</div>
+
+<div id="sec-activities" class="section-panel">
+  <div class="metrics">
+    <div class="mcard"><div class="mlabel">This week</div><div class="mval">9</div><div class="msub">activities scheduled</div></div>
+    <div class="mcard"><div class="mlabel">Overdue</div><div class="mval red">4</div><div class="msub">need follow-up</div></div>
+    <div class="mcard"><div class="mlabel">Completed</div><div class="mval green">26</div><div class="msub">this month</div></div>
+    <div class="mcard"><div class="mlabel">No activity</div><div class="mval amber">3</div><div class="msub">projects this week</div></div>
+  </div>
+  <div class="sec"><div class="sec-head">Overdue — needs immediate action</div>
+  <div class="act-list">
+    <div class="arow" style="border-left:3px solid #E24B4A;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0"><div class="av" style="background:#FCEBEB;color:#791F1F">RM</div><div class="arow-left"><div class="arow-title">Quotation not sent — Nashik Bridge Project</div><div class="arow-sub">Rahul M. &nbsp;·&nbsp; Due 8 Jun &nbsp;·&nbsp; Nashik Bridge Infra</div></div><div class="arow-right"><span class="badge b-red">5 days overdue</span><button style="font-size:10px;padding:3px 7px;margin-top:2px" onclick="sendPrompt('Draft quotation email for Nashik Bridge Project SPC Crystalline Waterproof compound')">Draft ↗</button></div></div>
+    <div class="arow" style="border-left:3px solid #E24B4A;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0"><div class="av" style="background:#FCEBEB;color:#791F1F">AS</div><div class="arow-left"><div class="arow-title">PO not confirmed — Kolhapur Housing Society</div><div class="arow-sub">Ankit S. &nbsp;·&nbsp; Expected 10 Jun &nbsp;·&nbsp; Suresh Builders</div></div><div class="arow-right"><span class="badge b-red">3 days overdue</span></div></div>
+  </div></div>
+  <div class="sec"><div class="sec-head">Upcoming this week</div>
+  <div class="act-list">
+    <div class="arow"><div class="av" style="background:#E1F5EE;color:#085041">PD</div><div class="arow-left"><div class="arow-title">Submit quotation — Greenfields Housing Society</div><div class="arow-sub">Priya D. &nbsp;·&nbsp; 16 Jun &nbsp;·&nbsp; BOQ-based quote</div></div><div class="arow-right"><span class="badge b-teal">Quotation</span></div></div>
+    <div class="arow"><div class="av" style="background:#EEEDFE;color:#534AB7">RM</div><div class="arow-left"><div class="arow-title">Product demo — Solapur Flyover (MSRDC)</div><div class="arow-sub">Rahul M. &nbsp;·&nbsp; 16 Jun, 10:00 AM &nbsp;·&nbsp; SPC Micro Concrete</div></div><div class="arow-right"><span class="badge b-purple">Demo</span></div></div>
+    <div class="arow"><div class="av" style="background:#FAEEDA;color:#633806">AS</div><div class="arow-left"><div class="arow-title">Negotiation meeting — Miraj Hospital</div><div class="arow-sub">Ankit S. &nbsp;·&nbsp; 18 Jun, 11:00 AM &nbsp;·&nbsp; CM Constructions</div></div><div class="arow-right"><span class="badge b-amber">Negotiation</span></div></div>
+    <div class="arow"><div class="av" style="background:#E1F5EE;color:#085041">PD</div><div class="arow-left"><div class="arow-title">Follow-up call — Greenfields, confirm quote receipt</div><div class="arow-sub">Priya D. &nbsp;·&nbsp; 18 Jun &nbsp;·&nbsp; Sunil More, site engineer</div></div><div class="arow-right"><span class="badge b-blue">Call</span></div></div>
+  </div></div>
+</div>
+
+<div id="sec-forecast" class="section-panel">
+  <div class="metrics">
+    <div class="mcard"><div class="mlabel">Forecast this month</div><div class="mval amber" style="font-size:16px">₹38.6L</div><div class="msub">expected PO value</div></div>
+    <div class="mcard"><div class="mlabel">Products forecasted</div><div class="mval">12</div><div class="msub">across 8 projects</div></div>
+    <div class="mcard"><div class="mlabel">High confidence</div><div class="mval green">4</div><div class="msub">&gt;70% probability</div></div>
+    <div class="mcard"><div class="mlabel">Total qty (MT)</div><div class="mval">28.5 MT</div><div class="msub">raw material need</div></div>
+  </div>
+  <div class="sec"><div class="sec-head">Product-wise forecast — for production planning</div>
+  <table class="forecast-table">
+    <thead><tr><th>Product</th><th>Project</th><th>Client</th><th>Salesperson</th><th>Qty</th><th>Forecast date</th><th>Stage</th><th>Confidence</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge b-purple">SPC Crystalline WP</span></td><td style="font-size:11px;max-width:100px">Greenfields Society</td><td style="font-size:11px">Ramesh Shinde</td><td style="font-size:11px">Priya D.</td><td style="font-weight:500">2 MT</td><td><span class="week-pill" style="background:#EAF3DE;color:#3B6D11">16–20 Jun</span></td><td><span class="badge b-teal" style="font-size:10px">Demo done</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:80%;background:#3B6D11"></div></div><span style="font-size:10px;color:#3B6D11">80%</span></div></td></tr>
+      <tr><td><span class="badge b-blue">SPC Epoxy Grout</span></td><td style="font-size:11px;max-width:100px">Pune Metro Ph.3</td><td style="font-size:11px">Pune Metro Corp</td><td style="font-size:11px">Priya D.</td><td style="font-weight:500">500 kg</td><td><span class="week-pill" style="background:#EAF3DE;color:#3B6D11">18–22 Jun</span></td><td><span class="badge b-teal" style="font-size:10px">Approval</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:70%;background:#3B6D11"></div></div><span style="font-size:10px;color:#3B6D11">70%</span></div></td></tr>
+      <tr><td><span class="badge b-amber">SPC Tile Adhesive</span></td><td style="font-size:11px;max-width:100px">Kolhapur Housing</td><td style="font-size:11px">Suresh Builders</td><td style="font-size:11px">Ankit S.</td><td style="font-weight:500">15 MT</td><td><span class="week-pill" style="background:#FAEEDA;color:#854F0B">22–25 Jun</span></td><td><span class="badge b-amber" style="font-size:10px">Negotiation</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:55%;background:#BA7517"></div></div><span style="font-size:10px;color:#854F0B">55%</span></div></td></tr>
+      <tr><td><span class="badge b-teal">SPC Micro Concrete</span></td><td style="font-size:11px;max-width:100px">Solapur Flyover</td><td style="font-size:11px">MSRDC Solapur</td><td style="font-size:11px">Rahul M.</td><td style="font-weight:500">1 MT</td><td><span class="week-pill" style="background:#FAEEDA;color:#854F0B">25–28 Jun</span></td><td><span class="badge b-purple" style="font-size:10px">Demo pending</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:45%;background:#BA7517"></div></div><span style="font-size:10px;color:#854F0B">45%</span></div></td></tr>
+      <tr><td><span class="badge b-purple">SPC Crystalline WP</span></td><td style="font-size:11px;max-width:100px">Nashik Bridge</td><td style="font-size:11px">Nashik Bridge Infra</td><td style="font-size:11px">Rahul M.</td><td style="font-weight:500">2 MT</td><td><span class="week-pill" style="background:#FCEBEB;color:#A32D2D">Overdue</span></td><td><span class="badge b-red" style="font-size:10px">Quote pending</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:60%;background:#BA7517"></div></div><span style="font-size:10px;color:#854F0B">60%</span></div></td></tr>
+      <tr><td><span class="badge b-gray">SPC Admixture</span></td><td style="font-size:11px;max-width:100px">Miraj Hospital</td><td style="font-size:11px">CM Constructions</td><td style="font-size:11px">Ankit S.</td><td style="font-weight:500">3 MT</td><td><span class="week-pill" style="background:#EAF3DE;color:#3B6D11">PO received</span></td><td><span class="badge b-green" style="font-size:10px">Converted</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:100%;background:#3B6D11"></div></div><span style="font-size:10px;color:#3B6D11">100%</span></div></td></tr>
+      <tr><td><span class="badge b-blue">SPC Curing Compound</span></td><td style="font-size:11px;max-width:100px">Greenfields Society</td><td style="font-size:11px">Ramesh Shinde</td><td style="font-size:11px">Priya D.</td><td style="font-weight:500">500 kg</td><td><span class="week-pill" style="background:#EAF3DE;color:#3B6D11">16–20 Jun</span></td><td><span class="badge b-teal" style="font-size:10px">Demo done</span></td><td><div style="display:flex;align-items:center;gap:4px"><div class="prog-bar"><div class="prog-fill" style="width:80%;background:#3B6D11"></div></div><span style="font-size:10px;color:#3B6D11">80%</span></div></td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:10px;padding:8px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:11px;color:var(--color-text-secondary)"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>This table is visible to the production department. Confidence &gt;70% = procure raw material. 40–70% = keep on watch list.</div>
+  </div>
+</div>
+
+<div id="sec-team" class="section-panel">
+  <div class="sec"><div class="sec-head">Salesperson performance — June 2025</div>
+  <div class="sp-perf">
+    <div class="sp-card">
+      <div class="sp-top"><div class="av" style="background:#EEEDFE;color:#534AB7;width:34px;height:34px;font-size:11px">RM</div><div><div class="sp-name">Rahul M.</div><div class="sp-role">Sales executive</div></div></div>
+      <div class="sp-stats">
+        <div class="sp-stat"><span class="sp-stat-label">Visits this month</span><span class="sp-stat-val">8</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Active projects</span><span class="sp-stat-val">8</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Pipeline value</span><span class="sp-stat-val" style="color:#854F0B">₹16.2L</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Overdue actions</span><span class="sp-stat-val" style="color:#A32D2D">2</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Converted (PO)</span><span class="sp-stat-val" style="color:#3B6D11">1</span></div>
+      </div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-top"><div class="av" style="background:#E1F5EE;color:#085041;width:34px;height:34px;font-size:11px">PD</div><div><div class="sp-name">Priya D.</div><div class="sp-role">Sales executive</div></div></div>
+      <div class="sp-stats">
+        <div class="sp-stat"><span class="sp-stat-label">Visits this month</span><span class="sp-stat-val">11</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Active projects</span><span class="sp-stat-val">9</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Pipeline value</span><span class="sp-stat-val" style="color:#854F0B">₹22.4L</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Overdue actions</span><span class="sp-stat-val" style="color:#3B6D11">0</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Converted (PO)</span><span class="sp-stat-val" style="color:#3B6D11">3</span></div>
+      </div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-top"><div class="av" style="background:#FAEEDA;color:#633806;width:34px;height:34px;font-size:11px">AS</div><div><div class="sp-name">Ankit S.</div><div class="sp-role">Sales executive</div></div></div>
+      <div class="sp-stats">
+        <div class="sp-stat"><span class="sp-stat-label">Visits this month</span><span class="sp-stat-val">9</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Active projects</span><span class="sp-stat-val">6</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Pipeline value</span><span class="sp-stat-val" style="color:#854F0B">₹15.8L</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Overdue actions</span><span class="sp-stat-val" style="color:#A32D2D">2</span></div>
+        <div class="sp-stat"><span class="sp-stat-label">Converted (PO)</span><span class="sp-stat-val" style="color:#3B6D11">2</span></div>
+      </div>
+    </div>
+  </div></div>
+  <div class="sec"><div class="sec-head">Loss analysis — why projects were lost</div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:100px;color:var(--color-text-secondary)">Price too high</div><div style="flex:1;background:var(--color-background-secondary);border-radius:3px;height:18px;overflow:hidden"><div style="width:60%;height:100%;background:#FCEBEB;display:flex;align-items:center;padding-left:6px"><span style="font-size:10px;color:#A32D2D">3 projects</span></div></div></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:100px;color:var(--color-text-secondary)">Competitor spec</div><div style="flex:1;background:var(--color-background-secondary);border-radius:3px;height:18px;overflow:hidden"><div style="width:40%;height:100%;background:#FCEBEB;display:flex;align-items:center;padding-left:6px"><span style="font-size:10px;color:#A32D2D">2 projects</span></div></div></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:100px;color:var(--color-text-secondary)">Project on hold</div><div style="flex:1;background:var(--color-background-secondary);border-radius:3px;height:18px;overflow:hidden"><div style="width:20%;height:100%;background:#F1EFE8;display:flex;align-items:center;padding-left:6px"><span style="font-size:10px;color:#5F5E5A">1 project</span></div></div></div>
+  </div></div>
+</div>
+
+</div>
+
+<script>
+function showSection(id, el){
+  document.querySelectorAll('.section-panel').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.getElementById('sec-'+id).classList.add('active');
+  el.classList.add('active');
+}
+function filterStage(stage, el){
+  document.querySelectorAll('#stage-filter .badge').forEach(function(b){b.style.opacity='.5'});
+  el.style.opacity='1';
+  document.querySelectorAll('#proj-list .fd-row').forEach(function(r){
+    r.style.display = (stage==='all' || r.dataset.stage===stage) ? '' : 'none';
+  });
+}
+</script>

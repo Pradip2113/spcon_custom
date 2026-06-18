@@ -292,6 +292,9 @@ doc_events = {
     },
     "Stock Entry": {
         "on_submit": "spcon.public.py.stock_entry.validate_Cost_center"
+    }, 
+    "Task": {
+        "before_save": "spcon.public.py.task.validate_task_dates"
     }
 }   
 # doc_events = {

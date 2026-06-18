@@ -1,0 +1,319 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1.25rem 1rem;font-family:var(--font-sans)}
+.proj-header{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.proj-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.proj-name{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.proj-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px}
+.proj-badge{font-size:11px;padding:4px 10px;border-radius:10px;white-space:nowrap;font-weight:500}
+.badge-purple{background:#EEEDFE;color:#534AB7}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-gray{background:#F1EFE8;color:#5F5E5A}
+.proj-meta{display:flex;flex-wrap:wrap;gap:12px}
+.meta-item{font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px}
+.meta-item span{color:var(--color-text-primary);font-weight:500}
+.stage-bar{margin:1rem 0}
+.stage-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.stages{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.stage{text-align:center;padding:6px 4px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);font-size:10px;color:var(--color-text-secondary);position:relative}
+.stage.done{background:#EAF3DE;color:#3B6D11;border-color:#97C459}
+.stage.active{background:#E6F1FB;color:#185FA5;border-color:#85B7EB;font-weight:500}
+.stage.pending{background:var(--color-background-secondary);color:var(--color-text-tertiary)}
+.stage-dot{width:6px;height:6px;border-radius:50%;margin:0 auto 3px}
+.dot-done{background:#3B6D11}
+.dot-active{background:#185FA5}
+.dot-pending{background:#B4B2A9}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem}
+.metric-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.metric-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.section-label{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--color-text-tertiary);padding:10px 0 6px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.125rem;margin-bottom:8px;position:relative;padding-left:1.5rem}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.card.past::before{background:#888780}
+.card.current::before{background:#185FA5}
+.card.planned::before{background:#0F6E56}
+.card.overdue::before{background:#E24B4A}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.card-date{font-size:11px;color:var(--color-text-secondary);white-space:nowrap;display:flex;align-items:center;gap:3px}
+.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:8px}
+.card-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.tag{font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:3px}
+.products-used{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:8px}
+.products-label{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.product-pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:11px;padding:2px 8px;border-radius:10px;background:#EEEDFE;color:#534AB7}
+.followup{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.followup-label{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em}
+.followup-text{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.followup-date{font-size:11px;margin-left:auto;white-space:nowrap}
+.comment-thread{border-top:0.5px solid var(--color-border-tertiary);padding-top:8px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.comment{display:flex;gap:8px;align-items:flex-start}
+.avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.av-hod{background:#CECBF6;color:#3C3489}
+.av-sp{background:#9FE1CB;color:#085041}
+.comment-bubble{background:var(--color-background-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) var(--border-radius-md);padding:6px 8px;font-size:11px;color:var(--color-text-primary);line-height:1.5;flex:1}
+.comment-meta{font-size:10px;color:var(--color-text-tertiary);margin-bottom:2px}
+.add-comment{display:flex;gap:6px;margin-top:8px;align-items:center}
+.add-comment input{flex:1;font-size:12px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.card-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.card-actions button{font-size:11px;padding:4px 10px;border-radius:var(--border-radius-md);display:flex;align-items:center;gap:4px}
+.contacts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:1rem}
+.contact-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.75rem 1rem;display:flex;align-items:center;gap:10px}
+.contact-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.contact-name{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.contact-role{font-size:11px;color:var(--color-text-secondary)}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">SPC single project tracker — Greenfields Housing Society, Pune — Building and housing project at demo and approval stage</h2>
+
+<div class="proj-header">
+  <div class="proj-top">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--color-text-tertiary)">SP Concare Pvt. Ltd &nbsp;/&nbsp; Project tracker</div>
+      </div>
+      <div class="proj-name"><i class="ti ti-building-community" aria-hidden="true" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Greenfields Housing Society — Phase 2</div>
+      <div class="proj-sub">G+14 residential tower &nbsp;·&nbsp; 120 flats &nbsp;·&nbsp; Wakad, Pune</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+      <span class="proj-badge badge-purple">Demo done / approval stage</span>
+      <span class="proj-badge badge-amber">Quotation pending</span>
+    </div>
+  </div>
+  <div class="proj-meta">
+    <div class="meta-item"><i class="ti ti-user" aria-hidden="true" style="font-size:13px"></i>Salesperson: <span>Priya D.</span></div>
+    <div class="meta-item"><i class="ti ti-calendar" aria-hidden="true" style="font-size:13px"></i>First contact: <span>12 May 2025</span></div>
+    <div class="meta-item"><i class="ti ti-currency-rupee" aria-hidden="true" style="font-size:13px"></i>Est. order value: <span>₹8.4 L</span></div>
+    <div class="meta-item"><i class="ti ti-map-pin" aria-hidden="true" style="font-size:13px"></i><span>Wakad, Pune</span></div>
+    <div class="meta-item"><i class="ti ti-clock" aria-hidden="true" style="font-size:13px"></i>Days in pipeline: <span>32 days</span></div>
+  </div>
+</div>
+
+<div class="stage-bar">
+  <div class="stage-label">Sales stage progress</div>
+  <div class="stages">
+    <div class="stage done"><div class="stage-dot dot-done"></div>Enquiry</div>
+    <div class="stage done"><div class="stage-dot dot-done"></div>1st meeting</div>
+    <div class="stage done"><div class="stage-dot dot-done"></div>Product demo</div>
+    <div class="stage active"><div class="stage-dot dot-active"></div>Approval / spec</div>
+    <div class="stage pending"><div class="stage-dot dot-pending"></div>Quotation</div>
+    <div class="stage pending"><div class="stage-dot dot-pending"></div>PO / closure</div>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric">
+    <div class="metric-label">Total activities</div>
+    <div class="metric-val">6</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Products discussed</div>
+    <div class="metric-val">4</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Open actions</div>
+    <div class="metric-val" style="color:#854F0B">2</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Next activity</div>
+    <div class="metric-val" style="font-size:13px;color:#185FA5">16 Jun</div>
+  </div>
+</div>
+
+<div class="section-label">KEY CONTACTS</div>
+<div class="contacts-row">
+  <div class="contact-card">
+    <div class="contact-av" style="background:#EEEDFE;color:#534AB7">RS</div>
+    <div><div class="contact-name">Ramesh Shinde</div><div class="contact-role">Builder / Owner — Greenfields Dev.</div></div>
+  </div>
+  <div class="contact-card">
+    <div class="contact-av" style="background:#E6F1FB;color:#185FA5">AK</div>
+    <div><div class="contact-name">Arvind Kulkarni</div><div class="contact-role">Structural consultant</div></div>
+  </div>
+  <div class="contact-card">
+    <div class="contact-av" style="background:#EAF3DE;color:#3B6D11">SM</div>
+    <div><div class="contact-name">Sunil More</div><div class="contact-role">Site engineer / purchase</div></div>
+  </div>
+</div>
+
+<div class="section-label">PAST ACTIVITIES</div>
+
+<div class="card past">
+  <div class="card-head">
+    <div>
+      <div class="card-meta"><span class="proj-badge badge-gray">Done</span><span class="proj-badge badge-gray">First visit</span></div>
+      <div class="card-title" style="margin-top:4px">Introductory meeting — builder office visit</div>
+    </div>
+    <div class="card-date"><i class="ti ti-calendar" aria-hidden="true"></i>12 May 2025</div>
+  </div>
+  <div class="card-body">Met Mr. Ramesh Shinde at his Baner office. Discussed Phase 2 construction scope — G+14 tower, 120 flats. Requirement: waterproofing for terrace, bathrooms, and basement. Shared SPC product catalogue and company profile.</div>
+  <div class="products-used">
+    <div class="products-label">Products discussed</div>
+    <div class="product-pills"><span class="pill">SPC Crystalline WP</span><span class="pill">SPC Tile Adhesive</span></div>
+  </div>
+  <div class="followup">
+    <i class="ti ti-check" aria-hidden="true" style="font-size:14px;color:#3B6D11"></i>
+    <div><div class="followup-label">Follow-up done</div><div class="followup-text">Sent catalogue + company profile via WhatsApp — 13 May</div></div>
+    <div class="followup-date" style="color:#3B6D11">Completed ✓</div>
+  </div>
+</div>
+
+<div class="card past">
+  <div class="card-head">
+    <div>
+      <div class="card-meta"><span class="proj-badge badge-gray">Done</span><span class="proj-badge badge-blue">Technical meeting</span></div>
+      <div class="card-title" style="margin-top:4px">Technical discussion with structural consultant</div>
+    </div>
+    <div class="card-date"><i class="ti ti-calendar" aria-hidden="true"></i>22 May 2025</div>
+  </div>
+  <div class="card-body">Met Mr. Arvind Kulkarni (structural consultant) at site office. Discussed basement waterproofing specs. Consultant asked for IS code compliance certificates and comparative data vs competitor product. He controls the product approval decision.</div>
+  <div class="products-used">
+    <div class="products-label">Products discussed</div>
+    <div class="product-pills"><span class="pill">SPC Crystalline WP</span><span class="pill">SPC Epoxy Grout</span></div>
+  </div>
+  <div class="followup">
+    <i class="ti ti-check" aria-hidden="true" style="font-size:14px;color:#3B6D11"></i>
+    <div><div class="followup-label">Follow-up done</div><div class="followup-text">Sent IS code compliance docs + test report — 23 May</div></div>
+    <div class="followup-date" style="color:#3B6D11">Completed ✓</div>
+  </div>
+  <div class="comment-thread">
+    <div class="comment">
+      <div class="avatar av-hod">SS</div>
+      <div class="comment-bubble"><div class="comment-meta">S. Sharma (HOD) · 23 May, 9:00am</div>Good. Also share the third-party lab test report from Nashik Bridge project — it will strengthen consultant's confidence.</div>
+    </div>
+    <div class="comment">
+      <div class="avatar av-sp">PD</div>
+      <div class="comment-bubble"><div class="comment-meta">Priya D. · 23 May, 10:15am</div>Shared sir — also added the Pune Metro reference project data sheet.</div>
+    </div>
+  </div>
+</div>
+
+<div class="card past">
+  <div class="card-head">
+    <div>
+      <div class="card-meta"><span class="proj-badge badge-gray">Done</span><span class="proj-badge badge-purple">Product demo</span></div>
+      <div class="card-title" style="margin-top:4px">On-site product demonstration — waterproofing application</div>
+    </div>
+    <div class="card-date"><i class="ti ti-calendar" aria-hidden="true"></i>5 Jun 2025</div>
+  </div>
+  <div class="card-body">Live demo of SPC Crystalline Waterproof application on 1m² mock panel at site. Both Arvind Kulkarni (consultant) and Sunil More (site engineer) present. Demo well received — consultant satisfied with penetration depth. Asked for 7-day cured panel to inspect before final approval.</div>
+  <div class="products-used">
+    <div class="products-label">Products demonstrated</div>
+    <div class="product-pills"><span class="pill">SPC Crystalline WP</span><span class="pill">SPC Curing Compound</span></div>
+  </div>
+  <div class="followup">
+    <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:14px;color:var(--color-text-secondary)"></i>
+    <div><div class="followup-label">Next step agreed</div><div class="followup-text">Consultant to inspect cured panel on 12 Jun — approval decision expected</div></div>
+    <div class="followup-date" style="color:#3B6D11">Panel ready ✓</div>
+  </div>
+  <div class="comment-thread">
+    <div class="comment">
+      <div class="avatar av-hod">SS</div>
+      <div class="comment-bubble"><div class="comment-meta">S. Sharma (HOD) · 6 Jun, 8:30am</div>Well done Priya. Make sure the cured panel is stored properly — no moisture exposure. Take photos on day 3 and day 7.</div>
+    </div>
+    <div class="comment">
+      <div class="avatar av-sp">PD</div>
+      <div class="comment-bubble"><div class="comment-meta">Priya D. · 6 Jun, 9:00am</div>Done sir. Will send photos on 12 Jun before the visit.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-label">TODAY / ONGOING</div>
+
+<div class="card current">
+  <div class="card-head">
+    <div>
+      <div class="card-meta"><span class="proj-badge badge-blue">Today</span><span class="proj-badge badge-purple">Approval check</span></div>
+      <div class="card-title" style="margin-top:4px">Consultant panel inspection — approval decision</div>
+    </div>
+    <div class="card-date"><i class="ti ti-clock" aria-hidden="true"></i>11:00 AM today</div>
+  </div>
+  <div class="card-body">Arvind Kulkarni visiting site to inspect 7-day cured SPC Crystalline panel. If satisfied, he will give written specification approval. Priya to carry datasheet + project references. Outcome will decide quotation submission.</div>
+  <div class="followup">
+    <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:14px;color:var(--color-text-secondary)"></i>
+    <div><div class="followup-label">Expected outcome</div><div class="followup-text">Spec approval → submit BOQ-based quotation within 2 days</div></div>
+    <div class="followup-date">Post-visit action</div>
+  </div>
+  <div class="add-comment">
+    <div class="avatar av-hod" style="width:22px;height:22px;font-size:10px;flex-shrink:0">SS</div>
+    <input type="text" placeholder="Add pre-visit note for Priya…" id="ci1" />
+    <button onclick="postCmt('ci1','ct1')">Post</button>
+  </div>
+  <div id="ct1"></div>
+  <div class="card-actions">
+    <button onclick="sendPrompt('Draft a follow-up message to Arvind Kulkarni after the panel inspection for SPC Crystalline Waterproof approval at Greenfields Housing Society Pune')"><i class="ti ti-send" aria-hidden="true"></i> Draft post-visit message ↗</button>
+    <button onclick="sendPrompt('Generate a BOQ-based quotation template for SPC Crystalline Waterproof for Greenfields Housing Society Pune basement and terrace waterproofing')"><i class="ti ti-file-invoice" aria-hidden="true"></i> Prepare quotation ↗</button>
+  </div>
+</div>
+
+<div class="section-label">PLANNED / SCHEDULED</div>
+
+<div class="card planned">
+  <div class="card-head">
+    <div>
+      <div class="card-meta"><span class="proj-badge badge-green">Scheduled</span><span class="proj-badge badge-amber">Quotation submission</span></div>
+      <div class="card-title" style="margin-top:4px">Submit BOQ quotation — waterproofing + tile adhesive</div>
+    </div>
+    <div class="card-date"><i class="ti ti-calendar" aria-hidden="true"></i>16 Jun 2025</div>
+  </div>
+  <div class="card-body">Subject to approval today — submit detailed BOQ-based quotation covering basement waterproofing (SPC Crystalline), bathroom waterproofing (SPC Tile Adhesive), and terrace application. Address to Mr. Ramesh Shinde with copy to Sunil More.</div>
+  <div class="products-used">
+    <div class="products-label">Products to quote</div>
+    <div class="product-pills"><span class="pill">SPC Crystalline WP</span><span class="pill">SPC Tile Adhesive</span><span class="pill">SPC Curing Compound</span><span class="pill">SPC Epoxy Grout</span></div>
+  </div>
+  <div class="followup">
+    <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:14px;color:var(--color-text-secondary)"></i>
+    <div><div class="followup-label">Follow-up after submission</div><div class="followup-text">Call Sunil More on 18 Jun to confirm receipt and discuss any queries</div></div>
+    <div class="followup-date">18 Jun (target)</div>
+  </div>
+</div>
+
+<div class="card planned">
+  <div class="card-head">
+    <div>
+      <div class="card-meta"><span class="proj-badge badge-green">Scheduled</span><span class="proj-badge badge-amber">Negotiation</span></div>
+      <div class="card-title" style="margin-top:4px">Price negotiation meeting — builder + consultant</div>
+    </div>
+    <div class="card-date"><i class="ti ti-calendar" aria-hidden="true"></i>22 Jun 2025</div>
+  </div>
+  <div class="card-body">Final negotiation meeting with Ramesh Shinde. Builder likely to ask for bulk discount on combined order (all 4 products). HOD approval required if total discount exceeds 5%. Target: PO by 25 Jun before site work resumes post-monsoon break.</div>
+  <div class="followup">
+    <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:14px;color:var(--color-text-secondary)"></i>
+    <div><div class="followup-label">Target outcome</div><div class="followup-text">Signed PO or advance payment confirmation</div></div>
+    <div class="followup-date">25 Jun (deadline)</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function postCmt(inputId, threadId) {
+  var inp = document.getElementById(inputId);
+  var val = inp.value.trim();
+  if(!val) return;
+  var thread = document.getElementById(threadId);
+  if(!thread.classList.contains('comment-thread')) {
+    thread.className = 'comment-thread';
+    thread.style.borderTop = '0.5px solid var(--color-border-tertiary)';
+    thread.style.paddingTop = '8px';
+    thread.style.display = 'flex';
+    thread.style.flexDirection = 'column';
+    thread.style.gap = '6px';
+    thread.style.marginTop = '4px';
+  }
+  var d = document.createElement('div');
+  d.className = 'comment';
+  d.innerHTML = '<div class="avatar av-hod" style="width:24px;height:24px;font-size:10px;flex-shrink:0">SS</div><div class="comment-bubble"><div class="comment-meta">S. Sharma (HOD) · Just now</div>' + val + '</div>';
+  thread.appendChild(d);
+  inp.value = '';
+}
+</script>
