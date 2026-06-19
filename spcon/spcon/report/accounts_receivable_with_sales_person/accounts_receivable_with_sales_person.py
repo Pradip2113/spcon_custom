@@ -1221,7 +1221,7 @@ class ReceivablePayableReport:
 			fieldname="party",
 			fieldtype="Dynamic Link",
 			options="party_type",
-			width=180,
+			width=180, 
 		)
 		if self.account_type == "Receivable":
 			label = _("Receivable Account")

@@ -1,0 +1,367 @@
+frappe.pages["spc-lead-dashboard"].on_page_load = function (wrapper) {
+	frappe.ui.make_app_page({
+		parent: wrapper,
+		title: __("SPC Lead Dashboard"),
+		single_column: true,
+	});
+
+	wrapper.spc_lead_dashboard = new spcon.SPCLeadDashboard(wrapper);
+};
+
+frappe.provide("spcon"); 
+
+spcon.SPCLeadDashboard = class SPCLeadDashboard {
+	constructor(wrapper) {
+		this.wrapper = $(wrapper);
+		this.page = wrapper.page;
+		this.active_section = "overview";
+		this.setup();
+		this.refresh();
+	}
+
+	setup() {
+		this.render_shell();
+		this.add_filters();
+		this.inject_style();
+	}
+
+	render_shell() {
+		this.page.main.html(`
+			<div class="spc-lead-wrap">
+				<div class="spc-lead-head">
+					<div>
+						<div class="spc-title"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>${__("SPC - Lead Dashboard")}</div>
+						<div class="spc-sub">${__("SP Concare Pvt. Ltd")} &nbsp;·&nbsp; ${__("Lead pipeline and activity monitor")}</div>
+					</div>
+					<div class="spc-tabs">
+						<button class="spc-tab active" data-section="overview">${__("Overview")}</button>
+						<button class="spc-tab" data-section="funnel">${__("Sales funnel")}</button>
+						<button class="spc-tab" data-section="activities">${__("Activities")}</button>
+						<button class="spc-tab" data-section="forecast">${__("Product forecast")}</button>
+						<button class="spc-tab" data-section="team">${__("Team")}</button>
+					</div>
+				</div>
+				<div class="spc-filter-bar">
+					<div class="spc-filter-row"></div>
+					<button class="btn btn-sm btn-primary spc-refresh">${__("Apply")}</button>
+				</div>
+				<div class="spc-loading text-muted">${__("Loading lead dashboard...")}</div>
+				<div class="spc-content hide">
+					<div id="spc-sec-overview" class="spc-section active"></div>
+					<div id="spc-sec-funnel" class="spc-section"></div>
+					<div id="spc-sec-activities" class="spc-section"></div>
+					<div id="spc-sec-forecast" class="spc-section"></div>
+					<div id="spc-sec-team" class="spc-section"></div>
+				</div>
+			</div>
+		`);
+
+		this.$filterRow = this.page.main.find(".spc-filter-row");
+		this.$loading = this.page.main.find(".spc-loading");
+		this.$content = this.page.main.find(".spc-content");
+
+		this.page.main.find(".spc-tab").on("click", (event) => {
+			this.active_section = $(event.currentTarget).data("section");
+			this.page.main.find(".spc-tab").removeClass("active");
+			$(event.currentTarget).addClass("active");
+			this.page.main.find(".spc-section").removeClass("active");
+			this.page.main.find(`#spc-sec-${this.active_section}`).addClass("active");
+		});
+
+		this.page.main.find(".spc-refresh").on("click", () => this.refresh());
+	}
+
+	add_filters() {
+		const make_field = (df) =>
+			frappe.ui.form.make_control({
+				parent: this.$filterRow.get(0),
+				df,
+				render_input: true,
+				only_input: false,
+			});
+
+		this.from_date = make_field({
+			fieldname: "from_date",
+			label: __("From Date"),
+			fieldtype: "Date",
+			default: frappe.datetime.add_months(frappe.datetime.get_today(), -3),
+		});
+		this.to_date = make_field({
+			fieldname: "to_date",
+			label: __("To Date"),
+			fieldtype: "Date",
+			default: frappe.datetime.get_today(),
+		});
+		this.lead_owner = make_field({
+			fieldname: "lead_owner",
+			label: __("Lead Owner"),
+			fieldtype: "Link",
+			options: "User",
+		});
+		this.status = make_field({
+			fieldname: "status",
+			label: __("Status"),
+			fieldtype: "Select",
+			options: "\nLead\nOpen\nReplied\nOpportunity\nQuotation\nInterested\nConverted\nDo Not Contact",
+		});
+	}
+
+	get_filters() {
+		return {
+			from_date: this.from_date.get_value(),
+			to_date: this.to_date.get_value(),
+			lead_owner: this.lead_owner.get_value(),
+			status: this.status.get_value(),
+		};
+	}
+
+	refresh() {
+		this.$loading.removeClass("hide");
+		this.$content.addClass("hide");
+
+		frappe.call({
+			method: "spcon.spcon.page.spc_lead_dashboard.spc_lead_dashboard.get_dashboard_data",
+			args: { filters: this.get_filters() },
+			callback: (r) => {
+				this.data = r.message || {};
+				this.render();
+				this.$loading.addClass("hide");
+				this.$content.removeClass("hide");
+			},
+		});
+	}
+
+	render() {
+		this.render_overview();
+		this.render_funnel();
+		this.render_activities();
+		this.render_forecast();
+		this.render_team();
+		this.bind_rows();
+	}
+
+	render_overview() {
+		const summary = this.data.summary || {};
+		const stages = this.render_stage_bars(this.data.stages || []);
+		const activities = this.render_activity_rows((this.data.activities || []).slice(0, 4));
+		const forecast = this.render_forecast_rows((this.data.forecast || []).slice(0, 5));
+
+		this.page.main.find("#spc-sec-overview").html(`
+			${this.render_metrics([
+				["Total leads", summary.total_leads || 0, "blue", "selected period"],
+				["Open leads", summary.open_leads || 0, "", "active pipeline"],
+				["Converted", summary.converted || 0, "green", "won leads"],
+				["Lost", summary.lost || 0, "red", "closed lost"],
+				["Overdue actions", summary.overdue_actions || 0, "red", "need attention"],
+				["Forecast items", summary.forecast_items || 0, "amber", "lead item rows"],
+			])}
+			<div class="spc-block"><div class="spc-block-head">${__("Sales funnel snapshot")}</div>${stages}</div>
+			<div class="spc-block"><div class="spc-block-head">${__("Recent activities")}</div><div class="spc-list">${activities}</div></div>
+			<div class="spc-block"><div class="spc-block-head">${__("Product forecast from Lead items")}</div>${this.render_forecast_table(forecast)}</div>
+		`);
+	}
+
+	render_funnel() {
+		const leads = this.data.leads || [];
+		const grouped = this.group_by_status(leads);
+		const status_sections = Object.keys(grouped).map((status) => `
+			<div class="spc-status-group">
+				<div class="spc-status-head"><span>${frappe.utils.escape_html(status)}</span><strong>${grouped[status].length}</strong></div>
+				<div class="spc-lead-list">${grouped[status].map((lead) => this.render_lead_row(lead)).join("")}</div>
+			</div>
+		`).join("");
+
+		this.page.main.find("#spc-sec-funnel").html(`
+			${this.render_metrics((this.data.stages || []).map((stage) => [stage.stage, stage.count, this.metric_color(stage.stage), "Lead status"]))}
+			<div class="spc-block"><div class="spc-block-head">${__("Status-wise Lead list")}</div>
+				${status_sections || this.empty("No leads found")}
+			</div>
+		`);
+	}
+
+	render_activities() {
+		this.page.main.find("#spc-sec-activities").html(`
+			${this.render_metrics([
+				["Today", (this.data.summary || {}).today_activities || 0, "blue", "scheduled today"],
+				["Overdue", (this.data.summary || {}).overdue_actions || 0, "red", "pending events"],
+				["Total events", (this.data.activities || []).length, "", "linked to leads"],
+				["No activity", this.count_no_activity(), "amber", "leads without events"],
+			])}
+			<div class="spc-block"><div class="spc-block-head">${__("Lead activities")}</div><div class="spc-list">${this.render_activity_rows(this.data.activities || [])}</div></div>
+		`);
+	}
+
+	render_forecast() {
+		this.page.main.find("#spc-sec-forecast").html(`
+			${this.render_metrics([
+				["Forecast rows", (this.data.forecast || []).length, "amber", "from Lead items"],
+				["Products", this.unique_count(this.data.forecast || [], "item"), "", "unique items"],
+				["Systems", this.unique_count(this.data.forecast || [], "system"), "green", "unique systems"],
+				["Leads", this.unique_count(this.data.forecast || [], "lead"), "blue", "with items"],
+			])}
+			<div class="spc-block"><div class="spc-block-head">${__("Product-wise forecast")}</div>${this.render_forecast_table(this.render_forecast_rows(this.data.forecast || []))}</div>
+		`);
+	}
+
+	render_team() {
+		const cards = (this.data.team || []).map((row) => {
+			const status_rows = Object.keys(row.statuses || {}).map((status) => `
+				<div class="sp-stat"><span>${frappe.utils.escape_html(status)}</span><strong>${row.statuses[status] || 0}</strong></div>
+			`).join("");
+			return `
+				<div class="sp-card" data-owner="${frappe.utils.escape_html(row.user || "")}">
+					<div class="sp-top"><div class="av">${frappe.utils.escape_html(this.initials(row.label))}</div><div><div class="sp-name">${frappe.utils.escape_html(row.label)}</div><div class="sp-role">${__("Lead created by")}</div></div></div>
+					<div class="sp-stats">
+						<div class="sp-stat"><span>${__("Total leads")}</span><strong>${row.count || 0}</strong></div>
+						${status_rows}
+					</div>
+				</div>
+			`;
+		}).join("");
+
+		this.page.main.find("#spc-sec-team").html(`<div class="spc-block"><div class="spc-block-head">${__("Created-by user status summary")}</div><div class="sp-perf">${cards || this.empty("No team data found")}</div></div>`);
+	}
+
+	render_metrics(metrics) {
+		return `<div class="metrics">${metrics.map(([label, value, color, sub]) => `
+			<div class="mcard"><div class="mlabel">${__(label)}</div><div class="mval ${color || ""}">${frappe.utils.escape_html(String(value))}</div><div class="msub">${__(sub)}</div></div>
+		`).join("")}</div>`;
+	}
+
+	render_stage_bars(stages) {
+		if (!stages.length) return this.empty("No stage data found");
+		return `<div class="funnel">${stages.map((stage) => `
+			<div class="fstage">
+				<div class="fstage-name">${frappe.utils.escape_html(stage.stage)}</div>
+				<div class="fbar-wrap"><div class="fbar" style="width:${stage.width}%;background:${stage.color}22"><span style="color:${stage.color}">${stage.count} ${__("leads")}</span></div></div>
+				<div class="fstage-count">${stage.count}</div>
+			</div>
+		`).join("")}</div>`;
+	}
+
+	render_lead_row(lead) {
+		return `
+			<div class="fd-row" data-lead="${frappe.utils.escape_html(lead.name)}">
+				<div class="fd-dot"></div>
+				<div class="fd-main">
+					<div class="fd-proj">${frappe.utils.escape_html(lead.display_name || lead.name)}</div>
+					<div class="fd-client">${frappe.utils.escape_html(lead.customer_name || "-")} &nbsp;·&nbsp; ${frappe.utils.escape_html(lead.source || lead.territory || "-")}</div>
+				</div>
+				<div class="fd-sp">${frappe.utils.escape_html(lead.owner_label || "-")}</div>
+				<span class="badge ${lead.badge_class || "b-blue"}">${frappe.utils.escape_html(lead.stage || "-")}</span>
+				<span class="badge ${lead.activity_status === "Overdue" ? "b-red" : "b-gray"}">${frappe.utils.escape_html(lead.activity_status || "-")}</span>
+			</div>
+		`;
+	}
+
+	render_activity_rows(rows) {
+		if (!rows.length) return this.empty("No lead activities found");
+		return rows.map((row) => `
+			<div class="arow" data-lead="${frappe.utils.escape_html(row.lead)}">
+				<div class="av">${frappe.utils.escape_html(row.initials || "NA")}</div>
+				<div class="arow-left">
+					<div class="arow-title">${frappe.utils.escape_html(row.subject || row.lead_title || row.lead)}</div>
+					<div class="arow-sub">${frappe.utils.escape_html(row.owner || "-")} &nbsp;·&nbsp; ${row.date ? frappe.datetime.str_to_user(row.date) : "-"} &nbsp;·&nbsp; ${frappe.utils.escape_html(row.customer || "-")}</div>
+				</div>
+				<div class="arow-right"><span class="badge ${row.status === "Overdue" ? "b-red" : "b-blue"}">${frappe.utils.escape_html(row.status || row.category || "Event")}</span></div>
+			</div>
+		`).join("");
+	}
+
+	render_forecast_rows(rows) {
+		return rows.map((row) => `
+			<tr data-lead="${frappe.utils.escape_html(row.lead)}">
+				<td><span class="badge b-purple">${frappe.utils.escape_html(row.item_name || row.item || "-")}</span></td>
+				<td>${frappe.utils.escape_html(row.lead || "-")}</td>
+				<td>${frappe.utils.escape_html(row.source_table || "-")}</td>
+				<td><strong>${frappe.format(row.qty || 0, { fieldtype: "Float" })}</strong> ${frappe.utils.escape_html(row.unit || "")}</td>
+			</tr>
+		`).join("");
+	}
+
+	render_forecast_table(rows) {
+		return `<div class="table-responsive"><table class="forecast-table">
+			<thead><tr><th>${__("Product")}</th><th>${__("Lead")}</th><th>${__("Table")}</th><th>${__("Qty")}</th></tr></thead>
+			<tbody>${rows || `<tr><td colspan="4">${this.empty("No forecast item rows found")}</td></tr>`}</tbody>
+		</table></div>`;
+	}
+
+	bind_rows() {
+		this.page.main.find("[data-lead]").off("click").on("click", (event) => {
+			const lead = $(event.currentTarget).data("lead");
+			if (lead) frappe.set_route("Form", "Lead", lead);
+		});
+		this.page.main.find("[data-owner]").off("click").on("click", (event) => {
+			const owner = $(event.currentTarget).data("owner");
+			if (!owner) return;
+
+			const filters = { owner };
+			const dashboard_filters = this.get_filters();
+
+			if (dashboard_filters.from_date || dashboard_filters.to_date) {
+				filters.creation = [
+					"between",
+					[dashboard_filters.from_date || "1900-01-01", dashboard_filters.to_date || frappe.datetime.get_today()],
+				];
+			}
+			if (dashboard_filters.lead_owner) filters.lead_owner = dashboard_filters.lead_owner;
+			if (dashboard_filters.status) filters.status = dashboard_filters.status;
+
+			frappe.set_route("List", "Lead", filters);
+		});
+	}
+
+	empty(message) {
+		return `<div class="spc-empty">${__(message)}</div>`;
+	}
+
+	group_by_status(leads) {
+		return leads.reduce((groups, lead) => {
+			const status = lead.status || lead.stage || "Open";
+			groups[status] = groups[status] || [];
+			groups[status].push(lead);
+			return groups;
+		}, {});
+	}
+
+	metric_color(status) {
+		if (["Converted"].includes(status)) return "green";
+		if (["Lost Quotation", "Lost", "Do Not Contact"].includes(status)) return "red";
+		if (["Quotation", "Sampling", "Opportunity"].includes(status)) return "amber";
+		if (["Open", "Lead"].includes(status)) return "blue";
+		return "";
+	}
+
+	count_no_activity() {
+		return (this.data.leads || []).filter((lead) => lead.activity_status === "No Activity").length;
+	}
+
+	unique_count(rows, key) {
+		return new Set(rows.map((row) => row[key]).filter(Boolean)).size;
+	}
+
+	initials(label) {
+		return (label || "NA").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+	}
+
+	inject_style() {
+		if ($("#spc-lead-dashboard-style").length) return;
+		$("head").append(`
+			<style id="spc-lead-dashboard-style">
+				.spc-lead-wrap{padding:1rem;font-family:var(--font-sans);color:var(--color-text-primary)}
+				.spc-lead-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+				.spc-title{font-size:15px;font-weight:600}.spc-title i{font-size:16px;vertical-align:-2px;margin-right:6px}.spc-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+				.spc-tabs{display:flex;gap:4px;flex-wrap:wrap}.spc-tab{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer}.spc-tab.active{background:#185FA5;color:#E6F1FB;border-color:#185FA5}
+				.spc-filter-bar{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:8px;background:var(--color-background-secondary);border-radius:8px}.spc-filter-row{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px;flex:1;min-width:260px}
+				.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1rem}.mcard{background:var(--color-background-secondary);border-radius:8px;padding:.75rem 1rem}.mlabel{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}.mval{font-size:22px;font-weight:600}.mval.red{color:#A32D2D}.mval.green{color:#3B6D11}.mval.blue{color:#185FA5}.mval.amber{color:#854F0B}.msub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+				.spc-section{display:none}.spc-section.active{display:block}.spc-block{margin-bottom:1.5rem}.spc-block-head{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--color-text-tertiary);display:flex;align-items:center;gap:8px;margin-bottom:.75rem;text-transform:uppercase}.spc-block-head:after{content:'';flex:1;height:1px;background:var(--color-border-tertiary)}
+				.funnel{display:flex;flex-direction:column;gap:4px}.fstage{display:flex;align-items:center;gap:8px}.fstage-name{font-size:11px;color:var(--color-text-secondary);min-width:120px;text-align:right}.fbar-wrap{flex:1;background:var(--color-background-secondary);border-radius:4px;height:28px;overflow:hidden}.fbar{height:100%;display:flex;align-items:center;padding-left:8px;border-radius:4px;min-width:48px}.fbar span{font-size:11px;font-weight:600}.fstage-count{font-size:12px;font-weight:600;min-width:28px;text-align:center}
+				.fd-row,.arow{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:6px}.fd-row:hover,.arow:hover{border-color:var(--color-border-secondary)}.fd-dot{width:8px;height:8px;border-radius:50%;background:#185FA5;flex-shrink:0}.fd-main,.arow-left{flex:1;min-width:0}.fd-proj,.arow-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fd-client,.arow-sub,.fd-sp{font-size:11px;color:var(--color-text-secondary)}.fd-sp{min-width:120px}.arow-right{display:flex;flex-direction:column;align-items:flex-end}.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:#EEEDFE;color:#534AB7;flex-shrink:0}
+				.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}.b-gray{background:#F1EFE8;color:#5F5E5A}.b-blue{background:#E6F1FB;color:#185FA5}.b-green{background:#EAF3DE;color:#3B6D11}.b-amber{background:#FAEEDA;color:#854F0B}.b-red{background:#FCEBEB;color:#A32D2D}.b-purple{background:#EEEDFE;color:#534AB7}
+				.forecast-table{width:100%;border-collapse:collapse;font-size:12px}.forecast-table th{font-size:10px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--color-border-secondary);text-align:left;background:var(--color-background-secondary)}.forecast-table td{padding:7px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle}.forecast-table tr[data-lead]{cursor:pointer}.forecast-table tr[data-lead]:hover td{background:var(--color-background-secondary)}
+				.sp-perf{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.sp-card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:.75rem 1rem;cursor:pointer}.sp-card:hover{border-color:var(--color-border-secondary)}.spc-status-group{margin-bottom:12px}.spc-status-head{display:flex;align-items:center;justify-content:space-between;background:var(--color-background-secondary);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:12px;font-weight:600}.sp-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.sp-name{font-size:12px;font-weight:600}.sp-role{font-size:10px;color:var(--color-text-secondary)}.sp-stats{display:flex;flex-direction:column;gap:4px}.sp-stat{display:flex;justify-content:space-between;font-size:11px}.sp-stat span{color:var(--color-text-secondary)}.green{color:#3B6D11}.spc-empty{font-size:12px;color:var(--color-text-secondary);padding:10px}
+				@media (max-width: 700px){.spc-filter-row{grid-template-columns:1fr}.fd-row,.arow{align-items:flex-start;flex-wrap:wrap}.fd-sp{min-width:0}.fstage-name{min-width:88px}.spc-tab{padding:5px 9px}}
+			</style>
+		`);
+	}
+};

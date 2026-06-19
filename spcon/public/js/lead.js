@@ -50,6 +50,7 @@ frappe.ui.form.on("Lead", {
                 row.system = frm.doc.custom_system;
                 row.area = measurement_value;
                 row.item = item.item_code;
+                row.item_name = item.item_name;
                 row.qty = measurement_value * flt(item.qty);
                 row.unit = item.uom;
             });
@@ -421,7 +422,8 @@ function update_project_item_totals(frm) {
         if (!totals[r.item]) {
             totals[r.item] = {
                 qty: 0,
-                uom: r.unit || r.uom
+                uom: r.unit || r.uom,
+                item_name: r.item_name || ""
             };
         }
 
@@ -436,7 +438,7 @@ function update_project_item_totals(frm) {
         row.item_code = item;
         row.total_qty = totals[item].qty;
         row.unit = totals[item].uom;
+        row.item_name = totals[item].item_name;
     }
-
     frm.refresh_field("custom_project_items");
 }
