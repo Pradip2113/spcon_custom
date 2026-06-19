@@ -79,6 +79,7 @@ frappe.ui.form.on('Stock Entry', {
     },
     refresh: function(frm) {
         set_warehouse_queries(frm);
+        toggle_item_editability(frm);
     },
     custom_employee_day_salary_add: function(frm) {
         set_total_salary(frm);
@@ -90,6 +91,12 @@ frappe.ui.form.on('Stock Entry', {
     },
     cost_center: function (frm) {
         set_warehouse_queries(frm);
+    },
+    from_bom: function(frm) {
+        toggle_item_editability(frm);
+    },
+    bom_no: function(frm) {
+        toggle_item_editability(frm);
     }
 });
 
@@ -129,4 +136,66 @@ function set_custom_total_salary(frm){
             }, 300);
         }
     })
+}
+
+function toggle_item_editability(frm) {
+
+    let is_system_manager = frappe.user.has_role("System Manager");
+
+    if (frm.doc.from_bom && frm.doc.bom_no && is_system_manager) {
+
+        // Allow editing child table
+        frm.fields_dict.items.grid.update_docfield_property(
+            "item_code",
+            "read_only",
+            0
+        );
+
+        frm.fields_dict.items.grid.update_docfield_property(
+            "qty",
+            "read_only",
+            0
+        );
+
+        frm.fields_dict.items.grid.update_docfield_property(
+            "s_warehouse",
+            "read_only",
+            0
+        );
+
+        frm.fields_dict.items.grid.update_docfield_property(
+            "t_warehouse",
+            "read_only",
+            0
+        );
+
+    } else {
+
+        // Make child table fields read-only
+        frm.fields_dict.items.grid.update_docfield_property(
+            "item_code",
+            "read_only",
+            1
+        );
+
+        frm.fields_dict.items.grid.update_docfield_property(
+            "qty",
+            "read_only",
+            1
+        );
+
+        frm.fields_dict.items.grid.update_docfield_property(
+            "s_warehouse",
+            "read_only",
+            1
+        );
+
+        frm.fields_dict.items.grid.update_docfield_property(
+            "t_warehouse",
+            "read_only",
+            1
+        );
+    }
+
+    frm.refresh_field("items");
 }
