@@ -1,9 +1,11 @@
 from erpnext.crm.doctype.lead.lead import Lead
 
 class CustomLead(Lead):
-    def set_status(self):
-        # DO NOTHING → disable ERPNext logic
-        pass
+    # def set_status(self):
+    #     # DO NOTHING → disable ERPNext logic
+    #     pass
+    def set_status(self, update=False):
+        return super().set_status(update=update)
 
 
 import frappe
