@@ -138,13 +138,91 @@ function set_custom_total_salary(frm){
     })
 }
 
+// function toggle_item_editability(frm) {
+
+//     let is_system_manager = frappe.user.has_role("System Manager");
+
+//     if (frm.doc.from_bom && frm.doc.bom_no && is_system_manager) {
+
+//         // Allow editing child table
+//         frm.fields_dict.items.grid.update_docfield_property(
+//             "item_code",
+//             "read_only",
+//             0
+//         );
+
+//         frm.fields_dict.items.grid.update_docfield_property(
+//             "qty",
+//             "read_only",
+//             0
+//         );
+       
+//         frm.fields_dict.items.grid.update_docfield_property(
+//             "valuation_rate",
+//             "read_only",
+//             0
+//         );
+       
+//         frm.fields_dict.items.grid.update_docfield_property(
+//             "uom",
+//             "read_only",
+//             0
+//         );
+
+//         // frm.fields_dict.items.grid.update_docfield_property(
+//         //     "s_warehouse",
+//         //     "read_only",
+//         //     0
+//         // );
+
+//         // frm.fields_dict.items.grid.update_docfield_property(
+//         //     "t_warehouse",
+//         //     "read_only",
+//         //     0
+//         // );
+
+//     } else {
+
+//         // Make child table fields read-only
+//         frm.fields_dict.items.grid.update_docfield_property(
+//             "item_code",
+//             "read_only",
+//             1
+//         );
+
+//         frm.fields_dict.items.grid.update_docfield_property(
+//             "qty",
+//             "read_only",
+//             1
+//         );
+
+//         // frm.fields_dict.items.grid.update_docfield_property(
+//         //     "s_warehouse",
+//         //     "read_only",
+//         //     1
+//         // );
+
+//         // frm.fields_dict.items.grid.update_docfield_property(
+//         //     "t_warehouse",
+//         //     "read_only",
+//         //     1
+//         // );
+//     }
+
+//     frm.refresh_field("items");
+// }
+
 function toggle_item_editability(frm) {
+
+    // Run only for BOM based Stock Entry
+    if (!(frm.doc.from_bom && frm.doc.bom_no)) {
+        return;
+    }
 
     let is_system_manager = frappe.user.has_role("System Manager");
 
-    if (frm.doc.from_bom && frm.doc.bom_no && is_system_manager) {
+    if (is_system_manager) {
 
-        // Allow editing child table
         frm.fields_dict.items.grid.update_docfield_property(
             "item_code",
             "read_only",
@@ -158,20 +236,19 @@ function toggle_item_editability(frm) {
         );
 
         frm.fields_dict.items.grid.update_docfield_property(
-            "s_warehouse",
+            "valuation_rate",
             "read_only",
             0
         );
 
         frm.fields_dict.items.grid.update_docfield_property(
-            "t_warehouse",
+            "uom",
             "read_only",
             0
         );
 
     } else {
 
-        // Make child table fields read-only
         frm.fields_dict.items.grid.update_docfield_property(
             "item_code",
             "read_only",
@@ -185,13 +262,13 @@ function toggle_item_editability(frm) {
         );
 
         frm.fields_dict.items.grid.update_docfield_property(
-            "s_warehouse",
+            "valuation_rate",
             "read_only",
             1
         );
 
         frm.fields_dict.items.grid.update_docfield_property(
-            "t_warehouse",
+            "uom",
             "read_only",
             1
         );

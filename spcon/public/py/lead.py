@@ -1,7 +1,7 @@
 from erpnext.crm.doctype.lead.lead import Lead
 
 class CustomLead(Lead):
-    def set_status(self):
+    def set_status(self, update=False):
         # DO NOTHING → disable ERPNext logic
         pass
     # def set_status(self, update=False):
