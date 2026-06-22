@@ -156,18 +156,30 @@ function toggle_item_editability(frm) {
             "read_only",
             0
         );
-
+       
         frm.fields_dict.items.grid.update_docfield_property(
-            "s_warehouse",
+            "valuation_rate",
+            "read_only",
+            0
+        );
+       
+        frm.fields_dict.items.grid.update_docfield_property(
+            "uom",
             "read_only",
             0
         );
 
-        frm.fields_dict.items.grid.update_docfield_property(
-            "t_warehouse",
-            "read_only",
-            0
-        );
+        // frm.fields_dict.items.grid.update_docfield_property(
+        //     "s_warehouse",
+        //     "read_only",
+        //     0
+        // );
+
+        // frm.fields_dict.items.grid.update_docfield_property(
+        //     "t_warehouse",
+        //     "read_only",
+        //     0
+        // );
 
     } else {
 
@@ -184,17 +196,17 @@ function toggle_item_editability(frm) {
             1
         );
 
-        frm.fields_dict.items.grid.update_docfield_property(
-            "s_warehouse",
-            "read_only",
-            1
-        );
+        // frm.fields_dict.items.grid.update_docfield_property(
+        //     "s_warehouse",
+        //     "read_only",
+        //     1
+        // );
 
-        frm.fields_dict.items.grid.update_docfield_property(
-            "t_warehouse",
-            "read_only",
-            1
-        );
+        // frm.fields_dict.items.grid.update_docfield_property(
+        //     "t_warehouse",
+        //     "read_only",
+        //     1
+        // );
     }
 
     frm.refresh_field("items");
