@@ -72,6 +72,8 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	}
 
 	add_filters() {
+		const has_full_dashboard_access = ["System Manager", "Sales Manager", "CRM Manager"]
+			.some((role) => frappe.user_roles.includes(role));
 		const make_field = (df) =>
 			frappe.ui.form.make_control({
 				parent: this.$filterRow.get(0),
@@ -84,13 +86,13 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			fieldname: "from_date",
 			label: __("From Date"),
 			fieldtype: "Date",
-			default: frappe.datetime.add_months(frappe.datetime.get_today(), -3),
+			default: has_full_dashboard_access ? "" : frappe.datetime.add_months(frappe.datetime.get_today(), -3),
 		});
 		this.to_date = make_field({
 			fieldname: "to_date",
 			label: __("To Date"),
 			fieldtype: "Date",
-			default: frappe.datetime.get_today(),
+			default: has_full_dashboard_access ? "" : frappe.datetime.get_today(),
 		});
 		this.lead_owner = make_field({
 			fieldname: "lead_owner",

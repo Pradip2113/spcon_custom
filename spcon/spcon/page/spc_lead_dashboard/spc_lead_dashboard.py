@@ -118,7 +118,7 @@ def get_conditions(filters):
 
 def has_full_dashboard_access():
 	roles = set(frappe.get_roles(frappe.session.user))
-	return bool(roles.intersection({"System Manager", "Sales Manager"}))
+	return bool(roles.intersection({"System Manager", "Sales Manager", "CRM Manager"}))
 
 
 def get_lead_fields():
