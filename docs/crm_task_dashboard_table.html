@@ -1,0 +1,262 @@
+<div role="region" aria-label="Task management dashboard mockup with table view">
+<h2 class="sr-only">A CRM task dashboard mockup with summary stats, filters by date range, department, and employee, and a sortable table listing tasks with assigner, assignee, status, assigned date, and due date. Overdue tasks are automatically flagged.</h2>
+
+<div style="font-family: var(--font-sans);">
+
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:8px;">
+  <div>
+    <div style="font-size:18px; font-weight:500;">Task overview</div>
+    <div style="font-size:13px; color:var(--color-text-secondary);">All departments &middot; Jun 1 &ndash; Jun 22, 2026</div>
+  </div>
+  <button style="display:flex; align-items:center; gap:6px; font-size:13px;"><i class="ti ti-plus" style="font-size:16px;" aria-hidden="true"></i>New task</button>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px,1fr)); gap:10px; margin-bottom:1.25rem;">
+  <div id="stat-total" style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:0.85rem 1rem; cursor:pointer; border:1.5px solid transparent;">
+    <div style="font-size:12.5px; color:var(--color-text-secondary); margin-bottom:6px;">Total tasks</div>
+    <div style="font-size:22px; font-weight:500;" id="stat-total-n">0</div>
+  </div>
+  <div id="stat-open" style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:0.85rem 1rem; cursor:pointer; border:1.5px solid transparent;">
+    <div style="font-size:12.5px; color:var(--color-text-secondary); margin-bottom:6px;"><i class="ti ti-circle-dot" style="font-size:13px; color:var(--color-text-info); margin-right:4px;" aria-hidden="true"></i>Open</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-info);" id="stat-open-n">0</div>
+  </div>
+  <div id="stat-ongoing" style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:0.85rem 1rem; cursor:pointer; border:1.5px solid transparent;">
+    <div style="font-size:12.5px; color:var(--color-text-secondary); margin-bottom:6px;"><i class="ti ti-progress" style="font-size:13px; color:var(--color-text-warning); margin-right:4px;" aria-hidden="true"></i>Ongoing</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-warning);" id="stat-ongoing-n">0</div>
+  </div>
+  <div id="stat-completed" style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:0.85rem 1rem; cursor:pointer; border:1.5px solid transparent;">
+    <div style="font-size:12.5px; color:var(--color-text-secondary); margin-bottom:6px;"><i class="ti ti-check" style="font-size:13px; color:var(--color-text-success); margin-right:4px;" aria-hidden="true"></i>Completed</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-success);" id="stat-completed-n">0</div>
+  </div>
+  <div id="stat-overdue" style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:0.85rem 1rem; cursor:pointer; border:1.5px solid transparent;">
+    <div style="font-size:12.5px; color:var(--color-text-secondary); margin-bottom:6px;"><i class="ti ti-alert-triangle" style="font-size:13px; color:var(--color-text-danger); margin-right:4px;" aria-hidden="true"></i>Overdue</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-danger);" id="stat-overdue-n">0</div>
+  </div>
+</div>
+
+<div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem; margin-bottom:1rem;">
+  <div style="font-size:13px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+    <span style="display:flex; align-items:center; gap:6px;"><i class="ti ti-filter" style="font-size:15px;" aria-hidden="true"></i>Filters</span>
+    <button id="reset-btn" style="font-size:12px; padding:4px 10px;">Reset</button>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(135px,1fr)); gap:10px;">
+    <div>
+      <label style="font-size:12px; color:var(--color-text-secondary); display:block; margin-bottom:4px;">From date</label>
+      <input type="date" id="f-from" value="2026-06-01" style="width:100%;"/>
+    </div>
+    <div>
+      <label style="font-size:12px; color:var(--color-text-secondary); display:block; margin-bottom:4px;">To date</label>
+      <input type="date" id="f-to" value="2026-06-26" style="width:100%;"/>
+    </div>
+    <div>
+      <label style="font-size:12px; color:var(--color-text-secondary); display:block; margin-bottom:4px;">Department</label>
+      <select id="f-dept" style="width:100%;">
+        <option value="all">All departments</option>
+        <option value="Production">Production</option>
+        <option value="Sales">Sales</option>
+        <option value="Marketing">Marketing</option>
+        <option value="Accounts">Accounts</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:12px; color:var(--color-text-secondary); display:block; margin-bottom:4px;">Employee</label>
+      <select id="f-emp" style="width:100%;">
+        <option value="all">All employees</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:12px; color:var(--color-text-secondary); display:block; margin-bottom:4px;">Status</label>
+      <select id="f-status" style="width:100%;">
+        <option value="all">All statuses</option>
+        <option value="Open">Open</option>
+        <option value="Ongoing">Ongoing</option>
+        <option value="Completed">Completed</option>
+        <option value="Overdue">Overdue</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:12px; color:var(--color-text-secondary); display:block; margin-bottom:4px;">Search title</label>
+      <input type="text" id="f-search" placeholder="Search tasks..." style="width:100%;"/>
+    </div>
+  </div>
+</div>
+
+<div style="overflow-x:auto; border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg);">
+<table style="width:100%; border-collapse:collapse; font-size:13px; min-width:760px;">
+  <thead>
+    <tr style="background:var(--color-background-secondary); text-align:left;">
+      <th data-sort="title" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Title <i class="ti ti-arrows-sort" style="font-size:12px; vertical-align:-1px;" aria-hidden="true"></i></th>
+      <th data-sort="from" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Assigned by</th>
+      <th data-sort="to" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Assigned to</th>
+      <th data-sort="dept" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Department</th>
+      <th data-sort="status" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Status</th>
+      <th data-sort="assigned" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Assigned</th>
+      <th data-sort="due" style="padding:10px 12px; font-weight:500; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;">Due</th>
+    </tr>
+  </thead>
+  <tbody id="task-body"></tbody>
+</table>
+</div>
+<div id="empty-state" style="display:none; text-align:center; padding:2rem; color:var(--color-text-secondary); font-size:13px;">
+  <i class="ti ti-search-off" style="font-size:22px; display:block; margin:0 auto 8px;" aria-hidden="true"></i>
+  No tasks match these filters
+</div>
+<div style="font-size:12px; color:var(--color-text-tertiary); margin-top:8px;" id="row-count"></div>
+
+</div>
+
+<script>
+(function(){
+  const todayStr = "2026-06-22";
+  const today = new Date(todayStr);
+
+  const tasks = [
+    {title:"Quarterly stock reconciliation", from:"Rohan Mehta", to:"Priya Sharma", dept:"Production", status:"Open", assigned:"2026-06-18", due:"2026-06-24"},
+    {title:"Follow up with Hexacore Ltd. on quote", from:"Sneha Iyer", to:"Arjun Verma", dept:"Sales", status:"Ongoing", assigned:"2026-06-19", due:"2026-06-26"},
+    {title:"Dispatch pending order #4471", from:"Priya Sharma", to:"Rohan Mehta", dept:"Production", status:"Open", assigned:"2026-06-14", due:"2026-06-20"},
+    {title:"Prepare May sales summary deck", from:"Arjun Verma", to:"Sneha Iyer", dept:"Sales", status:"Completed", assigned:"2026-06-10", due:"2026-06-16"},
+    {title:"Raw material vendor audit", from:"Rohan Mehta", to:"Kabir Singh", dept:"Production", status:"Ongoing", assigned:"2026-06-15", due:"2026-06-23"},
+    {title:"Update CRM lead pipeline report", from:"Sneha Iyer", to:"Priya Sharma", dept:"Sales", status:"Open", assigned:"2026-06-20", due:"2026-06-28"},
+    {title:"Machine maintenance - Line 2", from:"Kabir Singh", to:"Rohan Mehta", dept:"Production", status:"Open", assigned:"2026-06-12", due:"2026-06-19"},
+    {title:"Design new product brochure", from:"Arjun Verma", to:"Meera Nair", dept:"Marketing", status:"Ongoing", assigned:"2026-06-17", due:"2026-06-25"},
+    {title:"Reconcile June expense claims", from:"Priya Sharma", to:"Meera Nair", dept:"Accounts", status:"Completed", assigned:"2026-06-08", due:"2026-06-14"},
+    {title:"Client onboarding - Verve Textiles", from:"Sneha Iyer", to:"Arjun Verma", dept:"Sales", status:"Ongoing", assigned:"2026-06-16", due:"2026-06-22"},
+    {title:"Packaging redesign feedback", from:"Rohan Mehta", to:"Kabir Singh", dept:"Production", status:"Open", assigned:"2026-06-21", due:"2026-06-30"},
+    {title:"Social media calendar - July", from:"Meera Nair", to:"Arjun Verma", dept:"Marketing", status:"Ongoing", assigned:"2026-06-18", due:"2026-06-27"},
+  ];
+
+  function computeStatus(t){
+    if (t.status === "Completed") return "Completed";
+    if (new Date(t.due) < today) return "Overdue";
+    return t.status;
+  }
+
+  const statusMeta = {
+    Open: {bg:"var(--color-background-info)", fg:"var(--color-text-info)", icon:"ti-circle-dot"},
+    Ongoing: {bg:"var(--color-background-warning)", fg:"var(--color-text-warning)", icon:"ti-progress"},
+    Completed: {bg:"var(--color-background-success)", fg:"var(--color-text-success)", icon:"ti-check"},
+    Overdue: {bg:"var(--color-background-danger)", fg:"var(--color-text-danger)", icon:"ti-alert-triangle"}
+  };
+
+  function fmt(d){
+    const dt = new Date(d);
+    return dt.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+  }
+
+  const empSet = new Set();
+  tasks.forEach(t => { empSet.add(t.from); empSet.add(t.to); });
+  const empSelect = document.getElementById('f-emp');
+  [...empSet].sort().forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    empSelect.appendChild(opt);
+  });
+
+  let sortKey = 'due';
+  let sortDir = 1;
+
+  function getFiltered(){
+    const from = document.getElementById('f-from').value;
+    const to = document.getElementById('f-to').value;
+    const dept = document.getElementById('f-dept').value;
+    const emp = document.getElementById('f-emp').value;
+    const status = document.getElementById('f-status').value;
+    const search = document.getElementById('f-search').value.trim().toLowerCase();
+
+    return tasks.filter(t => {
+      const eff = computeStatus(t);
+      if (from && t.assigned < from) return false;
+      if (to && t.assigned > to) return false;
+      if (dept !== 'all' && t.dept !== dept) return false;
+      if (emp !== 'all' && t.from !== emp && t.to !== emp) return false;
+      if (status !== 'all' && eff !== status) return false;
+      if (search && !t.title.toLowerCase().includes(search)) return false;
+      return true;
+    });
+  }
+
+  function render(){
+    const filtered = getFiltered();
+    const sorted = [...filtered].sort((a,b) => {
+      let av, bv;
+      if (sortKey === 'status'){ av = computeStatus(a); bv = computeStatus(b); }
+      else { av = a[sortKey]; bv = b[sortKey]; }
+      if (av < bv) return -1*sortDir;
+      if (av > bv) return 1*sortDir;
+      return 0;
+    });
+
+    const body = document.getElementById('task-body');
+    body.innerHTML = '';
+    document.getElementById('empty-state').style.display = sorted.length ? 'none' : 'block';
+
+    sorted.forEach((t, i) => {
+      const eff = computeStatus(t);
+      const meta = statusMeta[eff];
+      const tr = document.createElement('tr');
+      tr.style.borderTop = '0.5px solid var(--color-border-tertiary)';
+      if (i % 2 === 1) tr.style.background = 'var(--color-background-secondary)';
+      tr.innerHTML = `
+        <td style="padding:9px 12px; font-weight:500;">${t.title}</td>
+        <td style="padding:9px 12px; color:var(--color-text-secondary); white-space:nowrap;">${t.from}</td>
+        <td style="padding:9px 12px; white-space:nowrap;">${t.to}</td>
+        <td style="padding:9px 12px; color:var(--color-text-secondary); white-space:nowrap;">${t.dept}</td>
+        <td style="padding:9px 12px; white-space:nowrap;">
+          <span style="background:${meta.bg}; color:${meta.fg}; font-size:11px; padding:3px 9px; border-radius:var(--border-radius-md); display:inline-flex; align-items:center; gap:4px;">
+            <i class="ti ${meta.icon}" style="font-size:12px;" aria-hidden="true"></i>${eff}
+          </span>
+        </td>
+        <td style="padding:9px 12px; color:var(--color-text-secondary); white-space:nowrap;">${fmt(t.assigned)}</td>
+        <td style="padding:9px 12px; white-space:nowrap; ${eff==='Overdue' ? 'color:var(--color-text-danger); font-weight:500;' : 'color:var(--color-text-secondary);'}">${fmt(t.due)}</td>
+      `;
+      body.appendChild(tr);
+    });
+
+    document.getElementById('row-count').textContent = `Showing ${sorted.length} of ${tasks.length} tasks`;
+
+    const counts = {Open:0, Ongoing:0, Completed:0, Overdue:0};
+    filtered.forEach(t => counts[computeStatus(t)]++);
+    document.getElementById('stat-total-n').textContent = filtered.length;
+    document.getElementById('stat-open-n').textContent = counts.Open;
+    document.getElementById('stat-ongoing-n').textContent = counts.Ongoing;
+    document.getElementById('stat-completed-n').textContent = counts.Completed;
+    document.getElementById('stat-overdue-n').textContent = counts.Overdue;
+  }
+
+  ['f-from','f-to','f-dept','f-emp','f-status'].forEach(id => {
+    document.getElementById(id).addEventListener('change', render);
+  });
+  document.getElementById('f-search').addEventListener('input', render);
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    document.getElementById('f-from').value = '2026-06-01';
+    document.getElementById('f-to').value = '2026-06-26';
+    document.getElementById('f-dept').value = 'all';
+    document.getElementById('f-emp').value = 'all';
+    document.getElementById('f-status').value = 'all';
+    document.getElementById('f-search').value = '';
+    render();
+  });
+
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.getAttribute('data-sort');
+      if (sortKey === key) sortDir *= -1;
+      else { sortKey = key; sortDir = 1; }
+      render();
+    });
+  });
+
+  const statMap = {'stat-open':'Open','stat-ongoing':'Ongoing','stat-completed':'Completed','stat-overdue':'Overdue','stat-total':'all'};
+  Object.keys(statMap).forEach(id => {
+    document.getElementById(id).addEventListener('click', () => {
+      document.getElementById('f-status').value = statMap[id];
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+
+</div>
