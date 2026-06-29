@@ -145,6 +145,11 @@ frappe.ui.form.on("Lead", {
                             reqd: 1
                         },
                         {
+                            label: __('Followup Date'),
+                            fieldname: 'custom_followup_date',
+                            fieldtype: 'Date'
+                        },
+                        {
                             label: __('Description'),
                             fieldname: 'description',
                             fieldtype: 'Small Text'
@@ -170,6 +175,7 @@ frappe.ui.form.on("Lead", {
                             starts_on: starts_on,
                             description: values.description || '',
                             custom_contact_person: values.custom_contact_person || null,
+                            custom_followup_date: values.custom_followup_date || null,
                             reference_doctype: 'Lead',
                             reference_docname: frm.doc.name,
                             event_participants: [

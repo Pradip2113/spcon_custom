@@ -15,6 +15,8 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.active_section = "overview";
+		this.project_tracker_filter = "All";
+		this.project_tracker_search = "";
 		this.setup();
 		this.refresh();
 	}
@@ -38,6 +40,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 						<button class="spc-tab" data-section="funnel">${__("Sales funnel")}</button>
 						<button class="spc-tab" data-section="activities">${__("Activities")}</button>
 						<button class="spc-tab" data-section="forecast">${__("Product forecast")}</button>
+						<button class="spc-tab" data-section="project-tracker">${__("Project Tracker")}</button>
 						<button class="spc-tab" data-section="team">${__("Team")}</button>
 					</div>
 				</div>
@@ -51,6 +54,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 					<div id="spc-sec-funnel" class="spc-section"></div>
 					<div id="spc-sec-activities" class="spc-section"></div>
 					<div id="spc-sec-forecast" class="spc-section"></div>
+					<div id="spc-sec-project-tracker" class="spc-section"></div>
 					<div id="spc-sec-team" class="spc-section"></div>
 				</div>
 			</div>
@@ -138,6 +142,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		this.render_funnel();
 		this.render_activities();
 		this.render_forecast();
+		this.render_project_tracker();
 		this.render_team();
 		this.bind_rows();
 	}
@@ -203,6 +208,173 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			])}
 			<div class="spc-block"><div class="spc-block-head">${__("Product-wise forecast")}</div>${this.render_forecast_table(this.render_forecast_rows(this.data.forecast || []))}</div>
 		`);
+	}
+
+	render_project_tracker() {
+		const all_rows = this.data.project_tracker || [];
+		const status_filters = this.get_project_status_filters(all_rows);
+		if (this.project_tracker_filter !== "All" && !status_filters.includes(this.project_tracker_filter)) {
+			this.project_tracker_filter = "All";
+		}
+		const rows = this.filtered_project_tracker_rows();
+		const closing_this_month = all_rows.filter((row) => this.is_this_month(row.closing_date)).length;
+		const overdue_closing = all_rows.filter((row) => this.is_overdue_date(row.closing_date)).length;
+		const converted_value = all_rows
+			.filter((row) => row.stage === "Converted")
+			.reduce((total, row) => total + (flt(row.estimated_value) || 0), 0);
+
+		this.page.main.find("#spc-sec-project-tracker").html(`
+			<div class="pt-shell">
+				<div class="pt-head">
+					<div class="pt-head-left">
+						<div class="pt-icon"><i class="ti ti-clipboard-list" aria-hidden="true"></i></div>
+						<div>
+							<div class="pt-title">${__("Project tracker")}</div>
+							<div class="pt-subtitle">${__("SP Concare Pvt. Ltd")} &nbsp;·&nbsp; ${__("All projects")}</div>
+						</div>
+					</div>
+					<input class="pt-search" type="text" value="${frappe.utils.escape_html(this.project_tracker_search || "")}" placeholder="${__("Search project or firm...")}">
+				</div>
+
+				<div class="pt-stats">
+					${this.render_project_stat("Total Projects", all_rows.length, "default")}
+					${this.render_project_stat("Closing This Month", closing_this_month, "default")}
+					${this.render_project_stat("Overdue Closing", overdue_closing, "red")}
+					${this.render_project_stat("Converted Value", this.format_short_currency(converted_value), "green")}
+				</div>
+
+				<div class="pt-filters">
+					${status_filters.map((label) => `
+						<button class="pt-filter ${this.project_tracker_filter === label ? "active" : ""}" data-filter="${frappe.utils.escape_html(label)}">${__(label)}</button>
+					`).join("")}
+				</div>
+
+				<div class="pt-list">${rows.length ? rows.map((row) => this.render_project_card(row)).join("") : this.empty("No project data found")}</div>
+			</div>
+		`);
+
+		this.bind_project_tracker_controls();
+	}
+
+	render_project_tracker_list() {
+		const rows = this.filtered_project_tracker_rows();
+		this.page.main.find("#spc-sec-project-tracker .pt-list").html(
+			rows.length ? rows.map((row) => this.render_project_card(row)).join("") : this.empty("No project data found")
+		);
+		this.bind_rows();
+	}
+
+	render_project_stat(label, value, color) {
+		return `<div class="pt-stat"><div class="pt-stat-label">${__(label)}</div><div class="pt-stat-value ${color || "default"}">${frappe.utils.escape_html(String(value))}</div></div>`;
+	}
+
+	render_project_card(row) {
+		const people = [
+			["Owner", row.owner_name],
+			["Architecture", row.architecture],
+			["Consultant", row.consultant],
+			["Contractor", row.contractor],
+			["Applicator", row.applicator],
+			["Other", row.other],
+		].filter(([, value]) => value && value !== "-");
+		const products = (row.products || []).length
+			? row.products.map((product) => `<span class="pt-product">${frappe.utils.escape_html(product)}</span>`).join("")
+			: `<span class="pt-product muted">${__("No products")}</span>`;
+		const closing_overdue = this.is_overdue_date(row.closing_date);
+
+		return `
+			<div class="pt-card" data-lead="${frappe.utils.escape_html(row.lead || "")}">
+				<div class="pt-card-head">
+					<div class="pt-project-title">${frappe.utils.escape_html(row.project || "-")}</div>
+					<span class="pt-status ${this.project_status_class(row)}">${frappe.utils.escape_html(this.project_status_label(row))}</span>
+				</div>
+				<div class="pt-firm">${frappe.utils.escape_html(row.firm || "-")}</div>
+				<div class="pt-meta">
+					<div class="pt-meta-item"><i class="ti ti-map-pin" aria-hidden="true"></i><span>${frappe.utils.escape_html(row.location || "-")}</span></div>
+					<div class="pt-meta-item"><i class="ti ti-user" aria-hidden="true"></i><span>${__("Sales")}: ${frappe.utils.escape_html(row.sales || "-")}</span></div>
+					<div class="pt-meta-item"><i class="ti ti-currency-rupee" aria-hidden="true"></i><span>${__("Est. value")}: ${this.format_short_currency(row.estimated_value || 0)}</span></div>
+				</div>
+				<div class="pt-people">
+					${people.map(([label, value]) => `<div class="pt-person"><i class="ti ti-user" aria-hidden="true"></i><span>${frappe.utils.escape_html(value)} (${__(label)})</span></div>`).join("")}
+				</div>
+				<div class="pt-products">${products}</div>
+				<div class="pt-footer">
+					<div class="pt-closing ${closing_overdue ? "overdue" : ""}">${__("Closing date")}: ${this.format_date(row.closing_date)}${closing_overdue ? ` ${__("- overdue")}` : ""}</div>
+					<a class="pt-details" data-lead="${frappe.utils.escape_html(row.lead || "")}">${__("View details")}</a>
+				</div>
+			</div>
+		`;
+	}
+
+	bind_project_tracker_controls() {
+		this.page.main.find(".pt-search").off("input").on("input", (event) => {
+			this.project_tracker_search = event.currentTarget.value || "";
+			this.render_project_tracker_list();
+		});
+		this.page.main.find(".pt-filter").off("click").on("click", (event) => {
+			this.project_tracker_filter = $(event.currentTarget).data("filter") || "All";
+			this.render_project_tracker();
+			this.bind_rows();
+		});
+	}
+
+	filtered_project_tracker_rows() {
+		let rows = this.data.project_tracker || [];
+		const search = (this.project_tracker_search || "").toLowerCase().trim();
+		if (this.project_tracker_filter && this.project_tracker_filter !== "All") {
+			rows = rows.filter((row) => (row.stage || row.project_status || "") === this.project_tracker_filter);
+		}
+		if (search) {
+			rows = rows.filter((row) => [row.project, row.firm, row.location, row.owner_name, row.architecture, row.consultant, row.contractor, row.applicator, row.other]
+				.some((value) => String(value || "").toLowerCase().includes(search)));
+		}
+		return rows;
+	}
+
+	get_project_status_filters(rows) {
+		const statuses = [];
+		(rows || []).forEach((row) => {
+			const status = row.stage || row.project_status;
+			if (status && !statuses.includes(status)) statuses.push(status);
+		});
+		return ["All"].concat(statuses);
+	}
+
+	project_status_label(row) {
+		return row.stage || row.project_status || row.activity_status || "-";
+	}
+
+	project_status_class(row) {
+		if (row.stage === "Converted") return "status-green";
+		if (this.is_overdue_date(row.closing_date)) return "status-yellow";
+		if (["Quotation", "Interested", "Opportunity"].includes(row.stage)) return "status-orange";
+		return "status-green";
+	}
+
+	is_this_month(value) {
+		if (!value) return false;
+		const date = frappe.datetime.str_to_obj(value);
+		const today = frappe.datetime.str_to_obj(frappe.datetime.get_today());
+		return date && today && date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth();
+	}
+
+	is_overdue_date(value) {
+		return Boolean(value && frappe.datetime.get_diff(frappe.datetime.get_today(), value) > 0);
+	}
+
+	format_date(value) {
+		return value ? frappe.datetime.str_to_user(value) : "-";
+	}
+
+	format_short_currency(value) {
+		const amount = flt(value) || 0;
+		const format_number = (number, digits) => Number(number).toLocaleString("en-IN", {
+			minimumFractionDigits: digits,
+			maximumFractionDigits: digits,
+		});
+
+		if (amount >= 100000) return `₹${format_number(amount / 100000, 1)}L`;
+		return `₹${format_number(amount, 2)}`;
 	}
 
 	render_team() {
@@ -361,8 +533,9 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 				.fd-row,.arow{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:6px}.fd-row:hover,.arow:hover{border-color:var(--color-border-secondary)}.fd-dot{width:8px;height:8px;border-radius:50%;background:#185FA5;flex-shrink:0}.fd-main,.arow-left{flex:1;min-width:0}.fd-proj,.arow-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fd-client,.arow-sub,.fd-sp{font-size:11px;color:var(--color-text-secondary)}.fd-sp{min-width:120px}.arow-right{display:flex;flex-direction:column;align-items:flex-end}.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:#EEEDFE;color:#534AB7;flex-shrink:0}
 				.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}.b-gray{background:#F1EFE8;color:#5F5E5A}.b-blue{background:#E6F1FB;color:#185FA5}.b-green{background:#EAF3DE;color:#3B6D11}.b-amber{background:#FAEEDA;color:#854F0B}.b-red{background:#FCEBEB;color:#A32D2D}.b-purple{background:#EEEDFE;color:#534AB7}
 				.forecast-table{width:100%;border-collapse:collapse;font-size:12px}.forecast-table th{font-size:10px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--color-border-secondary);text-align:left;background:var(--color-background-secondary)}.forecast-table td{padding:7px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle}.forecast-table tr[data-lead]{cursor:pointer}.forecast-table tr[data-lead]:hover td{background:var(--color-background-secondary)}
+				.pt-shell{max-width:1200px;margin:0 auto}.pt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.pt-head-left{display:flex;align-items:center;gap:8px}.pt-icon{font-size:20px;color:#333}.pt-title{font-size:18px;font-weight:600;color:#333}.pt-subtitle{font-size:13px;color:#666}.pt-search{padding:10px 16px;border:1px solid #E0E0E0;border-radius:8px;width:280px;font-size:14px;color:#333;background:#fff}.pt-stats{display:flex;justify-content:space-between;margin-bottom:24px;gap:16px}.pt-stat{flex:1;text-align:center}.pt-stat-label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}.pt-stat-value{font-size:24px;font-weight:700}.pt-stat-value.green{color:#2E7D32}.pt-stat-value.red{color:#C62828}.pt-stat-value.default{color:#333}.pt-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}.pt-filter{padding:6px 14px;border-radius:20px;border:1px solid #E0E0E0;background:#fff;font-size:13px;cursor:pointer;color:#555}.pt-filter.active{background:#E3F2FD;border-color:#90CAF9;color:#1976D2}.pt-list{display:flex;flex-direction:column;gap:16px}.pt-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #F0F0F0;cursor:pointer}.pt-card:hover{border-color:#D7D7D7}.pt-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}.pt-project-title{font-size:16px;font-weight:600;color:#333}.pt-status{padding:4px 12px;border-radius:16px;font-size:12px;font-weight:500;white-space:nowrap}.status-green{background:#E8F5E9;color:#2E7D32}.status-yellow{background:#FFF8E1;color:#F57F17}.status-orange{background:#FFF3E0;color:#E65100}.pt-firm{font-size:13px;color:#666;margin-bottom:12px}.pt-meta,.pt-people,.pt-products{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}.pt-meta{gap:20px}.pt-meta-item,.pt-person{display:flex;align-items:center;gap:6px;font-size:13px;color:#555}.pt-person{font-size:12px;color:#666}.pt-meta-item i,.pt-person i{font-size:14px}.pt-product{font-size:12px;color:#555;padding:2px 0}.pt-product.muted{color:#999}.pt-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:12px;border-top:1px solid #F0F0F0}.pt-closing{font-size:13px;color:#666}.pt-closing.overdue{color:#C62828}.pt-details{font-size:13px;color:#666;text-decoration:none;display:flex;align-items:center;gap:4px}.pt-details:before{content:'›';font-size:18px;line-height:1}
 				.sp-perf{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.sp-card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:.75rem 1rem;cursor:pointer}.sp-card:hover{border-color:var(--color-border-secondary)}.spc-status-group{margin-bottom:12px}.spc-status-head{display:flex;align-items:center;justify-content:space-between;background:var(--color-background-secondary);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:12px;font-weight:600}.sp-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.sp-name{font-size:12px;font-weight:600}.sp-role{font-size:10px;color:var(--color-text-secondary)}.sp-stats{display:flex;flex-direction:column;gap:4px}.sp-stat{display:flex;justify-content:space-between;font-size:11px}.sp-stat span{color:var(--color-text-secondary)}.green{color:#3B6D11}.spc-empty{font-size:12px;color:var(--color-text-secondary);padding:10px}
-				@media (max-width: 700px){.spc-filter-row{grid-template-columns:1fr}.fd-row,.arow{align-items:flex-start;flex-wrap:wrap}.fd-sp{min-width:0}.fstage-name{min-width:88px}.spc-tab{padding:5px 9px}}
+				@media (max-width: 700px){.spc-filter-row{grid-template-columns:1fr}.fd-row,.arow{align-items:flex-start;flex-wrap:wrap}.fd-sp{min-width:0}.fstage-name{min-width:88px}.spc-tab{padding:5px 9px}.pt-head,.pt-card-head,.pt-footer{align-items:flex-start;flex-direction:column}.pt-search{width:100%}.pt-stats{display:grid;grid-template-columns:repeat(2,1fr)}}
 			</style>
 		`);
 	}
