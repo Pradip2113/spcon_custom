@@ -19,6 +19,7 @@ def get_dashboard_data(filters=None):
 			status,
 			lead_owner,
 			lead_name,
+			first_name,
 			company_name,
 			email_id,
 			mobile_no,
@@ -26,6 +27,16 @@ def get_dashboard_data(filters=None):
 			territory,
 			qualification_status,
 			{fields["firm_name"]} AS firm_name,
+			{fields["project"]} AS project,
+			{fields["project_type"]} AS project_type,
+			{fields["project_address"]} AS project_address,
+			{fields["closing_date"]} AS closing_date,
+			{fields["architecture"]} AS architecture,
+			{fields["consultant"]} AS consultant,
+			{fields["contractor"]} AS contractor,
+			{fields["applicator"]} AS applicator,
+			{fields["other"]} AS other_party,
+			{fields["estimated_value"]} AS estimated_value,
 			{fields["project_name"]} AS project_name,
 			{fields["segment"]} AS segment,
 			{fields["scope_of_work"]} AS scope_of_work
@@ -89,6 +100,7 @@ def get_dashboard_data(filters=None):
 		"activities": activities,
 		"forecast": forecast_rows,
 		"team": creator_counts,
+		"project_tracker": build_project_tracker(rows, forecast_rows),
 	}
 
 
@@ -128,17 +140,116 @@ def get_lead_fields():
 		return f"`{fieldname}`" if meta.has_field(fieldname) else "NULL"
 
 	project_item_fields = []
-	for fieldname in ("custom_project_items",):
+	for fieldname in ("custom_project_items", "custom_project_details_items"):
 		if meta.has_field(fieldname):
 			project_item_fields.append(fieldname)
 
 	return {
 		"firm_name": column("custom_firm_name_lead") if meta.has_field("custom_firm_name_lead") else column("custom_firm_name"),
+		"project": column("custom_project"),
+		"project_type": column("custom_project_type"),
+		"project_address": column("custom_project_address"),
+		"closing_date": column("custom_closing_date"),
+		"architecture": column("custom_architecture"),
+		"consultant": column("custom_consultant"),
+		"contractor": column("custom_contractor"),
+		"applicator": column("custom_applicator"),
+		"other": column("custom_other"),
+		"estimated_value": column("custom_estimated_order_value") if meta.has_field("custom_estimated_order_value") else column("annual_revenue"),
 		"project_name": column("custom_project_name"),
 		"segment": column("custom_segment"),
 		"scope_of_work": column("custom_scope_of_work"),
 		"project_item_fields": project_item_fields,
 	}
+
+
+def build_project_tracker(rows, forecast_rows):
+	role_contacts = get_project_role_contacts([row.name for row in rows])
+	forecast_by_lead = {}
+	for item in forecast_rows:
+		forecast_by_lead.setdefault(item.lead, []).append(item)
+
+	project_rows = []
+	for row in rows:
+		roles = role_contacts.get(row.name, {})
+		has_project_data = (
+			row.project or row.project_name or row.project_type or row.project_address or row.closing_date
+			or row.architecture or row.consultant or row.contractor or row.applicator or row.other_party
+			or roles or forecast_by_lead.get(row.name)
+		)
+		if not has_project_data:
+			continue
+
+		items = forecast_by_lead.get(row.name, [])
+		products = []
+		for item in items:
+			product = item.item_name or item.item
+			if product and product not in products:
+				products.append(product)
+
+		project_rows.append({
+			"lead": row.name,
+			"project": row.project or row.project_name or row.display_name,
+			"firm": row.customer_name,
+			"location": row.project_address or row.territory or "-",
+			"sales": row.owner_label,
+			"estimated_value": row.estimated_value,
+			"owner_name": row.first_name or row.lead_name or "-",
+			"architecture": roles.get("architecture") or row.architecture or "-",
+			"consultant": roles.get("consultant") or row.consultant or "-",
+			"contractor": roles.get("contractor") or row.contractor or "-",
+			"applicator": roles.get("applicator") or row.applicator or "-",
+			"other": roles.get("other") or row.other_party or "-",
+			"closing_date": row.closing_date,
+			"stage": row.stage,
+			"badge_class": row.badge_class,
+			"activity_status": row.activity_status,
+			"products": products[:4],
+		})
+
+	return project_rows
+
+
+def get_project_role_contacts(lead_names):
+	if not lead_names:
+		return {}
+
+	role_tables = {
+		"architecture": ("Architecture Child Table", "custom_architecture_contact_person"),
+		"consultant": ("Consultant Child Table", "custom_consultant_contact_person"),
+		"contractor": ("Contactor Child Table", "custom_contactor_contact_person"),
+		"applicator": ("Applicator Child Table", "custom_applicator_contact_person"),
+		"other": ("Other Contact Person", "custom_other_contact_person"),
+	}
+	contacts = {lead_name: {} for lead_name in lead_names}
+
+	for role, (child_dt, parentfield) in role_tables.items():
+		if not frappe.db.table_exists(child_dt):
+			continue
+
+		rows = frappe.db.sql(
+			f"""
+			SELECT
+				child.parent AS lead,
+				child.contact_person,
+				cp.contact_person_name
+			FROM `tab{child_dt}` child
+			LEFT JOIN `tabContact Person SPC` cp ON cp.name = child.contact_person
+			WHERE child.parenttype = 'Lead'
+				AND child.parentfield = %(parentfield)s
+				AND child.parent IN %(lead_names)s
+			ORDER BY child.parent, child.idx
+			""",
+			{"lead_names": lead_names, "parentfield": parentfield},
+			as_dict=True,
+		)
+
+		for row in rows:
+			if contacts[row.lead].get(role):
+				continue
+			contacts[row.lead][role] = row.contact_person_name or row.contact_person or "-"
+
+	return contacts
 
 
 def get_events_by_lead(lead_names):
