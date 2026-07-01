@@ -219,10 +219,6 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		const rows = this.filtered_project_tracker_rows();
 		const closing_this_month = all_rows.filter((row) => this.is_this_month(row.closing_date)).length;
 		const overdue_closing = all_rows.filter((row) => this.is_overdue_date(row.closing_date)).length;
-		const converted_value = all_rows
-			.filter((row) => row.stage === "Converted")
-			.reduce((total, row) => total + (flt(row.estimated_value) || 0), 0);
-
 		this.page.main.find("#spc-sec-project-tracker").html(`
 			<div class="pt-shell">
 				<div class="pt-head">
@@ -240,7 +236,6 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 					${this.render_project_stat("Total Projects", all_rows.length, "default")}
 					${this.render_project_stat("Closing This Month", closing_this_month, "default")}
 					${this.render_project_stat("Overdue Closing", overdue_closing, "red")}
-					${this.render_project_stat("Converted Value", this.format_short_currency(converted_value), "green")}
 				</div>
 
 				<div class="pt-filters">
