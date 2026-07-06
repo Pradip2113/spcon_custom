@@ -133,7 +133,7 @@ frappe.ui.form.on("Lead", {
 
         // Initialize toggle state only once
         if (frm.__contact_person_visible === undefined) {
-            frm.__contact_person_visible = false;
+            frm.__contact_person_visible = false;  
         }
 
         if (frm.__view_details_visible === undefined) {
