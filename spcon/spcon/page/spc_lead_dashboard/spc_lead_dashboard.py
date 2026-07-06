@@ -54,6 +54,8 @@ def get_dashboard_data(filters=None):
 	lead_names = [row.name for row in rows]
 	events_by_lead = get_events_by_lead(lead_names)
 	forecast_rows = get_forecast_rows(lead_names, fields["project_item_fields"])
+	task_rows = get_crm_task_rows(filters)
+	approval_rows = get_crm_approval_rows(filters)
 
 	status_counts = {}
 	creator_counts = get_creator_counts(rows)
@@ -101,7 +103,96 @@ def get_dashboard_data(filters=None):
 		"forecast": forecast_rows,
 		"team": creator_counts,
 		"project_tracker": build_project_tracker(rows, forecast_rows),
+		"tasks": task_rows,
+		"approvals": approval_rows,
 	}
+
+
+def get_crm_task_rows(filters):
+	if frappe.db.exists("DocType", "CRM Task"):
+		return sorted(get_crm_task_doc_rows(filters), key=lambda row: (row.get("due_date") or "9999-12-31", row.get("modified") or ""))[:500]
+	return []
+
+
+def get_crm_task_doc_rows(filters):
+	conditions = ["t.docstatus < 2"]
+	values = {}
+	if filters.get("from_date"):
+		conditions.append("t.creation >= %(task_from_date)s")
+		values["task_from_date"] = filters.from_date
+	if filters.get("to_date"):
+		conditions.append("t.creation <= %(task_to_date)s")
+		values["task_to_date"] = add_days(filters.to_date, 1)
+	if not has_full_dashboard_access():
+		conditions.append("""
+			(t.owner = %(task_session_user)s OR EXISTS (
+				SELECT 1 FROM `tabCRM Multi Assign To User` atu_perm
+				WHERE atu_perm.parent = t.name
+					AND atu_perm.parentfield = 'assign_to'
+					AND atu_perm.user = %(task_session_user)s
+			))
+		""")
+		values["task_session_user"] = frappe.session.user
+
+	return frappe.db.sql(
+		f"""
+		SELECT
+			t.name,
+			'CRM Task' AS doctype,
+			'Task' AS type,
+			t.subject,
+			t.status,
+			t.priority,
+			t.due_date,
+			t.owner,
+			(SELECT GROUP_CONCAT(DISTINCT COALESCE(u.full_name, atu.user) ORDER BY COALESCE(u.full_name, atu.user) SEPARATOR ', ') FROM `tabCRM Multi Assign To User` atu LEFT JOIN `tabUser` u ON u.name = atu.user WHERE atu.parent = t.name AND atu.parentfield = 'assign_to') AS assignees,
+			t.lead,
+			t.modified
+		FROM `tabCRM Task` t
+		WHERE {' AND '.join(conditions)}
+		""",
+		values,
+		as_dict=True,
+	)
+
+
+def get_crm_approval_rows(filters):
+	if not frappe.db.exists("DocType", "CRM Request Approvel"):
+		return []
+
+	conditions = ["a.docstatus < 2"]
+	values = {}
+	if filters.get("from_date"):
+		conditions.append("a.creation >= %(approval_from_date)s")
+		values["approval_from_date"] = filters.from_date
+	if filters.get("to_date"):
+		conditions.append("a.creation <= %(approval_to_date)s")
+		values["approval_to_date"] = add_days(filters.to_date, 1)
+	if not has_full_dashboard_access():
+		conditions.append("(a.owner = %(approval_session_user)s OR a.requested_by = %(approval_session_user)s OR a.approver = %(approval_session_user)s)")
+		values["approval_session_user"] = frappe.session.user
+
+	return frappe.db.sql(
+		f"""
+		SELECT
+			a.name,
+			'CRM Request Approvel' AS doctype,
+			'Approvel' AS type,
+			a.request_types AS subject,
+			a.status,
+			a.priority,
+			a.request_date AS due_date,
+			a.owner,
+			COALESCE(approver.full_name, a.approver) AS assignees,
+			a.lead,
+			a.modified
+		FROM `tabCRM Request Approvel` a
+		LEFT JOIN `tabUser` approver ON approver.name = a.approver
+		WHERE {' AND '.join(conditions)}
+		""",
+		values,
+		as_dict=True,
+	)
 
 
 def get_conditions(filters):

@@ -1,0 +1,666 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#18181B;
+    --ink-soft:#6B6F76;
+    --line:#E7E7EA;
+    --field:#F3F3F4;
+    --field-border:#E4E4E7;
+    --surface:#FFFFFF;
+    --accent-required:#F0554A;
+    --amber:#B4740E;
+    --amber-bg:#FBF0DD;
+    --green:#15803D;
+    --green-bg:#DDF3E4;
+    --red:#B42318;
+    --red-bg:#FBE4E1;
+    --blue:#2952CC;
+    --blue-bg:#E7EDFC;
+    --violet:#6D4AFF;
+    --violet-bg:#EFEAFE;
+    --shadow: 0 1px 2px rgba(16,16,20,0.04), 0 8px 24px rgba(16,16,20,0.06);
+  }
+  *{box-sizing:border-box;}
+  .approval-app{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:#FAFAFB;
+    min-height:100%;
+  }
+  .app-shell{ max-width:1080px; margin:0 auto; padding:28px 24px 60px; }
+  .app-header{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:22px; gap:16px; flex-wrap:wrap;
+  }
+  .app-title{ font-size:22px; font-weight:700; letter-spacing:-0.01em; }
+  .app-sub{ font-size:13px; color:var(--ink-soft); margin-top:4px; }
+  .tabbar{ display:inline-flex; background:#EFEFF1; border-radius:10px; padding:3px; gap:2px; }
+  .tabbar button{
+    border:none; background:transparent; padding:8px 16px; font-size:13px; font-weight:600;
+    color:var(--ink-soft); border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s ease;
+  }
+  .tabbar button.active{ background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(16,16,20,0.08); }
+
+  /* ---------- CHOOSER ---------- */
+  .chooser-wrap{ padding:10px 0 20px; }
+  .chooser-label{ font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:12px; }
+  .choice-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .choice-card{
+    background:var(--surface);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:22px 20px;
+    cursor:pointer;
+    text-align:left;
+    transition:border-color .15s ease, transform .1s ease, box-shadow .15s ease;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .choice-card:hover{ border-color:#C9CCF0; box-shadow:var(--shadow); transform:translateY(-1px); }
+  .choice-card .icon-badge{
+    width:38px;height:38px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+  }
+  .choice-card.task .icon-badge{ background:var(--blue-bg); color:var(--blue); }
+  .choice-card.approval .icon-badge{ background:var(--violet-bg); color:var(--violet); }
+  .choice-card h3{ font-size:15.5px; font-weight:700; margin:0; }
+  .choice-card p{ font-size:12.5px; color:var(--ink-soft); margin:0; line-height:1.5; }
+  .choice-card .cta{ font-size:12.5px; font-weight:600; color:var(--ink); margin-top:2px; }
+
+  /* ---------- FORM ---------- */
+  .form-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .form-card-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px; border-bottom:1px solid var(--line);
+  }
+  .form-card-head .head-left{ display:flex; align-items:center; gap:10px; }
+  .form-card-head .head-icon{
+    width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;
+  }
+  .form-card-head.task-mode .head-icon{ background:var(--blue-bg); color:var(--blue); }
+  .form-card-head.approval-mode .head-icon{ background:var(--violet-bg); color:var(--violet); }
+  .form-card-head h2{ font-size:17px; font-weight:700; margin:0; }
+  .req-id-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
+    background:var(--field); padding:3px 8px; border-radius:6px; margin-top:3px; display:inline-block;
+  }
+  .back-link{
+    border:none; background:none; font-size:12.5px; font-weight:600; color:var(--ink-soft);
+    cursor:pointer; display:flex; align-items:center; gap:5px; padding:4px 0; margin-bottom:12px;
+  }
+  .back-link:hover{ color:var(--ink); }
+  .close-x{ border:none; background:none; font-size:18px; color:var(--ink-soft); cursor:pointer; line-height:1; padding:4px; }
+  .form-body{ padding:22px 24px 6px; display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; }
+  .field{ display:flex; flex-direction:column; gap:7px; }
+  .field.full{ grid-column:1 / -1; }
+  .field label{ font-size:13px; font-weight:500; color:var(--ink); }
+  .field label .req{ color:var(--accent-required); margin-left:2px; }
+  .field input, .field select, .field textarea{
+    background:var(--field); border:1px solid var(--field-border); border-radius:8px;
+    padding:10px 12px; font-size:13.5px; font-family:inherit; color:var(--ink); outline:none;
+    transition:border-color .15s ease, background .15s ease; width:100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:#B7C0FF; background:var(--surface); }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .field .hint{ font-size:11.5px; color:var(--ink-soft); }
+  .amount-row{ display:flex; gap:8px; }
+  .amount-row select{ flex:0 0 84px; }
+  .amount-row input{ flex:1; }
+
+  .form-footer{
+    display:flex; align-items:center; justify-content:flex-end; gap:10px;
+    padding:18px 24px; border-top:1px solid var(--line); margin-top:16px;
+  }
+  .btn{
+    border:none; border-radius:8px; padding:10px 18px; font-size:13.5px; font-weight:600;
+    cursor:pointer; font-family:inherit; transition:opacity .15s ease, transform .05s ease;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ opacity:.88; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--field-border); }
+  .btn-ghost:hover{ background:var(--field); }
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:11px 18px; border-radius:9px;
+    font-size:13px; font-weight:500; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  /* ---------- DASHBOARD ---------- */
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
+  .stat-card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .stat-card .n{ font-size:22px; font-weight:700; letter-spacing:-0.02em; }
+  .stat-card .l{ font-size:12px; color:var(--ink-soft); margin-top:2px; font-weight:500;}
+  .stat-card.pending .n{ color:var(--amber); }
+  .stat-card.approved .n{ color:var(--green); }
+  .stat-card.rejected .n{ color:var(--red); }
+
+  .filters{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap; }
+  .chip-row{ display:flex; gap:6px; }
+  .chip{
+    border:1px solid var(--field-border); background:var(--surface); padding:6px 13px;
+    border-radius:100px; font-size:12.5px; font-weight:600; color:var(--ink-soft); cursor:pointer;
+  }
+  .chip.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .search-input{
+    background:var(--surface); border:1px solid var(--field-border); border-radius:8px;
+    padding:8px 12px; font-size:12.5px; font-family:inherit; min-width:220px; outline:none;
+  }
+  .search-input:focus{ border-color:#B7C0FF; }
+
+  .table-wrap{ background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; }
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);
+    font-weight:600; padding:12px 16px; border-bottom:1px solid var(--line); background:#FBFBFC;
+  }
+  tbody td{ padding:13px 16px; font-size:13px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:#FAFAFB; }
+  .req-id{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); }
+  .type-pill{
+    font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:6px;
+    background:var(--blue-bg); color:var(--blue); display:inline-block; white-space:nowrap;
+  }
+  .type-pill.task-type{ background:#EAF3EA; color:#2E7D32; }
+  .subject-cell .primary{ font-weight:600; font-size:13px; }
+  .subject-cell .secondary{ font-size:11.5px; color:var(--ink-soft); margin-top:1px; }
+  .priority-dot{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:500; }
+  .priority-dot .dot{ width:7px; height:7px; border-radius:50%; }
+  .status-pill{
+    font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px;
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .status-pill.pending{ background:var(--amber-bg); color:var(--amber); }
+  .status-pill.approved{ background:var(--green-bg); color:var(--green); }
+  .status-pill.rejected{ background:var(--red-bg); color:var(--red); }
+  .action-cell{ display:flex; gap:6px; }
+  .icon-btn{
+    border:1px solid var(--field-border); background:var(--surface); width:30px;height:30px; border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center; cursor:pointer; font-size:14px;
+    transition:background .15s ease;
+  }
+  .icon-btn.approve:hover{ background:var(--green-bg); border-color:var(--green); }
+  .icon-btn.reject:hover{ background:var(--red-bg); border-color:var(--red); }
+  .decided-note{ font-size:11.5px; color:var(--ink-soft); }
+  .empty-state{ padding:60px 20px; text-align:center; color:var(--ink-soft); font-size:13px; }
+
+  @media (max-width:760px){
+    .form-body{ grid-template-columns:1fr; }
+    .stat-row{ grid-template-columns:1fr 1fr; }
+    .amount-row{ flex-direction:column; }
+    .amount-row select{ flex:1; }
+    .choice-grid{ grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="approval-app" id="app"></div>
+
+<script>
+(function(){
+  const REQUEST_TYPES = [
+    "Special Rate Approval","Purchase Approval","Sample / Product Request",
+    "Discount Approval","Vendor Payment Approval","Other"
+  ];
+  const DEPARTMENTS = ["Sales","Procurement","Marketing","Operations","Finance","R&D"];
+  const APPROVERS = ["Aditi Rao (Sales Head)","Vikram Shah (GM)","Neha Kapoor (Finance Head)","Rohan Mehta (Director)"];
+  const EMPLOYEES = ["Ishaan Verma","Sana Iyer","Kabir Anand","Priya Nair","Devika Menon","Arjun Sethi"];
+  const CURRENCIES = ["₹","$","€"];
+
+  // state.tab: "new" (chooser+forms) | "dashboard"
+  // state.newMode: null | "task" | "approval"
+  let state = {
+    tab: "new",
+    newMode: null,
+    filter: "All",
+    search: "",
+    items: seed()
+  };
+
+  function seed(){
+    return [
+      { kind:"approval", id:"AR-1042", type:"Special Rate Approval", department:"Sales",
+        requestedBy:"Ishaan Verma", approver:"Aditi Rao (Sales Head)",
+        currency:"₹", amount:"1,25,000", subject:"Meridian Textiles Pvt Ltd",
+        priority:"High", date:"2026-06-28", dueDate:"2026-07-05",
+        reason:"Client is negotiating a bulk annual contract and has asked for a 12% special rate vs. standard 6% to match a competitor offer.",
+        status:"Pending" },
+      { kind:"approval", id:"AR-1041", type:"Purchase Approval", department:"Procurement",
+        requestedBy:"Sana Iyer", approver:"Vikram Shah (GM)",
+        currency:"₹", amount:"3,40,000", subject:"Orion Packaging Supplies",
+        priority:"Medium", date:"2026-06-25", dueDate:"2026-07-02",
+        reason:"Quarterly raw material restock for packaging line, current stock will run out in 9 days.",
+        status:"Approved" },
+      { kind:"task", id:"TK-2031", type:"Task", department:"Marketing",
+        requestedBy:"Admin", approver:"Kabir Anand",
+        currency:"", amount:"", subject:"Prepare trade show booth assets",
+        priority:"Medium", date:"2026-06-27", dueDate:"2026-07-04",
+        reason:"Design and print booth signage, banners and product sheets for the July trade show.",
+        status:"Pending" },
+      { kind:"approval", id:"AR-1039", type:"Sample / Product Request", department:"Marketing",
+        requestedBy:"Kabir Anand", approver:"Neha Kapoor (Finance Head)",
+        currency:"₹", amount:"8,500", subject:"Fabrix Retail Chain",
+        priority:"Low", date:"2026-06-20", dueDate:"2026-06-27",
+        reason:"5 product samples needed for trade show booth demo on July 10th.",
+        status:"Rejected", note:"Budget already allocated for trade show samples this quarter — resubmit under Q3 budget." },
+      { kind:"task", id:"TK-2028", type:"Task", department:"Operations",
+        requestedBy:"Admin", approver:"Priya Nair",
+        currency:"", amount:"", subject:"Audit warehouse inventory — Zone B",
+        priority:"High", date:"2026-06-19", dueDate:"2026-06-24",
+        reason:"Monthly cycle count for Zone B shelving before the new stock delivery.",
+        status:"Approved" }
+    ];
+  }
+
+  function nextId(prefix, kind){
+    const nums = state.items.filter(r=>r.kind===kind).map(r=>parseInt(r.id.split("-")[1],10));
+    const next = (nums.length? Math.max(...nums):(kind==="task"?2027:1040)) + 1;
+    return prefix + "-" + next;
+  }
+  function fmtDate(d){
+    const dt = new Date(d+"T00:00:00");
+    return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  }
+  function priorityColor(p){
+    if(p==="High") return "#B42318";
+    if(p==="Medium") return "#B4740E";
+    return "#3B7DDB";
+  }
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  function render(){
+    const root = document.getElementById('app');
+    root.innerHTML = `
+      <div class="app-shell">
+        <div class="app-header">
+          <div>
+            <div class="app-title">Task & Approval Center</div>
+            <div class="app-sub">Appoint a task to a team member, or request management approval for rates, purchases and samples.</div>
+          </div>
+          <div class="tabbar">
+            <button data-tab="new" class="${state.tab==='new'?'active':''}">+ New</button>
+            <button data-tab="dashboard" class="${state.tab==='dashboard'?'active':''}">Dashboard</button>
+          </div>
+        </div>
+        <div id="tab-content"></div>
+      </div>
+      <div class="toast" id="toast"></div>
+    `;
+    document.querySelectorAll('.tabbar button').forEach(b=>{
+      b.onclick = ()=>{ state.tab = b.dataset.tab; if(state.tab==='new') state.newMode=null; render(); };
+    });
+    if(state.tab==='new'){
+      if(state.newMode==='task') renderTaskForm();
+      else if(state.newMode==='approval') renderApprovalForm();
+      else renderChooser();
+    } else {
+      renderDashboard();
+    }
+  }
+
+  function renderChooser(){
+    const c = document.getElementById('tab-content');
+    c.innerHTML = `
+      <div class="chooser-wrap">
+        <div class="chooser-label">What would you like to do?</div>
+        <div class="choice-grid">
+          <button class="choice-card task" id="pickTask">
+            <div class="icon-badge">📋</div>
+            <h3>Appoint a Task</h3>
+            <p>Assign work to an employee — set a due date, priority and description of what needs to get done.</p>
+            <div class="cta">Open task form →</div>
+          </button>
+          <button class="choice-card approval" id="pickApproval">
+            <div class="icon-badge">✅</div>
+            <h3>Request Approval</h3>
+            <p>Send a special rate, purchase or sample request to management for review and sign-off.</p>
+            <div class="cta">Open approval form →</div>
+          </button>
+        </div>
+      </div>
+    `;
+    document.getElementById('pickTask').onclick = ()=>{ state.newMode='task'; render(); };
+    document.getElementById('pickApproval').onclick = ()=>{ state.newMode='approval'; render(); };
+  }
+
+  function backLink(){
+    return `<button class="back-link" id="backToChooser">&larr; Back</button>`;
+  }
+
+  function renderTaskForm(){
+    const c = document.getElementById('tab-content');
+    c.innerHTML = `
+      ${backLink()}
+      <div class="form-card">
+        <div class="form-card-head task-mode">
+          <div class="head-left">
+            <div class="head-icon">📋</div>
+            <div>
+              <h2>Add Task</h2>
+              <span class="req-id-tag">${nextId("TK","task")}</span>
+            </div>
+          </div>
+          <button class="close-x" id="cancelForm">&times;</button>
+        </div>
+        <div class="form-body">
+          <div class="field">
+            <label>Select Department<span class="req">*</span></label>
+            <select id="f-dept">${DEPARTMENTS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+          </div>
+          <div class="field">
+            <label>Posting Date<span class="req">*</span></label>
+            <input id="f-postdate" type="date" />
+          </div>
+
+          <div class="field full">
+            <label>Subject<span class="req">*</span></label>
+            <input id="f-subject" type="text" placeholder="Short title for this task" />
+          </div>
+
+          <div class="field">
+            <label>Due Date<span class="req">*</span></label>
+            <input id="f-due" type="date" />
+          </div>
+          <div class="field">
+            <label>Priority<span class="req">*</span></label>
+            <select id="f-priority">
+              <option>Medium</option><option>High</option><option>Low</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label>Assign To<span class="req">*</span></label>
+            <select id="f-assignee">${EMPLOYEES.map(e=>`<option value="${e}">${e}</option>`).join('')}</select>
+          </div>
+
+          <div class="field full">
+            <label>Last Discussion<span class="req">*</span></label>
+            <textarea id="f-discussion" placeholder="Summary of the most recent conversation about this task..."></textarea>
+          </div>
+
+          <div class="field full">
+            <label>Task Description<span class="req">*</span></label>
+            <textarea id="f-desc" placeholder="What needs to be done..."></textarea>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-ghost" id="cancelForm2">Cancel</button>
+          <button class="btn btn-primary" id="submitTask">Create</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('f-postdate').valueAsDate = new Date();
+    wireBackAndCancel();
+
+    document.getElementById('submitTask').onclick = ()=>{
+      const subject = document.getElementById('f-subject').value.trim();
+      const due = document.getElementById('f-due').value;
+      const discussion = document.getElementById('f-discussion').value.trim();
+      const desc = document.getElementById('f-desc').value.trim();
+      if(!subject || !due || !discussion || !desc){
+        toast("Please fill in all required fields");
+        return;
+      }
+      const newItem = {
+        kind:"task", id: nextId("TK","task"), type:"Task",
+        department: document.getElementById('f-dept').value,
+        requestedBy: "Admin",
+        approver: document.getElementById('f-assignee').value,
+        currency:"", amount:"",
+        subject: subject,
+        priority: document.getElementById('f-priority').value,
+        date: document.getElementById('f-postdate').value,
+        dueDate: due,
+        reason: desc,
+        details: discussion,
+        status: "Pending"
+      };
+      state.items.unshift(newItem);
+      state.tab = "dashboard"; state.newMode = null; state.filter = "All";
+      render();
+      toast(`${newItem.id} assigned to ${newItem.approver}`);
+    };
+  }
+
+  function renderApprovalForm(){
+    const c = document.getElementById('tab-content');
+    c.innerHTML = `
+      ${backLink()}
+      <div class="form-card">
+        <div class="form-card-head approval-mode">
+          <div class="head-left">
+            <div class="head-icon">✅</div>
+            <div>
+              <h2>New Approval Request</h2>
+              <span class="req-id-tag">${nextId("AR","approval")}</span>
+            </div>
+          </div>
+          <button class="close-x" id="cancelForm">&times;</button>
+        </div>
+        <div class="form-body">
+          <div class="field">
+            <label>Request Type<span class="req">*</span></label>
+            <select id="f-type">${REQUEST_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+          </div>
+          <div class="field">
+            <label>Department<span class="req">*</span></label>
+            <select id="f-dept">${DEPARTMENTS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+          </div>
+
+          <div class="field">
+            <label>Requested By<span class="req">*</span></label>
+            <input id="f-requester" type="text" placeholder="Employee name" />
+          </div>
+          <div class="field">
+            <label>Date Requested<span class="req">*</span></label>
+            <input id="f-date" type="date" />
+          </div>
+
+          <div class="field">
+            <label>Client / Vendor Name<span class="req">*</span></label>
+            <input id="f-client" type="text" placeholder="e.g. Meridian Textiles Pvt Ltd" />
+          </div>
+          <div class="field">
+            <label>Amount / Rate<span class="req">*</span></label>
+            <div class="amount-row">
+              <select id="f-currency">${CURRENCIES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+              <input id="f-amount" type="text" placeholder="e.g. 1,25,000 or 12%" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Priority<span class="req">*</span></label>
+            <select id="f-priority"><option>Medium</option><option>High</option><option>Low</option></select>
+          </div>
+          <div class="field">
+            <label>Approver<span class="req">*</span></label>
+            <select id="f-approver">${APPROVERS.map(a=>`<option value="${a}">${a}</option>`).join('')}</select>
+          </div>
+
+          <div class="field">
+            <label>Needed By<span class="req">*</span></label>
+            <input id="f-due" type="date" />
+          </div>
+          <div class="field"><span></span></div>
+
+          <div class="field full">
+            <label>Reason / Justification<span class="req">*</span></label>
+            <textarea id="f-reason" placeholder="Explain why this approval is needed — context, business case, urgency..."></textarea>
+          </div>
+
+          <div class="field full">
+            <label>Supporting Details</label>
+            <textarea id="f-details" placeholder="Optional: links, quote references, prior discussion notes..."></textarea>
+            <span class="hint">Attach any reference numbers, prior email threads, or quote IDs relevant to this request.</span>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-ghost" id="cancelForm2">Cancel</button>
+          <button class="btn btn-primary" id="submitApproval">Submit Request</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('f-date').valueAsDate = new Date();
+    wireBackAndCancel();
+
+    document.getElementById('submitApproval').onclick = ()=>{
+      const requester = document.getElementById('f-requester').value.trim();
+      const client = document.getElementById('f-client').value.trim();
+      const amount = document.getElementById('f-amount').value.trim();
+      const reason = document.getElementById('f-reason').value.trim();
+      const due = document.getElementById('f-due').value;
+      if(!requester || !client || !amount || !reason || !due){
+        toast("Please fill in all required fields");
+        return;
+      }
+      const newItem = {
+        kind:"approval", id: nextId("AR","approval"),
+        type: document.getElementById('f-type').value,
+        department: document.getElementById('f-dept').value,
+        requestedBy: requester,
+        approver: document.getElementById('f-approver').value,
+        currency: document.getElementById('f-currency').value,
+        amount: amount,
+        subject: client,
+        priority: document.getElementById('f-priority').value,
+        date: document.getElementById('f-date').value,
+        dueDate: due,
+        reason: reason,
+        details: document.getElementById('f-details').value.trim(),
+        status: "Pending"
+      };
+      state.items.unshift(newItem);
+      state.tab = "dashboard"; state.newMode = null; state.filter = "All";
+      render();
+      toast(`${newItem.id} submitted for approval`);
+    };
+  }
+
+  function wireBackAndCancel(){
+    const back = ()=>{ state.newMode = null; render(); };
+    document.getElementById('backToChooser').onclick = back;
+    document.getElementById('cancelForm').onclick = back;
+    document.getElementById('cancelForm2').onclick = back;
+  }
+
+  function renderDashboard(){
+    const c = document.getElementById('tab-content');
+    const all = state.items;
+    const pending = all.filter(r=>r.status==="Pending").length;
+    const approved = all.filter(r=>r.status==="Approved").length;
+    const rejected = all.filter(r=>r.status==="Rejected").length;
+
+    let filtered = all.filter(r => state.filter==="All" ? true : r.status===state.filter);
+    if(state.search.trim()){
+      const q = state.search.trim().toLowerCase();
+      filtered = filtered.filter(r =>
+        r.id.toLowerCase().includes(q) ||
+        r.subject.toLowerCase().includes(q) ||
+        r.requestedBy.toLowerCase().includes(q) ||
+        r.type.toLowerCase().includes(q)
+      );
+    }
+
+    c.innerHTML = `
+      <div class="stat-row">
+        <div class="stat-card"><div class="n">${all.length}</div><div class="l">Total items</div></div>
+        <div class="stat-card pending"><div class="n">${pending}</div><div class="l">Pending</div></div>
+        <div class="stat-card approved"><div class="n">${approved}</div><div class="l">Approved / Done</div></div>
+        <div class="stat-card rejected"><div class="n">${rejected}</div><div class="l">Rejected</div></div>
+      </div>
+
+      <div class="filters">
+        <div class="chip-row">
+          ${["All","Pending","Approved","Rejected"].map(f=>`<div class="chip ${state.filter===f?'active':''}" data-filter="${f}">${f}</div>`).join('')}
+        </div>
+        <input class="search-input" id="searchBox" placeholder="Search by ID, subject, requester..." value="${state.search}" />
+      </div>
+
+      <div class="table-wrap">
+        ${filtered.length===0 ? `<div class="empty-state">No items match this view.</div>` : `
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th><th>Type</th><th>Requested by</th><th>Amount</th>
+              <th>Priority</th><th>Due date</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(r=>`
+              <tr>
+                <td>
+                  <div class="subject-cell">
+                    <div class="primary">${r.subject}</div>
+                    <div class="secondary req-id">${r.id} · ${r.department}</div>
+                  </div>
+                </td>
+                <td><span class="type-pill ${r.kind==='task'?'task-type':''}">${r.type}</span></td>
+                <td>${r.kind==='task' ? r.approver : r.requestedBy}</td>
+                <td>${r.currency}${r.amount}</td>
+                <td>
+                  <span class="priority-dot">
+                    <span class="dot" style="background:${priorityColor(r.priority)}"></span>${r.priority}
+                  </span>
+                </td>
+                <td>${fmtDate(r.dueDate)}</td>
+                <td>
+                  <span class="status-pill ${r.status.toLowerCase()}">${r.status}</span>
+                  ${r.status==="Rejected" && r.note ? `<div class="decided-note">${r.note}</div>` : ""}
+                </td>
+                <td>
+                  ${r.status==="Pending" ? `
+                    <div class="action-cell">
+                      <button class="icon-btn approve" title="${r.kind==='task'?'Mark done':'Approve'}" data-approve="${r.id}">✓</button>
+                      <button class="icon-btn reject" title="Reject" data-reject="${r.id}">✕</button>
+                    </div>
+                  ` : `<span class="decided-note">${r.kind==='task' ? 'Assigned to ' : (r.status==="Approved" ? "Approved by " : "Decided by ")}${(r.kind==='task'? r.approver : r.approver).split(' (')[0]}</span>`}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        `}
+      </div>
+    `;
+
+    document.querySelectorAll('.chip').forEach(chip=>{
+      chip.onclick = ()=>{ state.filter = chip.dataset.filter; render(); };
+    });
+    document.getElementById('searchBox').oninput = (e)=>{ state.search = e.target.value; renderDashboard(); };
+
+    document.querySelectorAll('[data-approve]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const r = state.items.find(x=>x.id===btn.dataset.approve);
+        r.status = "Approved";
+        render();
+        toast(`${r.id} ${r.kind==='task'?'marked done':'approved'}`);
+      };
+    });
+    document.querySelectorAll('[data-reject]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const r = state.items.find(x=>x.id===btn.dataset.reject);
+        r.status = "Rejected";
+        r.note = r.kind==='task' ? "Task rejected — needs revision." : "Rejected by management — pending further review.";
+        render();
+        toast(`${r.id} rejected`);
+      };
+    });
+  }
+
+  render();
+})();
+</script>

@@ -18,7 +18,7 @@ frappe.ui.form.on("Lead", {
 
             const measurement_value = flt(frm.doc[measurement_field]);
 
-            if (!measurement_value) {
+            if (!measurement_value) {Erpkey
                 frappe.msgprint(__("Please enter {0}.", [frm.get_docfield(measurement_field).label]));
                 return;
             }
@@ -60,8 +60,128 @@ frappe.ui.form.on("Lead", {
             update_project_item_totals(frm);
         });
     },
+    // Show the Firm Name and Contact Person fields in the form
+    custom_add_contact_person_details(frm) {
+        // Show the fields when the button is clicked
+        // frm.set_df_property("custom_firm_name", "hidden", 0);
+        // frm.set_df_property("custom_contact_person", "hidden", 0);
+        // frm.set_df_property("custom_add_contact_person", "hidden", 0);
+
+        // frm.refresh_field("custom_firm_name");
+        // frm.refresh_field("custom_contact_person");
+        // frm.refresh_field("custom_add_contact_person");
+
+        frm.__contact_person_visible = !frm.__contact_person_visible;
+
+        frm.toggle_display("custom_firm_name", frm.__contact_person_visible);
+        frm.toggle_display("custom_contact_person", frm.__contact_person_visible);
+        frm.toggle_display("custom_add_contact_person", frm.__contact_person_visible);
+
+        frm.refresh_fields([
+            "custom_firm_name",
+            "custom_contact_person",
+            "custom_add_contact_person"
+        ]);
+    },
+    custom_view_details(frm) {
+        // Show the fields when the button is clicked
+        // frm.set_df_property("custom_architecture_contact_person", "hidden", 0);
+        // frm.set_df_property("custom_consultant_contact_person", "hidden", 0);
+        // frm.set_df_property("custom_contactor_contact_person", "hidden", 0);
+        // frm.set_df_property("custom_applicator_contact_person", "hidden", 0);
+        // frm.set_df_property("custom_other_contact_person", "hidden", 0);
+
+        // frm.refresh_field("custom_architecture_contact_person");
+        // frm.refresh_field("custom_consultant_contact_person");
+        // frm.refresh_field("custom_contactor_contact_person");
+        // frm.refresh_field("custom_applicator_contact_person");
+        // frm.refresh_field("custom_other_contact_person");
+
+        // Toggle state
+        frm.__view_details_visible = !frm.__view_details_visible;
+
+        [
+            "custom_architecture_contact_person",
+            "custom_consultant_contact_person",
+            "custom_contactor_contact_person",
+            "custom_applicator_contact_person",
+            "custom_other_contact_person"
+        ].forEach(field => {
+            frm.toggle_display(field, frm.__view_details_visible);
+        });
+
+        frm.refresh_fields([
+            "custom_architecture_contact_person",
+            "custom_consultant_contact_person",
+            "custom_contactor_contact_person",
+            "custom_applicator_contact_person",
+            "custom_other_contact_person"
+        ]);
+    },
     refresh(frm) {
+        // Show the Firm Name and Contact Person fields in the form
+        // Hide fields initially
+        // frm.toggle_display("custom_firm_name", false);
+        // frm.toggle_display("custom_contact_person", false);
+        // frm.toggle_display("custom_add_contact_person", false);
+
+        // frm.toggle_display("custom_architecture_contact_person", false);
+        // frm.toggle_display("custom_consultant_contact_person", false);
+        // frm.toggle_display("custom_contactor_contact_person", false);
+        // frm.toggle_display("custom_applicator_contact_person", false);
+        // frm.toggle_display("custom_other_contact_person", false);
+
+        // Initialize toggle state only once
+        if (frm.__contact_person_visible === undefined) {
+            frm.__contact_person_visible = false;  
+        }
+
+        if (frm.__view_details_visible === undefined) {
+            frm.__view_details_visible = false;
+        }
+
+        // Apply visibility
+        frm.toggle_display("custom_firm_name", frm.__contact_person_visible);
+        frm.toggle_display("custom_contact_person", frm.__contact_person_visible);
+        frm.toggle_display("custom_add_contact_person", frm.__contact_person_visible);
+
+        frm.toggle_display(
+            "custom_architecture_contact_person",
+            frm.__view_details_visible
+        );
+        frm.toggle_display(
+            "custom_consultant_contact_person",
+            frm.__view_details_visible
+        );
+        frm.toggle_display(
+            "custom_contactor_contact_person",
+            frm.__view_details_visible
+        );
+        frm.toggle_display(
+            "custom_applicator_contact_person",
+            frm.__view_details_visible
+        );
+        frm.toggle_display(
+            "custom_other_contact_person",
+            frm.__view_details_visible
+        );
+
+        // Hide Create and Action Buttom 
+        setTimeout(() => {
+            // Remove Create menu items
+            frm.remove_custom_button(__("Opportunity"), __("Create"));
+            frm.remove_custom_button(__("Prospect"), __("Create"));
+            frm.remove_custom_button(__("Quotation"), __("Create"));
+            frm.remove_custom_button(__("Customer"), __("Create"));
+
+            // Remove Action menu item
+            frm.remove_custom_button(__("Add to Prospect"), __("Action"));
+
+            frm.page.btn_primary.hide();
+        }, 500);
+
         update_project_detail_inputs(frm);
+        render_crm_tasks(frm);
 
         frm.set_query('custom_scope_of_work', function () {
             return {
@@ -216,7 +336,9 @@ frappe.ui.form.on("Lead", {
 
                 dialog.show();
             });
-        }          
+        };
+        
+        // CRM task and approval creation is rendered inside custom_crm_tasks_html.
     },
     custom_segment(frm) {
         // Clear scope of work when segment changes
@@ -246,6 +368,15 @@ frappe.ui.form.on("Lead", {
         frm.set_value("custom_contact_person", null);
     }, 
     custom_add_contact_person(frm) {
+        if (!frm.doc.custom_firm_name) {
+            frappe.msgprint(__("Please select a Firm Name."));
+            return;
+        }
+
+        if (!frm.doc.custom_contact_person) {
+            frappe.msgprint(__("Please select a Contact Person."));
+            return;
+        }
         frappe.db.get_doc("Contact Person SPC", frm.doc.custom_contact_person).then(contact_person => {
             const firm_type_field_map = {
                 Architect: "custom_architecture_contact_person",
@@ -388,6 +519,247 @@ function clear_project_detail_inputs(frm) {
     frm.set_value("custom_system", "");
     consumption_fields.forEach(fieldname => frm.set_value(fieldname, null));
 }
+
+function render_crm_tasks(frm) {
+    if (!frm.fields_dict.custom_crm_tasks_html) return;
+
+    const wrapper = frm.fields_dict.custom_crm_tasks_html.$wrapper;
+    if (frm.is_new()) {
+        wrapper.html(`<div class="text-muted">${__("Save the Lead to create or view CRM tasks.")}</div>`);
+        return;
+    }
+
+    wrapper.html(`
+        <style>
+            .approval-app{font-family:Inter,system-ui,sans-serif;color:#18181B;background:#FAFAFB;min-height:100%}.approval-app *{box-sizing:border-box}
+            .app-shell{max-width:1080px;margin:0 auto;padding:20px 16px 30px}.app-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+            .app-title{font-size:20px;font-weight:700}.app-sub{font-size:12px;color:#6B6F76;margin-top:4px}.tabbar{display:inline-flex;background:#EFEFF1;border-radius:10px;padding:3px;gap:2px}
+            .tabbar button{border:none;background:transparent;padding:8px 14px;font-size:12px;font-weight:600;color:#6B6F76;border-radius:8px;cursor:pointer}.tabbar button.active{background:#fff;color:#18181B;box-shadow:0 1px 2px rgba(16,16,20,.08)}
+            .chooser-wrap{padding:8px 0 18px}.chooser-label{font-size:13px;font-weight:600;color:#6B6F76;margin-bottom:12px}.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+            .choice-card{background:#fff;border:1.5px solid #E7E7EA;border-radius:14px;padding:20px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:9px}.choice-card:hover{border-color:#C9CCF0;box-shadow:0 8px 24px rgba(16,16,20,.06)}
+            .icon-badge{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}.task .icon-badge{background:#E7EDFC;color:#2952CC}.approval .icon-badge{background:#EFEAFE;color:#6D4AFF}
+            .choice-card h3{font-size:15px;font-weight:700;margin:0}.choice-card p{font-size:12px;color:#6B6F76;margin:0;line-height:1.5}.choice-card .cta{font-size:12px;font-weight:600;color:#18181B}
+            .form-card,.table-wrap{background:#fff;border:1px solid #E7E7EA;border-radius:14px;box-shadow:0 8px 24px rgba(16,16,20,.06);overflow:hidden}.form-card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #E7E7EA}
+            .head-left{display:flex;align-items:center;gap:10px}.head-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center}.task-mode .head-icon{background:#E7EDFC;color:#2952CC}.approval-mode .head-icon{background:#EFEAFE;color:#6D4AFF}.form-card-head h2{font-size:16px;font-weight:700;margin:0}
+            .back-link,.close-x{border:none;background:none;color:#6B6F76;cursor:pointer}.back-link{font-size:12px;font-weight:600;margin-bottom:12px}.close-x{font-size:18px}.form-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:500}.req{color:#F0554A}
+            .field input,.field select,.field textarea{background:#F3F3F4;border:1px solid #E4E4E7;border-radius:8px;padding:10px 12px;font-size:13px;width:100%;outline:none}.field textarea{resize:vertical;min-height:70px}.form-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid #E7E7EA}.btn{border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer}.btn-primary{background:#18181B;color:#fff}.btn-ghost{background:transparent;color:#6B6F76;border:1px solid #E4E4E7}
+            .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.stat-card{background:#fff;border:1px solid #E7E7EA;border-radius:12px;padding:12px 14px}.stat-card .n{font-size:21px;font-weight:700}.stat-card .l{font-size:12px;color:#6B6F76}.filters{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}.chip-row{display:flex;gap:6px}.chip{border:1px solid #E4E4E7;background:#fff;padding:6px 12px;border-radius:100px;font-size:12px;font-weight:600;color:#6B6F76;cursor:pointer}.chip.active{background:#18181B;color:#fff}.search-input{background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:8px 12px;font-size:12px;min-width:220px}
+            .crm-table{width:100%;border-collapse:collapse}.crm-table th{text-align:left;font-size:11px;text-transform:uppercase;color:#6B6F76;font-weight:600;padding:12px 14px;border-bottom:1px solid #E7E7EA;background:#FBFBFC}.crm-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #E7E7EA}.type-pill,.status-pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;display:inline-block}.type-pill{background:#E7EDFC;color:#2952CC}.type-pill.task-type{background:#EAF3EA;color:#2E7D32}.status-pill.pending,.status-pill.open,.status-pill.working,.status-pill.pending-review{background:#FBF0DD;color:#B4740E}.status-pill.approved,.status-pill.completed{background:#DDF3E4;color:#15803D}.status-pill.rejected,.status-pill.cancelled{background:#FBE4E1;color:#B42318}.action-cell{display:flex;gap:6px}.decision-btn{border:1px solid #E4E4E7;background:#fff;width:28px;height:28px;border-radius:7px;cursor:pointer;font-weight:700}.decision-btn.approve{color:#15803D}.decision-btn.reject{color:#B42318}.decision-btn:hover{background:#F3F3F4}.empty-state{padding:40px 20px;text-align:center;color:#6B6F76;font-size:13px}
+            @media(max-width:760px){.form-body,.choice-grid{grid-template-columns:1fr}.stat-row{grid-template-columns:1fr 1fr}}
+        </style>
+        <div class="approval-app"><div class="app-shell">
+            <div class="app-header"><div><div class="app-title">${__("Task or Approval")}</div><div class="app-sub">${frappe.utils.escape_html(frm.doc.name)}</div></div><div class="tabbar"><button class="active" data-tab="new">${__("New")}</button><button data-tab="dashboard">${__("Dashboard")}</button></div></div>
+            <div class="crm-new-panel"><div class="chooser-wrap"><div class="chooser-label">${__("Choose what you want to create")}</div><div class="choice-grid"><button class="choice-card task" data-mode="task"><span class="icon-badge">✓</span><h3>${__("Appoint a Task")}</h3><p>${__("Create a CRM Task for this Lead.")}</p><span class="cta">${__("Create task")}</span></button><button class="choice-card approval" data-mode="approval"><span class="icon-badge">↗</span><h3>${__("Request Approvel")}</h3><p>${__("Create a CRM Request Approvel for this Lead.")}</p><span class="cta">${__("Create approval")}</span></button></div></div></div>
+            <div class="crm-form-panel hide"></div><div class="crm-dashboard-panel hide"></div>
+        </div></div>
+    `);
+
+    const state = { tab: "new", mode: null, selected_mode: null, search: "", items: [], controls: {} };
+    const $new = wrapper.find(".crm-new-panel");
+    const $form = wrapper.find(".crm-form-panel");
+    const $dashboard = wrapper.find(".crm-dashboard-panel");
+
+    const esc = frappe.utils.escape_html;
+    const today = frappe.datetime.get_today();
+    const leadTitle = frm.doc.lead_name || frm.doc.company_name || frm.doc.name;
+    const required = `<span class="req">*</span>`;
+
+    function field(label, name, type, attrs = "", full = false) {
+        const tag = type === "textarea" ? `<textarea name="${name}" ${attrs}></textarea>` : `<input name="${name}" type="${type}" ${attrs}>`;
+        return `<div class="field ${full ? "full" : ""}"><label>${label}</label>${tag}</div>`;
+    }
+
+    function activate_tab(tab) {
+        state.tab = tab;
+        wrapper.find("[data-tab]").removeClass("active");
+        wrapper.find(`[data-tab="${tab}"]`).addClass("active");
+    }
+
+    function render_form(mode) {
+        state.mode = mode;
+        state.selected_mode = mode;
+        activate_tab("new");
+        const isTask = mode === "task";
+        $new.addClass("hide");
+        $dashboard.addClass("hide");
+        $form.removeClass("hide").html(`
+            <button class="back-link" type="button">← ${__("Back")}</button>
+            <div class="form-card">
+                <div class="form-card-head ${isTask ? "task-mode" : "approval-mode"}"><div class="head-left"><span class="head-icon">${isTask ? "✓" : "↗"}</span><div><h2>${isTask ? __("Appoint a Task") : __("Request Approvel")}</h2></div></div><button class="close-x" type="button">×</button></div>
+                <div class="form-body">
+                    ${isTask ? `
+                        <div class="field full"><label>${__("Select Departments")}${required}</label><div class="department-control"></div></div>
+                        ${field(__("Posting Date") + required, "posting_date", "date", `value="${today}" required`)}
+                        ${field(__("Subject") + required, "subject", "text", `value="${esc(leadTitle)}" required`)}
+                        ${field(__("Due Date") + required, "due_date", "date", "required")}
+                        <div class="field"><label>${__("Priority")}${required}</label><select name="priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div>
+                        <div class="field full"><label>${__("Assign To")}${required}</label><div class="assign-control"></div></div>
+                        ${field(__("Last Discussion"), "last_discussion", "textarea", "", true)}
+                        ${field(__("Task Description") + required, "description", "textarea", "required", true)}
+                    ` : `
+                        ${field(__("Request Types") + required, "request_types", "text", "required")}
+                        <div class="field full"><label>${__("Department")}${required}</label><div class="department-control"></div></div>
+                        ${field(__("Requested By") + required, "requested_by", "text", `value="${esc(frappe.session.user)}" required`)}
+                        <div class="field"><label>${__("Approver")}${required}</label><div class="approver-control"></div></div>
+                        <div class="field"><label>${__("Priority")}${required}</label><select name="priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div>
+                        ${field(__("Request Date") + required, "request_date", "date", `value="${today}" required`)}
+                        ${field(__("Description") + required, "description", "textarea", "required", true)}
+                        ${field(__("Reason"), "reason", "textarea", "", true)}
+                    `}
+                </div><div class="form-footer"><button class="btn btn-ghost back-link" type="button">${__("Cancel")}</button><button class="btn btn-primary save-crm" type="button">${__("Save")}</button></div>
+            </div>
+        `);
+
+        state.controls = {};
+        state.controls.department = frappe.ui.form.make_control({ parent: $form.find(".department-control").get(0), df: { fieldtype: "MultiSelectPills", fieldname: "department", get_data: (txt) => frappe.db.get_link_options("Department", txt) }, render_input: true });
+        if (isTask) {
+            state.controls.assign_to = frappe.ui.form.make_control({ parent: $form.find(".assign-control").get(0), df: { fieldtype: "MultiSelectPills", fieldname: "assign_to", get_data: (txt) => frappe.db.get_link_options("User", txt) }, render_input: true });
+        } else {
+            state.controls.approver = frappe.ui.form.make_control({ parent: $form.find(".approver-control").get(0), df: { fieldtype: "Link", fieldname: "approver", options: "User", reqd: 1 }, render_input: true });
+        }
+    }
+
+    function list_values(control, key) {
+        return [...new Set((control?.get_value?.() || []).map((row) => row[key] || row).filter(Boolean))];
+    }
+
+    function form_value(name) {
+        return ($form.find(`[name="${name}"]`).val() || "").trim();
+    }
+
+    function save_current() {
+        const isTask = state.mode === "task";
+        const departments = list_values(state.controls.department, "department");
+        const users = isTask ? list_values(state.controls.assign_to, "user") : [];
+        if (!departments.length || (isTask && !users.length)) {
+            frappe.msgprint(__("Please fill all required fields."));
+            return;
+        }
+        const doc = isTask ? {
+            doctype: "CRM Task",
+            lead: frm.doc.name,
+            select_departments: departments.map((department) => ({ department })),
+            posting_date: form_value("posting_date"),
+            subject: form_value("subject"),
+            due_date: form_value("due_date"),
+            priority: form_value("priority"),
+            assign_to: users.map((user) => ({ user })),
+            last_discussion: form_value("last_discussion"),
+            description: form_value("description"),
+            status: "Open"
+        } : {
+            doctype: "CRM Request Approvel",
+            lead: frm.doc.name,
+            request_types: form_value("request_types"),
+            department: departments.map((department) => ({ department })),
+            requested_by: form_value("requested_by"),
+            approver: state.controls.approver.get_value(),
+            priority: form_value("priority"),
+            request_date: form_value("request_date"),
+            description: form_value("description"),
+            reason: form_value("reason"),
+            status: "Pending"
+        };
+
+        frappe.call({
+            method: "frappe.client.insert",
+            args: { doc },
+            callback: (r) => {
+                if (!r.message) return;
+                frappe.show_alert({ message: isTask ? __("Task created") : __("Approval request created"), indicator: "green" });
+                load_items(() => show_dashboard());
+            }
+        });
+    }
+
+    function load_items(done) {
+        Promise.all([
+            frappe.db.get_list("CRM Task", { fields: ["name", "subject", "status", "priority", "posting_date", "due_date", "last_discussion", "modified"], filters: { lead: frm.doc.name }, order_by: "due_date asc, modified desc", limit: 100 }),
+            frappe.db.get_list("CRM Request Approvel", { fields: ["name", "request_types", "status", "priority", "request_date", "description", "approver", "approved_by", "rejected_by", "modified"], filters: { lead: frm.doc.name }, order_by: "request_date desc, modified desc", limit: 100 })
+        ]).then(([tasks, approvals]) => {
+            state.items = [];
+            (tasks || []).forEach((task) => state.items.push({ kind: "task", doctype: "CRM Task", id: task.name, type: "Task", subject: task.subject, priority: task.priority, date: task.posting_date, dueDate: task.due_date, reason: task.last_discussion, status: task.status }));
+            (approvals || []).forEach((approval) => state.items.push({ kind: "approval", doctype: "CRM Request Approvel", id: approval.name, type: approval.request_types, subject: approval.request_types, priority: approval.priority, date: approval.request_date, dueDate: approval.request_date, reason: approval.description, status: approval.status, approver: approval.approver, approved_by: approval.approved_by, rejected_by: approval.rejected_by }));
+            if (done) done();
+        });
+    }
+
+    function status_class(status) {
+        return (status || "").toLowerCase().replace(/\s+/g, "-") || "pending";
+    }
+
+    function show_dashboard() {
+        if (!state.selected_mode) {
+            $dashboard.addClass("hide");
+            $form.addClass("hide");
+            $new.removeClass("hide");
+            return;
+        }
+        activate_tab("dashboard");
+        $new.addClass("hide");
+        $form.addClass("hide");
+        $dashboard.removeClass("hide");
+        const mode = state.selected_mode;
+        const q = (state.search || "").toLowerCase();
+        const rows = state.items.filter((item) => item.kind === mode);
+        const filtered = rows.filter((item) => !q || [item.id, item.subject, item.type, item.status].join(" ").toLowerCase().includes(q));
+        const pending = rows.filter((item) => ["Pending", "Open", "Working", "Pending Review"].includes(item.status)).length;
+        const done = rows.filter((item) => ["Approved", "Completed"].includes(item.status)).length;
+        const rejected = rows.filter((item) => ["Rejected", "Cancelled"].includes(item.status)).length;
+        const isApproval = mode === "approval";
+        const title = isApproval ? __("CRM Request Approvel") : __("CRM Task");
+        const actionHead = isApproval ? `<th>${__("Action")}</th>` : "";
+        const actionCol = (item) => {
+            if (!isApproval) return "";
+            if (["Approved", "Rejected", "Cancelled"].includes(item.status)) {
+                const person = item.approved_by || item.rejected_by || "";
+                return `<td><span class="text-muted small">${esc(person)}</span></td>`;
+            }
+            if (item.approver !== frappe.session.user) {
+                return `<td><span class="text-muted small">${esc(item.approver || "-")}</span></td>`;
+            }
+            return `<td><div class="action-cell"><button class="decision-btn approve" data-decision="Approved" data-name="${esc(item.id)}" title="${__("Approve")}">✓</button><button class="decision-btn reject" data-decision="Rejected" data-name="${esc(item.id)}" title="${__("Reject")}">×</button></div></td>`;
+        };
+        $dashboard.html(`
+            <div class="stat-row"><div class="stat-card"><div class="n">${rows.length}</div><div class="l">${title}</div></div><div class="stat-card"><div class="n">${pending}</div><div class="l">${__("Pending/Open")}</div></div><div class="stat-card"><div class="n">${done}</div><div class="l">${__("Done")}</div></div><div class="stat-card"><div class="n">${rejected}</div><div class="l">${__("Rejected/Cancelled")}</div></div></div>
+            <div class="filters"><div class="chip-row"><span class="chip active">${title}</span></div><input class="search-input" value="${esc(state.search)}" placeholder="${__("Search...")}"></div>
+            <div class="table-wrap"><table class="crm-table"><thead><tr><th>${__("ID")}</th><th>${__("Type")}</th><th>${__("Subject")}</th><th>${__("Priority")}</th><th>${__("Date")}</th><th>${__("Status")}</th>${actionHead}</tr></thead><tbody>${filtered.length ? filtered.map((item) => `<tr data-open-doctype="${esc(item.doctype)}" data-open-name="${esc(item.id)}"><td>${esc(item.id)}</td><td><span class="type-pill ${item.kind === "task" ? "task-type" : ""}">${esc(item.type || "-")}</span></td><td>${esc(item.subject || "-")}<div class="text-muted small">${esc(item.reason || "")}</div></td><td>${esc(item.priority || "-")}</td><td>${item.date ? frappe.datetime.str_to_user(item.date) : "-"}</td><td><span class="status-pill ${status_class(item.status)}">${esc(item.status || "-")}</span></td>${actionCol(item)}</tr>`).join("") : `<tr><td colspan="${isApproval ? 7 : 6}"><div class="empty-state">${__("No records found")}</div></td></tr>`}</tbody></table></div>
+        `);
+    }
+
+    function set_approval_status(name, status) {
+        const field = status === "Approved" ? "approved_by" : "rejected_by";
+        frappe.call({
+            method: "frappe.client.set_value",
+            args: { doctype: "CRM Request Approvel", name, fieldname: { status, [field]: frappe.session.user } },
+            callback: () => {
+                frappe.show_alert({ message: status === "Approved" ? __("Approved") : __("Rejected"), indicator: status === "Approved" ? "green" : "red" });
+                load_items(() => show_dashboard());
+            }
+        });
+    }
+
+    wrapper.find("[data-mode]").on("click", (e) => render_form($(e.currentTarget).data("mode")));
+    wrapper.find("[data-tab]").on("click", (e) => {
+        const tab = $(e.currentTarget).data("tab");
+        if (tab === "new") {
+            activate_tab("new");
+            if (state.selected_mode) render_form(state.selected_mode);
+            else { $dashboard.addClass("hide"); $form.addClass("hide"); $new.removeClass("hide"); }
+        } else {
+            load_items(() => show_dashboard());
+        }
+    });
+    wrapper.on("click", ".back-link,.close-x", () => { $form.addClass("hide"); $dashboard.addClass("hide"); $new.removeClass("hide"); });
+    wrapper.on("click", ".save-crm", save_current);
+    wrapper.on("input", ".search-input", frappe.utils.debounce((e) => { state.search = e.target.value; show_dashboard(); }, 250));
+    wrapper.on("click", ".decision-btn", (e) => {
+        e.stopPropagation();
+        set_approval_status($(e.currentTarget).data("name"), $(e.currentTarget).data("decision"));
+    });
+    wrapper.on("click", "[data-open-doctype]", (e) => frappe.set_route("Form", $(e.currentTarget).data("open-doctype"), $(e.currentTarget).data("open-name")));
+}
+
 
 // function update_project_item_totals(frm) {
 //     let totals = {};
