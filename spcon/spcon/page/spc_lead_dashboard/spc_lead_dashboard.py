@@ -53,12 +53,13 @@ def get_dashboard_data(filters=None):
 	today = getdate(nowdate())
 	lead_names = [row.name for row in rows]
 	events_by_lead = get_events_by_lead(lead_names)
-	forecast_rows = get_forecast_rows(lead_names, fields["project_item_fields"])
+	forecast_rows = get_forecast_rows(filters, fields["project_item_fields"], "creation")
+	product_forecast_rows = get_forecast_rows(filters, fields["project_item_fields"], "custom_closing_date")
 	task_rows = get_crm_task_rows(filters)
 	approval_rows = get_crm_approval_rows(filters)
 
 	status_counts = {}
-	creator_counts = get_creator_counts(rows)
+	creator_counts = get_creator_counts(rows) if has_team_tab_access() else []
 	summary = {
 		"total_leads": len(rows),
 		"open_leads": 0,
@@ -101,6 +102,8 @@ def get_dashboard_data(filters=None):
 		"leads": rows,
 		"activities": activities,
 		"forecast": forecast_rows,
+		"product_forecast": product_forecast_rows,
+		"show_team_tab": has_team_tab_access(),
 		"team": creator_counts,
 		"project_tracker": build_project_tracker(rows, forecast_rows),
 		"tasks": task_rows,
@@ -250,6 +253,10 @@ def has_full_dashboard_access():
 	return bool(roles.intersection({"System Manager", "Sales Manager", "CRM Manager"}))
 
 
+def has_team_tab_access():
+	return "CRM Manager" in frappe.get_roles(frappe.session.user)
+
+
 def get_lead_fields():
 	meta = frappe.get_meta("Lead")
 
@@ -257,9 +264,8 @@ def get_lead_fields():
 		return f"`{fieldname}`" if meta.has_field(fieldname) else "NULL"
 
 	project_item_fields = []
-	for fieldname in ("custom_project_items", "custom_project_details_items"):
-		if meta.has_field(fieldname):
-			project_item_fields.append(fieldname)
+	if meta.has_field("custom_project_items"):
+		project_item_fields.append("custom_project_items")
 
 	return {
 		"firm_name": column("custom_firm_name_lead") if meta.has_field("custom_firm_name_lead") else column("custom_firm_name"),
@@ -401,11 +407,12 @@ def get_events_by_lead(lead_names):
 	return events_by_lead
 
 
-def get_forecast_rows(lead_names, project_item_fields):
-	if not lead_names or not project_item_fields:
+def get_forecast_rows(filters, project_item_fields, date_field):
+	if not project_item_fields:
 		return []
 
 	lead_meta = frappe.get_meta("Lead")
+	conditions, values = get_forecast_conditions(filters, date_field)
 	rows = []
 
 	for project_items_fieldname in project_item_fields:
@@ -422,7 +429,7 @@ def get_forecast_rows(lead_names, project_item_fields):
 		rows.extend(frappe.db.sql(
 			f"""
 			SELECT
-				parent AS lead,
+				project_item.parent AS lead,
 				%(source_table)s AS source_table,
 				{expr(("item_code", "item"), "item")},
 				{expr(("item_name",), "item_name")},
@@ -431,15 +438,16 @@ def get_forecast_rows(lead_names, project_item_fields):
 				{expr(("segment",), "segment")},
 				{expr(("scope_of_work",), "scope_of_work")},
 				{expr(("system",), "system")}
-			FROM `tab{child_dt}`
-			WHERE parenttype = 'Lead'
-				AND parentfield = %(parentfield)s
-				AND parent IN %(lead_names)s
-			ORDER BY parent, idx
+			FROM `tab{child_dt}` project_item
+			INNER JOIN `tabLead` lead ON lead.name = project_item.parent
+			WHERE project_item.parenttype = 'Lead'
+				AND project_item.parentfield = %(parentfield)s
+				{conditions}
+			ORDER BY project_item.parent, project_item.idx
 			LIMIT 100
 			""",
 			{
-				"lead_names": lead_names,
+				**values,
 				"parentfield": project_items_fieldname,
 				"source_table": child_field.label or project_items_fieldname,
 			},
@@ -447,6 +455,33 @@ def get_forecast_rows(lead_names, project_item_fields):
 		))
 
 	return rows[:200]
+
+
+
+def get_forecast_conditions(filters, date_field):
+	conditions = ["lead.docstatus < 2"]
+	values = {}
+
+	date_column = "lead.custom_closing_date" if date_field == "custom_closing_date" else "lead.creation"
+	if filters.get("from_date"):
+		conditions.append(f"{date_column} >= %(forecast_from_date)s")
+		values["forecast_from_date"] = filters.from_date
+	if filters.get("to_date"):
+		to_date = filters.to_date if date_field == "custom_closing_date" else add_days(filters.to_date, 1)
+		conditions.append(f"{date_column} <= %(forecast_to_date)s")
+		values["forecast_to_date"] = to_date
+	if filters.get("lead_owner"):
+		conditions.append("lead.lead_owner = %(forecast_lead_owner)s")
+		values["forecast_lead_owner"] = filters.lead_owner
+	if filters.get("status"):
+		conditions.append("lead.status = %(forecast_status)s")
+		values["forecast_status"] = filters.status
+
+	if not has_full_dashboard_access():
+		conditions.append("(lead.owner = %(forecast_session_user)s OR lead.lead_owner = %(forecast_session_user)s)")
+		values["forecast_session_user"] = frappe.session.user
+
+	return " AND " + " AND ".join(conditions), values
 
 
 def get_creator_counts(rows):
