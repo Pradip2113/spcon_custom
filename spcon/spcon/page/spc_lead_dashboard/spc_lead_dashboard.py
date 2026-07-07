@@ -108,6 +108,29 @@ def get_dashboard_data(filters=None):
 	}
 
 
+@frappe.whitelist()
+def decide_crm_approval(name, status):
+	if status not in ("Approved", "Rejected"):
+		frappe.throw(_("Invalid approval status"))
+
+	doc = frappe.get_doc("CRM Request Approvel", name)
+	if doc.approver != frappe.session.user:
+		frappe.throw(_("Only the assigned approver can approve or reject this request."))
+	if doc.status != "Pending":
+		frappe.throw(_("Only pending requests can be updated."))
+
+	doc.status = status
+	if status == "Approved":
+		doc.approved_by = frappe.session.user
+		doc.rejected_by = None
+	else:
+		doc.rejected_by = frappe.session.user
+		doc.approved_by = None
+	doc.save(ignore_permissions=True)
+
+	return {"name": doc.name, "status": doc.status}
+
+
 def get_crm_task_rows(filters):
 	if frappe.db.exists("DocType", "CRM Task"):
 		return sorted(get_crm_task_doc_rows(filters), key=lambda row: (row.get("due_date") or "9999-12-31", row.get("modified") or ""))[:500]
@@ -183,6 +206,9 @@ def get_crm_approval_rows(filters):
 			a.priority,
 			a.request_date AS due_date,
 			a.owner,
+			a.approver AS approver_user,
+			a.approved_by,
+			a.rejected_by,
 			COALESCE(approver.full_name, a.approver) AS assignees,
 			a.lead,
 			a.modified
