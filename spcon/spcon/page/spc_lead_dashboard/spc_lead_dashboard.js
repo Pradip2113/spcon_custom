@@ -536,7 +536,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	}
 
 	render_approval_actions(approval) {
-		if (approval.status === "Pending" && approval.approver_user === frappe.session.user) {
+		if (approval.status === "Pending" && (approval.approver_user === frappe.session.user || this.data.can_decide_all_approvals)) {
 			const name = frappe.utils.escape_html(approval.name || "");
 			return `<div class="approval-actions">
 				<button class="approval-decision approve" data-approval-name="${name}" data-approval-status="Approved" title="${__("Approve")}">✓</button>

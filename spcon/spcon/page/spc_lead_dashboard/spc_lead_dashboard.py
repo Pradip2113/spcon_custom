@@ -104,6 +104,7 @@ def get_dashboard_data(filters=None):
 		"forecast": forecast_rows,
 		"product_forecast": product_forecast_rows,
 		"show_team_tab": has_team_tab_access(),
+		"can_decide_all_approvals": has_approval_manager_access(),
 		"team": creator_counts,
 		"project_tracker": build_project_tracker(rows, forecast_rows),
 		"tasks": task_rows,
@@ -117,7 +118,7 @@ def decide_crm_approval(name, status):
 		frappe.throw(_("Invalid approval status"))
 
 	doc = frappe.get_doc("CRM Request Approvel", name)
-	if doc.approver != frappe.session.user:
+	if doc.approver != frappe.session.user and not has_approval_manager_access():
 		frappe.throw(_("Only the assigned approver can approve or reject this request."))
 	if doc.status != "Pending":
 		frappe.throw(_("Only pending requests can be updated."))
@@ -194,7 +195,7 @@ def get_crm_approval_rows(filters):
 	if filters.get("to_date"):
 		conditions.append("a.creation <= %(approval_to_date)s")
 		values["approval_to_date"] = add_days(filters.to_date, 1)
-	if not has_full_dashboard_access():
+	if not has_full_dashboard_access() and not has_approval_manager_access():
 		conditions.append("(a.owner = %(approval_session_user)s OR a.requested_by = %(approval_session_user)s OR a.approver = %(approval_session_user)s)")
 		values["approval_session_user"] = frappe.session.user
 
@@ -255,6 +256,10 @@ def has_full_dashboard_access():
 
 def has_team_tab_access():
 	return "CRM Manager" in frappe.get_roles(frappe.session.user)
+
+
+def has_approval_manager_access():
+	return "CRM Dashboard Manager" in frappe.get_roles(frappe.session.user)
 
 
 def get_lead_fields():
