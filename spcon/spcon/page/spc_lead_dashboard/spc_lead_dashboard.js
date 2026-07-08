@@ -17,6 +17,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		this.active_section = "overview";
 		this.project_tracker_filter = "All";
 		this.project_tracker_search = "";
+		this.can_view_team = frappe.user_roles.includes("CRM Manager");
 		this.setup();
 		this.refresh();
 	}
@@ -28,6 +29,13 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	}
 
 	render_shell() {
+		const team_tab = this.can_view_team
+			? `<button class="spc-tab" data-section="team">${__("Team")}</button>`
+			: "";
+		const team_section = this.can_view_team
+			? `<div id="spc-sec-team" class="spc-section"></div>`
+			: "";
+
 		this.page.main.html(`
 			<div class="spc-lead-wrap">
 				<div class="spc-lead-head">
@@ -43,7 +51,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 						<button class="spc-tab" data-section="approvals">${__("Request Approvel")}</button>
 						<button class="spc-tab" data-section="forecast">${__("Product forecast")}</button>
 						<button class="spc-tab" data-section="project-tracker">${__("Project Tracker")}</button>
-						<button class="spc-tab" data-section="team">${__("Team")}</button>
+						${team_tab}
 					</div>
 				</div>
 				<div class="spc-filter-bar">
@@ -59,7 +67,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 					<div id="spc-sec-approvals" class="spc-section"></div>
 					<div id="spc-sec-forecast" class="spc-section"></div>
 					<div id="spc-sec-project-tracker" class="spc-section"></div>
-					<div id="spc-sec-team" class="spc-section"></div>
+					${team_section}
 				</div>
 			</div>
 		`);
@@ -134,6 +142,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			args: { filters: this.get_filters() },
 			callback: (r) => {
 				this.data = r.message || {};
+				this.can_view_team = Boolean(this.data.show_team_tab) && frappe.user_roles.includes("CRM Manager");
 				this.render();
 				this.$loading.addClass("hide");
 				this.$content.removeClass("hide");
@@ -149,7 +158,9 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		this.render_approvals();
 		this.render_forecast();
 		this.render_project_tracker();
-		this.render_team();
+		if (this.can_view_team) {
+			this.render_team();
+		}
 		this.bind_rows();
 	}
 
@@ -157,7 +168,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		const summary = this.data.summary || {};
 		const stages = this.render_stage_bars(this.data.stages || []);
 		const activities = this.render_activity_rows((this.data.activities || []).slice(0, 4));
-		const forecast = this.render_forecast_rows((this.data.forecast || []).slice(0, 5));
+		const forecast = (this.data.forecast || []).slice(0, 5);
 
 		this.page.main.find("#spc-sec-overview").html(`
 			${this.render_metrics([
@@ -241,14 +252,15 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	}
 
 	render_forecast() {
+		const forecast = this.data.product_forecast || [];
 		this.page.main.find("#spc-sec-forecast").html(`
 			${this.render_metrics([
-				["Forecast rows", (this.data.forecast || []).length, "amber", "from Lead items"],
-				["Products", this.unique_count(this.data.forecast || [], "item"), "", "unique items"],
-				["Systems", this.unique_count(this.data.forecast || [], "system"), "green", "unique systems"],
-				["Leads", this.unique_count(this.data.forecast || [], "lead"), "blue", "with items"],
+				["Forecast rows", forecast.length, "amber", "from Lead items"],
+				["Products", this.unique_count(forecast, "item"), "", "unique items"],
+				["Systems", this.unique_count(forecast, "system"), "green", "unique systems"],
+				["Leads", this.unique_count(forecast, "lead"), "blue", "with items"],
 			])}
-			<div class="spc-block"><div class="spc-block-head">${__("Product-wise forecast")}</div>${this.render_forecast_table(this.render_forecast_rows(this.data.forecast || []))}</div>
+			<div class="spc-block"><div class="spc-block-head">${__("Product-wise forecast")}</div>${this.render_forecast_table(forecast)}</div>
 		`);
 	}
 
@@ -414,6 +426,14 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		return `₹${format_number(amount, 2)}`;
 	}
 
+	format_qty(value) {
+		const qty = flt(value);
+		return Number(qty).toLocaleString("en-IN", {
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 3,
+		});
+	}
+
 	render_team() {
 		const cards = (this.data.team || []).map((row) => {
 			const status_rows = Object.keys(row.statuses || {}).map((status) => `
@@ -516,7 +536,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	}
 
 	render_approval_actions(approval) {
-		if (approval.status === "Pending" && approval.approver_user === frappe.session.user) {
+		if (approval.status === "Pending" && (approval.approver_user === frappe.session.user || this.data.can_decide_all_approvals)) {
 			const name = frappe.utils.escape_html(approval.name || "");
 			return `<div class="approval-actions">
 				<button class="approval-decision approve" data-approval-name="${name}" data-approval-status="Approved" title="${__("Approve")}">✓</button>
@@ -541,20 +561,27 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	}
 
 	render_forecast_rows(rows) {
-		return rows.map((row) => `
-			<tr data-lead="${frappe.utils.escape_html(row.lead)}">
-				<td><span class="badge b-purple">${frappe.utils.escape_html(row.item_name || row.item || "-")}</span></td>
-				<td>${frappe.utils.escape_html(row.lead || "-")}</td>
-				<td>${frappe.utils.escape_html(row.source_table || "-")}</td>
-				<td><strong>${frappe.format(row.qty || 0, { fieldtype: "Float" })}</strong> ${frappe.utils.escape_html(row.unit || "")}</td>
-			</tr>
-		`).join("");
+		return (rows || []).map((row) => {
+			const qty = flt(row.qty);
+			return `
+				<tr data-lead="${frappe.utils.escape_html(row.lead || "")}">
+					<td><span class="badge b-purple">${frappe.utils.escape_html(row.item_name || row.item || "-")}</span></td>
+					<td>${frappe.utils.escape_html(row.lead || "-")}</td>
+					<td>${frappe.utils.escape_html(row.source_table || "-")}</td>
+					<td class="forecast-qty"><strong>${this.format_qty(qty)}</strong><span>${frappe.utils.escape_html(row.unit || "")}</span></td>
+				</tr>
+			`;
+		}).join("");
 	}
 
 	render_forecast_table(rows) {
+		const body = (rows || []).length
+			? this.render_forecast_rows(rows)
+			: `<tr><td colspan="4"><div class="spc-empty">${__("No forecast item rows found")}</div></td></tr>`;
+
 		return `<div class="table-responsive"><table class="forecast-table">
 			<thead><tr><th>${__("Product")}</th><th>${__("Lead")}</th><th>${__("Table")}</th><th>${__("Qty")}</th></tr></thead>
-			<tbody>${rows || `<tr><td colspan="4">${this.empty("No forecast item rows found")}</td></tr>`}</tbody>
+			<tbody>${body}</tbody>
 		</table></div>`;
 	}
 
@@ -658,7 +685,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 				.funnel{display:flex;flex-direction:column;gap:4px}.fstage{display:flex;align-items:center;gap:8px}.fstage-name{font-size:11px;color:var(--color-text-secondary);min-width:120px;text-align:right}.fbar-wrap{flex:1;background:var(--color-background-secondary);border-radius:4px;height:28px;overflow:hidden}.fbar{height:100%;display:flex;align-items:center;padding-left:8px;border-radius:4px;min-width:48px}.fbar span{font-size:11px;font-weight:600}.fstage-count{font-size:12px;font-weight:600;min-width:28px;text-align:center}
 				.fd-row,.arow{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:6px}.fd-row:hover,.arow:hover{border-color:var(--color-border-secondary)}.fd-dot{width:8px;height:8px;border-radius:50%;background:#185FA5;flex-shrink:0}.fd-main,.arow-left{flex:1;min-width:0}.fd-proj,.arow-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fd-client,.arow-sub,.fd-sp{font-size:11px;color:var(--color-text-secondary)}.fd-sp{min-width:120px}.arow-right{display:flex;flex-direction:column;align-items:flex-end}.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:#EEEDFE;color:#534AB7;flex-shrink:0}
 				.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}.b-gray{background:#F1EFE8;color:#5F5E5A}.b-blue{background:#E6F1FB;color:#185FA5}.b-green{background:#EAF3DE;color:#3B6D11}.b-amber{background:#FAEEDA;color:#854F0B}.b-red{background:#FCEBEB;color:#A32D2D}.b-purple{background:#EEEDFE;color:#534AB7}
-				.forecast-table{width:100%;border-collapse:collapse;font-size:12px}.forecast-table th{font-size:10px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--color-border-secondary);text-align:left;background:var(--color-background-secondary)}.forecast-table td{padding:7px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle}.forecast-table tr[data-lead],.forecast-table tr[data-task]{cursor:pointer}.forecast-table tr[data-lead]:hover td,.forecast-table tr[data-task]:hover td{background:var(--color-background-secondary)}.task-sub{font-size:10px;color:var(--color-text-secondary);margin-top:2px}.approval-actions{display:flex;gap:6px}.approval-decision{width:28px;height:28px;border:1px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);font-weight:700;line-height:1}.approval-decision.approve{color:#15803D}.approval-decision.reject{color:#B42318}.approval-decision:hover{background:var(--color-background-secondary)}
+				.forecast-table{width:100%;border-collapse:collapse;font-size:12px}.forecast-table th{font-size:10px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--color-border-secondary);text-align:left;background:var(--color-background-secondary)}.forecast-table td{padding:7px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle}.forecast-table th:last-child,.forecast-table td.forecast-qty{text-align:right;width:140px;white-space:nowrap}.forecast-qty strong{font-variant-numeric:tabular-nums}.forecast-qty span{display:inline-block;margin-left:4px;color:var(--color-text-secondary)}.forecast-table tr[data-lead],.forecast-table tr[data-task]{cursor:pointer}.forecast-table tr[data-lead]:hover td,.forecast-table tr[data-task]:hover td{background:var(--color-background-secondary)}.task-sub{font-size:10px;color:var(--color-text-secondary);margin-top:2px}.approval-actions{display:flex;gap:6px}.approval-decision{width:28px;height:28px;border:1px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);font-weight:700;line-height:1}.approval-decision.approve{color:#15803D}.approval-decision.reject{color:#B42318}.approval-decision:hover{background:var(--color-background-secondary)}
 				.pt-shell{max-width:1200px;margin:0 auto}.pt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.pt-head-left{display:flex;align-items:center;gap:8px}.pt-icon{font-size:20px;color:#333}.pt-title{font-size:18px;font-weight:600;color:#333}.pt-subtitle{font-size:13px;color:#666}.pt-search{padding:10px 16px;border:1px solid #E0E0E0;border-radius:8px;width:280px;font-size:14px;color:#333;background:#fff}.pt-stats{display:flex;justify-content:space-between;margin-bottom:24px;gap:16px}.pt-stat{flex:1;text-align:center}.pt-stat-label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}.pt-stat-value{font-size:24px;font-weight:700}.pt-stat-value.green{color:#2E7D32}.pt-stat-value.red{color:#C62828}.pt-stat-value.default{color:#333}.pt-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}.pt-filter{padding:6px 14px;border-radius:20px;border:1px solid #E0E0E0;background:#fff;font-size:13px;cursor:pointer;color:#555}.pt-filter.active{background:#E3F2FD;border-color:#90CAF9;color:#1976D2}.pt-list{display:flex;flex-direction:column;gap:16px}.pt-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #F0F0F0;cursor:pointer}.pt-card:hover{border-color:#D7D7D7}.pt-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}.pt-project-title{font-size:16px;font-weight:600;color:#333}.pt-status{padding:4px 12px;border-radius:16px;font-size:12px;font-weight:500;white-space:nowrap}.status-green{background:#E8F5E9;color:#2E7D32}.status-yellow{background:#FFF8E1;color:#F57F17}.status-orange{background:#FFF3E0;color:#E65100}.pt-firm{font-size:13px;color:#666;margin-bottom:12px}.pt-meta,.pt-people,.pt-products{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}.pt-meta{gap:20px}.pt-meta-item,.pt-person{display:flex;align-items:center;gap:6px;font-size:13px;color:#555}.pt-person{font-size:12px;color:#666}.pt-meta-item i,.pt-person i{font-size:14px}.pt-product{font-size:12px;color:#555;padding:2px 0}.pt-product.muted{color:#999}.pt-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:12px;border-top:1px solid #F0F0F0}.pt-closing{font-size:13px;color:#666}.pt-closing.overdue{color:#C62828}.pt-details{font-size:13px;color:#666;text-decoration:none;display:flex;align-items:center;gap:4px}.pt-details:before{content:'›';font-size:18px;line-height:1}
 				.sp-perf{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.sp-card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:.75rem 1rem;cursor:pointer}.sp-card:hover{border-color:var(--color-border-secondary)}.spc-status-group{margin-bottom:12px}.spc-status-head{display:flex;align-items:center;justify-content:space-between;background:var(--color-background-secondary);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:12px;font-weight:600}.sp-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.sp-name{font-size:12px;font-weight:600}.sp-role{font-size:10px;color:var(--color-text-secondary)}.sp-stats{display:flex;flex-direction:column;gap:4px}.sp-stat{display:flex;justify-content:space-between;font-size:11px}.sp-stat span{color:var(--color-text-secondary)}.green{color:#3B6D11}.spc-empty{font-size:12px;color:var(--color-text-secondary);padding:10px}
 				@media (max-width: 700px){.spc-filter-row{grid-template-columns:1fr}.fd-row,.arow{align-items:flex-start;flex-wrap:wrap}.fd-sp{min-width:0}.fstage-name{min-width:88px}.spc-tab{padding:5px 9px}.pt-head,.pt-card-head,.pt-footer{align-items:flex-start;flex-direction:column}.pt-search{width:100%}.pt-stats{display:grid;grid-template-columns:repeat(2,1fr)}}
