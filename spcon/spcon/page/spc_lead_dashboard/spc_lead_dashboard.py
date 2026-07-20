@@ -584,6 +584,7 @@ def build_activities(rows, events_by_lead, today):
 			elif event_date == today:
 				status = "Today"
 			activities.append({
+				"event": event.name,
 				"lead": row.name,
 				"lead_title": row.display_name,
 				"customer": row.customer_name,

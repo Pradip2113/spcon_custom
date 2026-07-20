@@ -68,6 +68,30 @@ def get_columns():
 			"fieldtype": "Currency",
 			"width": 170,
 		},
+		{
+			"label": "Sell Minimum Rate (Low Rate)",
+			"fieldname": "minimum_rate",
+			"fieldtype": "Currency",
+			"width": 170,
+		},
+		{
+			"label": "Sell Maximum Rate (High Rate)",
+			"fieldname": "maximum_rate",
+			"fieldtype": "Currency",
+			"width": 180,
+		},
+		{
+			"label": "Sell Avg Rate",
+			"fieldname": "avg_rate",
+			"fieldtype": "Currency",
+			"width": 130,
+		},
+		{
+			"label": "Sell Weighted Avg Rate",
+			"fieldname": "weighted_avg_rate",
+			"fieldtype": "Currency",
+			"width": 170,
+		},
 	]
 
 
@@ -96,8 +120,27 @@ def get_data(filters):
 			b.is_active,
 			b.is_default,
 			b.raw_material_cost,
-			b.custom_final_product_amount
+			b.custom_final_product_amount,
+			rates.minimum_rate,
+			rates.maximum_rate,
+			rates.avg_rate,
+			rates.weighted_avg_rate
 		FROM `tabBOM` b
+		LEFT JOIN (
+			SELECT
+				sii.item_code,
+				MIN(sii.rate) AS minimum_rate,
+				MAX(sii.rate) AS maximum_rate,
+				AVG(sii.rate) AS avg_rate,
+				SUM(sii.rate * sii.qty) / NULLIF(SUM(sii.qty), 0) AS weighted_avg_rate
+			FROM `tabSales Invoice Item` sii
+			INNER JOIN `tabSales Invoice` si ON si.name = sii.parent
+			WHERE sii.parenttype = 'Sales Invoice'
+				AND si.docstatus = 1
+				AND IFNULL(sii.rate, 0) != 0
+				AND IFNULL(sii.qty, 0) > 0
+			GROUP BY sii.item_code
+		) rates ON rates.item_code = b.item
 		WHERE {condition_sql}
 		ORDER BY b.name ASC
 		""",

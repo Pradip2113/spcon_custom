@@ -488,7 +488,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 	render_activity_rows(rows) {
 		if (!rows.length) return this.empty("No lead activities found");
 		return rows.map((row) => `
-			<div class="arow" data-lead="${frappe.utils.escape_html(row.lead)}">
+			<div class="arow" data-event="${frappe.utils.escape_html(row.event || "")}">
 				<div class="av">${frappe.utils.escape_html(row.initials || "NA")}</div>
 				<div class="arow-left">
 					<div class="arow-title">${frappe.utils.escape_html(row.subject || row.lead_title || row.lead)}</div>
@@ -596,6 +596,10 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			const task = $(event.currentTarget).data("task");
 			const doctype = $(event.currentTarget).data("task-doctype") || "CRM Task";
 			if (task) frappe.set_route("Form", doctype, task);
+		});
+		this.page.main.find("[data-event]").off("click").on("click", (event) => {
+			const event_name = $(event.currentTarget).data("event");
+			if (event_name) frappe.set_route("Form", "Event", event_name);
 		});
 		this.page.main.find("[data-lead]").off("click").on("click", (event) => {
 			const lead = $(event.currentTarget).data("lead");
