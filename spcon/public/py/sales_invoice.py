@@ -28,7 +28,8 @@ def set_minimum_qty(doc, method=None):
                 )
 
     if errors:
-        frappe.throw("<br>".join(errors))
+        # frappe.throw("<br>".join(errors))
+        frappe.msgprint("<br>".join(errors))
 
 
 @frappe.whitelist()
