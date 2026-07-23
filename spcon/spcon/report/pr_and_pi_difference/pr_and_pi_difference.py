@@ -26,7 +26,7 @@ def get_columns():
 			"width": 180,
 		},
 		{
-			"label": _("Purchase Receipt Amt"),
+			"label": _("Purchase Receipt Net Amount"),
 			"fieldname": "purchase_receipt_amount",
 			"fieldtype": "Currency",
 			"width": 180,
@@ -39,7 +39,7 @@ def get_columns():
 			"width": 180,
 		},
 		{
-			"label": _("Purchase Invoice Amt"),
+			"label": _("Purchase Invoice Net Amount"),
 			"fieldname": "purchase_invoice_amount",
 			"fieldtype": "Currency",
 			"width": 180,
@@ -54,7 +54,13 @@ def get_columns():
 
 
 def get_data(filters):
-	pr_conditions = ["pr.docstatus = 1"]
+	pr_conditions = [
+		"pr.docstatus = 1",
+		"coalesce(pr.is_internal_supplier, 0) = 0",
+		"coalesce(pr.inter_company_reference, '') = ''",
+		"coalesce(supplier.is_internal_supplier, 0) = 0",
+		"coalesce(supplier.represents_company, '') = ''",
+	]
 	values = {}
 
 	if filters.get("purchase_receipt"):
@@ -77,10 +83,11 @@ def get_data(filters):
 		f"""
 		select
 			pr.name as purchase_receipt,
-			pr.grand_total as purchase_receipt_amount,
+			pr.net_total as purchase_receipt_amount,
 			pr.supplier_name,
 			pr.posting_date
 		from `tabPurchase Receipt` pr
+		left join `tabSupplier` supplier on supplier.name = pr.supplier
 		where {' and '.join(pr_conditions)}
 		order by pr.posting_date, pr.name
 		""",
@@ -154,15 +161,50 @@ def get_invoice_map(pr_names):
 	direct_rows = frappe.db.sql(
 		"""
 		select
-			pii.purchase_receipt,
+			coalesce(nullif(pii.purchase_receipt, ''), pri.parent) as purchase_receipt,
 			pi.name as purchase_invoice,
-			max(coalesce(nullif(pi.custom_po_amount, 0), pi.rounded_total, pi.grand_total)) as purchase_invoice_amount,
+			sum(pii.amount) as purchase_invoice_amount,
 			max(pi.posting_date) as posting_date
 		from `tabPurchase Invoice Item` pii
 		inner join `tabPurchase Invoice` pi on pi.name = pii.parent
+		left join `tabSupplier` supplier on supplier.name = pi.supplier
+		left join `tabPurchase Receipt Item` pri on pri.name = pii.pr_detail
 		where pi.docstatus = 1
-			and pii.purchase_receipt in %(pr_names)s
-		group by pii.purchase_receipt, pi.name
+			and coalesce(pi.is_internal_supplier, 0) = 0
+			and coalesce(pi.inter_company_invoice_reference, '') = ''
+			and coalesce(supplier.is_internal_supplier, 0) = 0
+			and coalesce(supplier.represents_company, '') = ''
+			and (
+				pii.purchase_receipt in %(pr_names)s
+				or pri.parent in %(pr_names)s
+			)
+		group by coalesce(nullif(pii.purchase_receipt, ''), pri.parent), pi.name
+		""",
+		values,
+		as_dict=1,
+	)
+
+	# Reverse link when Purchase Receipt is created from Purchase Invoice.
+	pi_to_pr_rows = frappe.db.sql(
+		"""
+		select
+			pri.parent as purchase_receipt,
+			pi.name as purchase_invoice,
+			sum(pri.amount) as purchase_invoice_amount,
+			max(pi.posting_date) as posting_date
+		from `tabPurchase Receipt Item` pri
+		inner join `tabPurchase Invoice Item` pii on pii.name = pri.purchase_invoice_item
+		inner join `tabPurchase Invoice` pi on pi.name = pii.parent
+		left join `tabSupplier` supplier on supplier.name = pi.supplier
+		where pri.docstatus = 1
+			and pi.docstatus = 1
+			and coalesce(pi.is_internal_supplier, 0) = 0
+			and coalesce(pi.inter_company_invoice_reference, '') = ''
+			and coalesce(supplier.is_internal_supplier, 0) = 0
+			and coalesce(supplier.represents_company, '') = ''
+			and coalesce(pri.purchase_invoice_item, '') != ''
+			and pri.parent in %(pr_names)s
+		group by pri.parent, pi.name
 		""",
 		values,
 		as_dict=1,
@@ -174,12 +216,23 @@ def get_invoice_map(pr_names):
 		select
 			pri.parent as purchase_receipt,
 			pi.name as purchase_invoice,
-			max(coalesce(nullif(pi.custom_po_amount, 0), pi.rounded_total, pi.grand_total)) as purchase_invoice_amount,
+			sum(pii.amount * pri.amount / nullif(po_pr_amount.total_pr_amount, 0)) as purchase_invoice_amount,
 			max(pi.posting_date) as posting_date
 		from `tabPurchase Invoice Item` pii
 		inner join `tabPurchase Invoice` pi on pi.name = pii.parent
+		left join `tabSupplier` supplier on supplier.name = pi.supplier
 		inner join `tabPurchase Receipt Item` pri on pri.purchase_order_item = pii.po_detail
+		inner join (
+			select purchase_order_item, sum(amount) as total_pr_amount
+			from `tabPurchase Receipt Item`
+			where docstatus = 1
+			group by purchase_order_item
+		) po_pr_amount on po_pr_amount.purchase_order_item = pii.po_detail
 		where pi.docstatus = 1
+			and coalesce(pi.is_internal_supplier, 0) = 0
+			and coalesce(pi.inter_company_invoice_reference, '') = ''
+			and coalesce(supplier.is_internal_supplier, 0) = 0
+			and coalesce(supplier.represents_company, '') = ''
 			and (pii.purchase_receipt is null or pii.purchase_receipt = '')
 			and pri.parent in %(pr_names)s
 		group by pri.parent, pi.name
@@ -189,7 +242,7 @@ def get_invoice_map(pr_names):
 	)
 
 	combined = {}
-	for row in direct_rows + fallback_rows:
+	for row in direct_rows + pi_to_pr_rows + fallback_rows:
 		key = (row.purchase_receipt, row.purchase_invoice)
 		existing = combined.get(key)
 		if not existing:
