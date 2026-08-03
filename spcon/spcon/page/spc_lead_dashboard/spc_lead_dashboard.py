@@ -6,6 +6,9 @@ from frappe.utils import add_days, getdate, nowdate
 @frappe.whitelist()
 def get_dashboard_data(filters=None):
 	filters = frappe._dict(frappe.parse_json(filters) or {})
+	if filters.get("demo"):
+		return get_demo_dashboard_data()
+
 	conditions, values = get_conditions(filters)
 	fields = get_lead_fields()
 
@@ -134,6 +137,94 @@ def decide_crm_approval(name, status):
 
 	return {"name": doc.name, "status": doc.status}
 
+
+
+def get_demo_dashboard_data():
+	sales_people = ["Pradip Jadhav", "Yogesh Patil", "Suraj Kilgave", "Vikas Chudmunge", "Pradip Jadhav"]
+	customers = ["ACC Cement", "Ambuja Cement", "Parle-G", "TATA Moters", "Adani Solar"]
+	projects = ["Skyline Heights Phase 2", "MIDC Floor Revamp", "North Point Commercial", "Metro Plaza", "Adani Solar Utility Block"]
+	statuses = ["Opportunity", "Quotation", "Converted", "Open", "Interested"]
+	locations = ["Baner, Pune", "Andheri MIDC, Mumbai", "Gangapur Road, Nashik", "Rajarampuri, Kolhapur", "Sanand, Ahmedabad"]
+	sources = ["Website", "IndiaMART", "Referral", "Cold Call", "Partner Network"]
+	values = [1850000, 2650000, 940000, 720000, 1520000]
+	activity_statuses = ["Today", "Scheduled", "Submitted", "Overdue", "Scheduled"]
+
+	leads = []
+	for idx in range(5):
+		lead_no = idx + 1
+		stage = statuses[idx]
+		leads.append(frappe._dict({
+			"name": f"DEMO-LEAD-000{lead_no}",
+			"owner": f"sales.demo{lead_no}@example.com",
+			"status": stage,
+			"lead_owner": f"sales.demo{lead_no}@example.com",
+			"lead_name": ["Aarav Mehta", "Rohan Shah", "Neha Rao", "Kunal Desai", "Ishaan Verma"][idx],
+			"first_name": ["Aarav", "Rohan", "Neha", "Kunal", "Ishaan"][idx],
+			"company_name": customers[idx],
+			"source": sources[idx],
+			"territory": locations[idx].split(", ")[-1],
+			"project": projects[idx],
+			"project_address": locations[idx],
+			"closing_date": add_days(nowdate(), [14, 28, -4, -2, 21][idx]),
+			"estimated_value": values[idx],
+			"project_name": projects[idx],
+			"display_name": projects[idx],
+			"customer_name": customers[idx],
+			"stage": stage,
+			"badge_class": get_badge_class(stage),
+			"owner_label": sales_people[idx],
+			"activity_status": activity_statuses[idx],
+		}))
+
+	forecast = [
+		frappe._dict({"lead": "DEMO-LEAD-0001", "source_table": "Project Items", "item": "SPC-WP-210", "item_name": "Integral Waterproofing Compound", "qty": 420, "unit": "Kg", "system": "Waterproofing"}),
+		frappe._dict({"lead": "DEMO-LEAD-0002", "source_table": "Project Items", "item": "SPC-FLR-300", "item_name": "Epoxy Floor Coating", "qty": 1250, "unit": "Sqft", "system": "Flooring"}),
+		frappe._dict({"lead": "DEMO-LEAD-0003", "source_table": "Project Items", "item": "SPC-CRK-050", "item_name": "Crack Filler System", "qty": 96, "unit": "Kg", "system": "Repair"}),
+		frappe._dict({"lead": "DEMO-LEAD-0004", "source_table": "Project Items", "item": "SPC-MEM-110", "item_name": "Polymer Membrane Coating", "qty": 185, "unit": "Ltr", "system": "Waterproofing"}),
+		frappe._dict({"lead": "DEMO-LEAD-0005", "source_table": "Project Items", "item": "SPC-GRT-075", "item_name": "Industrial Grout System", "qty": 310, "unit": "Kg", "system": "Strengthening"}),
+	]
+	activities = [
+		{"event": "DEMO-EVT-0001", "lead": "DEMO-LEAD-0001", "lead_title": projects[0], "customer": customers[0], "subject": "Site visit and BOQ validation", "date": nowdate(), "creation": nowdate(), "owner": sales_people[0], "initials": "PJ", "status": "Today"},
+		{"event": "DEMO-EVT-0002", "lead": "DEMO-LEAD-0002", "lead_title": projects[1], "customer": customers[1], "subject": "Quotation follow-up with purchase team", "date": add_days(nowdate(), 3), "creation": nowdate(), "owner": sales_people[1], "initials": "YP", "status": "Scheduled"},
+		{"event": "DEMO-EVT-0003", "lead": "DEMO-LEAD-0003", "lead_title": projects[2], "customer": customers[2], "subject": "Converted order handover meeting", "date": add_days(nowdate(), -4), "creation": nowdate(), "owner": sales_people[2], "initials": "SK", "status": "Submitted"},
+		{"event": "DEMO-EVT-0004", "lead": "DEMO-LEAD-0004", "lead_title": projects[3], "customer": customers[3], "subject": "Pending sample approval", "date": add_days(nowdate(), -2), "creation": nowdate(), "owner": sales_people[3], "initials": "VC", "status": "Overdue"},
+		{"event": "DEMO-EVT-0005", "lead": "DEMO-LEAD-0005", "lead_title": projects[4], "customer": customers[4], "subject": "Technical proposal review", "date": add_days(nowdate(), 7), "creation": nowdate(), "owner": sales_people[4], "initials": "PJ", "status": "Scheduled"},
+	]
+	project_tracker = [
+		{"lead": f"DEMO-LEAD-000{idx+1}", "project": projects[idx], "firm": customers[idx], "location": locations[idx], "sales": sales_people[idx], "estimated_value": values[idx], "owner_name": ["Aarav Mehta", "Rohan Shah", "Neha Rao", "Kunal Desai", "Ishaan Verma"][idx], "architecture": ["Studio A Design", "-", "Concept Studio", "Metro Design Cell", "Solar Infra Design"][idx], "consultant": ["Sample PMC", "FloorTech Consultants", "Repair Consultants", "Civil QA Team", "Energy Project PMC"][idx], "contractor": ["BuildWell Contractors", "Prime Industrial Works", "Parle Site Works", "Metro Civil Team", "Solar EPC Team"][idx], "applicator": ["SPC Applicator A", "SPC Applicator B", "SPC Applicator C", "SPC Applicator D", "SPC Applicator E"][idx], "other": "-", "closing_date": add_days(nowdate(), [14, 28, -4, -2, 21][idx]), "stage": statuses[idx], "products": [forecast[idx].item_name]} for idx in range(5)
+	]
+	return {
+		"summary": {"total_leads": 5, "open_leads": 4, "converted": 1, "lost": 0, "overdue_actions": 1, "today_activities": 1, "forecast_items": 5},
+		"stages": build_stages({"Opportunity": 1, "Quotation": 1, "Converted": 1, "Open": 1, "Interested": 1}),
+		"leads": leads,
+		"activities": activities,
+		"forecast": forecast,
+		"product_forecast": forecast,
+		"show_team_tab": True,
+		"can_decide_all_approvals": False,
+		"team": [
+			{"user": "sales.demo1@example.com", "label": "Pradip Jadhav", "count": 2, "statuses": {"Opportunity": 1, "Interested": 1}},
+			{"user": "sales.demo2@example.com", "label": "Yogesh Patil", "count": 1, "statuses": {"Quotation": 1}},
+			{"user": "sales.demo3@example.com", "label": "Suraj Kilgave", "count": 1, "statuses": {"Converted": 1}},
+			{"user": "sales.demo4@example.com", "label": "Vikas Chudmunge", "count": 1, "statuses": {"Open": 1}},
+			{"user": "sales.demo5@example.com", "label": "Pradip Jadhav", "count": 1, "statuses": {"Interested": 1}},
+		],
+		"project_tracker": project_tracker,
+		"tasks": [
+			{"name": "DEMO-TASK-0001", "doctype": "CRM Task", "type": "Task", "subject": "Send revised technical datasheet", "status": "Working", "priority": "High", "due_date": add_days(nowdate(), 1), "assignees": "Pradip Jadhav"},
+			{"name": "DEMO-TASK-0002", "doctype": "CRM Task", "type": "Task", "subject": "Prepare site measurement note", "status": "Open", "priority": "Medium", "due_date": add_days(nowdate(), -1), "assignees": "Yogesh Patil"},
+			{"name": "DEMO-TASK-0003", "doctype": "CRM Task", "type": "Task", "subject": "Schedule converted order kickoff", "status": "Completed", "priority": "Medium", "due_date": add_days(nowdate(), -3), "assignees": "Suraj Kilgave"},
+			{"name": "DEMO-TASK-0004", "doctype": "CRM Task", "type": "Task", "subject": "Collect sample approval confirmation", "status": "Open", "priority": "High", "due_date": add_days(nowdate(), -2), "assignees": "Vikas Chudmunge"},
+			{"name": "DEMO-TASK-0005", "doctype": "CRM Task", "type": "Task", "subject": "Review technical proposal", "status": "Working", "priority": "Low", "due_date": add_days(nowdate(), 5), "assignees": "Pradip Jadhav"},
+		],
+		"approvals": [
+			{"name": "DEMO-APR-0001", "doctype": "CRM Request Approvel", "subject": "Special discount approval", "status": "Pending", "priority": "High", "due_date": nowdate(), "assignees": "CRM Manager", "lead": "DEMO-LEAD-0002", "approver_user": "crm.manager@example.com"},
+			{"name": "DEMO-APR-0002", "doctype": "CRM Request Approvel", "subject": "Sample dispatch approval", "status": "Approved", "priority": "Medium", "due_date": add_days(nowdate(), -3), "assignees": "CRM Manager", "lead": "DEMO-LEAD-0001", "approved_by": "crm.manager@example.com"},
+			{"name": "DEMO-APR-0003", "doctype": "CRM Request Approvel", "subject": "Credit term approval", "status": "Pending", "priority": "Medium", "due_date": add_days(nowdate(), 2), "assignees": "CRM Manager", "lead": "DEMO-LEAD-0003", "approver_user": "crm.manager@example.com"},
+			{"name": "DEMO-APR-0004", "doctype": "CRM Request Approvel", "subject": "Site demo expense approval", "status": "Rejected", "priority": "Low", "due_date": add_days(nowdate(), -1), "assignees": "CRM Manager", "lead": "DEMO-LEAD-0004", "rejected_by": "crm.manager@example.com"},
+			{"name": "DEMO-APR-0005", "doctype": "CRM Request Approvel", "subject": "Technical visit approval", "status": "Pending", "priority": "High", "due_date": add_days(nowdate(), 4), "assignees": "CRM Manager", "lead": "DEMO-LEAD-0005", "approver_user": "crm.manager@example.com"},
+		],
+	}
 
 def get_crm_task_rows(filters):
 	if frappe.db.exists("DocType", "CRM Task"):
@@ -393,6 +484,7 @@ def get_events_by_lead(lead_names):
 			e.event_category,
 			e.starts_on,
 			e.status,
+			e.docstatus,
 			e.owner,
 			e.creation
 		FROM `tabEvent Participants` ep
@@ -504,12 +596,7 @@ def get_creator_counts(rows):
 
 	for row in rows:
 		if row.owner not in counts:
-			counts[row.owner] = {
-				"user": row.owner,
-				"label": get_user_label(row.owner),
-				"count": 0,
-				"statuses": {status: 0 for status in statuses},
-			}
+			continue
 		status = row.status or _("Open")
 		counts[row.owner]["count"] += 1
 		counts[row.owner]["statuses"].setdefault(status, 0)
@@ -524,23 +611,18 @@ def get_lead_status_options():
 
 
 def get_team_users(rows):
-	row_owners = {row.owner for row in rows if row.owner}
-	role_users = frappe.db.sql(
+	return frappe.db.sql(
 		"""
 		SELECT DISTINCT u.name, u.full_name
 		FROM `tabUser` u
 		INNER JOIN `tabHas Role` hr ON hr.parent = u.name
 		WHERE u.enabled = 1
 			AND u.name NOT IN ('Guest')
-			AND hr.role IN ('Sales User', 'Sales Manager', 'System Manager')
+			AND hr.role = 'Dashboard Team User'
 		ORDER BY u.full_name, u.name
 		""",
 		as_dict=True,
 	)
-	found = {user.name for user in role_users}
-	for owner in row_owners - found:
-		role_users.append(frappe._dict({"name": owner, "full_name": get_user_label(owner)}))
-	return role_users
 
 
 def get_stage(row):
@@ -573,16 +655,16 @@ def build_stages(status_counts):
 	return stages
 
 
+def get_dashboard_event_status(event):
+	if event.docstatus == 1:
+		return "Submitted"
+	return event.status
+
+
 def build_activities(rows, events_by_lead, today):
 	activities = []
 	for row in rows:
-		for event in events_by_lead.get(row.name, [])[:3]:
-			event_date = getdate(event.starts_on) if event.starts_on else None
-			status = "Upcoming"
-			if event_date and event_date < today and event.status != "Closed":
-				status = "Overdue"
-			elif event_date == today:
-				status = "Today"
+		for event in events_by_lead.get(row.name, []):
 			activities.append({
 				"event": event.name,
 				"lead": row.name,
@@ -594,9 +676,9 @@ def build_activities(rows, events_by_lead, today):
 				"creation": event.creation,
 				"owner": get_user_label(event.owner or row.lead_owner),
 				"initials": get_initials(get_user_label(event.owner or row.lead_owner)),
-				"status": status,
+				"status": "Submitted",
 			})
-	return sorted(activities, key=lambda row: row["creation"] or row["date"] or "", reverse=True)[:30]
+	return sorted(activities, key=lambda row: row["creation"] or row["date"] or "", reverse=True)
 
 
 def get_activity_status(events, today):
@@ -604,7 +686,10 @@ def get_activity_status(events, today):
 		return "No Activity"
 	for event in events:
 		event_date = getdate(event.starts_on) if event.starts_on else None
-		if event_date and event_date < today and event.status != "Closed":
+		event_status = get_dashboard_event_status(event)
+		if event_status == "Submitted":
+			return "Submitted"
+		if event_date and event_date < today and event_status != "Closed":
 			return "Overdue"
 		if event_date == today:
 			return "Today"
@@ -625,3 +710,204 @@ def get_user_label(user):
 def get_initials(label):
 	parts = [part for part in (label or "").replace("@", " ").replace(".", " ").split() if part]
 	return "".join(part[0].upper() for part in parts[:2]) or "NA"
+
+
+
+def setup_dashboard_dummy_records():
+	"""Replace only DEMO dashboard records with fresh dummy Lead-related records."""
+	delete_dashboard_dummy_records()
+	users = ensure_dashboard_demo_users()
+	lead_names = create_dashboard_demo_leads(users)
+	create_dashboard_demo_events(lead_names, users)
+	create_dashboard_demo_tasks(lead_names, users)
+	create_dashboard_demo_approvals(lead_names, users)
+	frappe.db.commit()
+	return {
+		"leads": frappe.get_all("Lead", filters={"name": ["in", lead_names]}, pluck="name"),
+		"events": frappe.get_all("Event", filters={"subject": ["like", "DEMO -%"]}, pluck="name"),
+		"tasks": frappe.get_all("CRM Task", filters={"subject": ["like", "DEMO -%"]}, pluck="name") if frappe.db.exists("DocType", "CRM Task") else [],
+		"approvals": frappe.get_all("CRM Request Approvel", filters={"request_types": ["like", "DEMO -%"]}, pluck="name") if frappe.db.exists("DocType", "CRM Request Approvel") else [],
+	}
+
+
+def delete_dashboard_dummy_records():
+	for doctype, filters in (
+		("CRM Request Approvel", {"request_types": ["like", "DEMO -%"]}),
+		("CRM Task", {"subject": ["like", "DEMO -%"]}),
+		("Event", {"subject": ["like", "DEMO -%"]}),
+	):
+		if frappe.db.exists("DocType", doctype):
+			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+				frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+
+	for name in frappe.get_all("Lead", filters={"name": ["like", "DEMO-LEAD-%"]}, pluck="name"):
+		frappe.delete_doc("Lead", name, force=True, ignore_permissions=True)
+
+	frappe.db.commit()
+	return True
+
+
+def ensure_dashboard_demo_users():
+	people = [
+		("demo.pradip.jadhav@example.com", "Pradip", "Jadhav"),
+		("demo.yogesh.patil@example.com", "Yogesh", "Patil"),
+		("demo.suraj.kilgave@example.com", "Suraj", "Kilgave"),
+		("demo.vikas.chudmunge@example.com", "Vikas", "Chudmunge"),
+	]
+	users = []
+	for email, first_name, last_name in people:
+		if not frappe.db.exists("User", email):
+			doc = frappe.get_doc({
+				"doctype": "User",
+				"email": email,
+				"first_name": first_name,
+				"last_name": last_name,
+				"full_name": f"{first_name} {last_name}",
+				"enabled": 1,
+				"send_welcome_email": 0,
+			})
+			doc.flags.ignore_permissions = True
+			doc.flags.ignore_mandatory = True
+			doc.insert(ignore_permissions=True, ignore_mandatory=True)
+		user = frappe.get_doc("User", email)
+		for role in ("Sales User", "Dashboard Team User"):
+			if frappe.db.exists("Role", role) and not any(row.role == role for row in user.roles):
+				user.append("roles", {"role": role})
+		user.enabled = 1
+		user.save(ignore_permissions=True)
+		users.append(email)
+	return users
+
+
+def create_dashboard_demo_leads(users):
+	lead_meta = frappe.get_meta("Lead")
+	rows = [
+		("DEMO-LEAD-0001", "ACC Cement", "Pradip Jadhav", users[0], "Opportunity", "Website", "Skyline Heights Phase 2", "Baner, Pune", 1850000, 14, "Integral Waterproofing Compound", 420),
+		("DEMO-LEAD-0002", "Ambuja Cement", "Yogesh Patil", users[1], "Quotation", "IndiaMART", "MIDC Floor Revamp", "Andheri MIDC, Mumbai", 2650000, 28, "Epoxy Floor Coating", 1250),
+		("DEMO-LEAD-0003", "Parle-G", "Suraj Kilgave", users[2], "Converted", "Referral", "North Point Commercial", "Gangapur Road, Nashik", 940000, -4, "Crack Filler System", 96),
+		("DEMO-LEAD-0004", "TATA Moters", "Vikas Chudmunge", users[3], "Open", "Cold Call", "Metro Plaza", "Rajarampuri, Kolhapur", 720000, -2, "Polymer Membrane Coating", 185),
+		("DEMO-LEAD-0005", "Adani Solar", "Pradip Jadhav", users[0], "Interested", "Partner Network", "Adani Solar Utility Block", "Sanand, Ahmedabad", 1520000, 21, "Industrial Grout System", 310),
+	]
+	created = []
+	for name, company, contact, user, status, source, project, address, value, close_days, item_name, qty in rows:
+		doc = frappe.new_doc("Lead")
+		doc.naming_series = "CRM-LEAD-.YYYY.-"
+		doc.status = status
+		doc.lead_name = contact
+		doc.first_name = contact.split()[0]
+		doc.company_name = company
+		doc.source = source
+		doc.lead_owner = user
+		doc.owner = user
+		doc.territory = address.split(", ")[-1]
+		set_if_has(doc, lead_meta, "custom_lead_type", "Project")
+		set_if_has(doc, lead_meta, "custom_firm_name_lead", company)
+		set_if_has(doc, lead_meta, "custom_project", project)
+		set_if_has(doc, lead_meta, "custom_project_name", project)
+		set_if_has(doc, lead_meta, "custom_project_address", address)
+		set_if_has(doc, lead_meta, "custom_closing_date", add_days(nowdate(), close_days))
+		set_if_has(doc, lead_meta, "custom_estimated_order_value", value)
+		set_if_has(doc, lead_meta, "custom_segment", "Industrial")
+		set_if_has(doc, lead_meta, "custom_scope_of_work", "Demo scope for dashboard")
+		if lead_meta.has_field("custom_project_items"):
+			doc.append("custom_project_items", {"item_name": item_name, "total_qty": qty, "unit": "Kg"})
+		doc.flags.ignore_permissions = True
+		doc.flags.ignore_mandatory = True
+		doc.flags.ignore_links = True
+		doc.insert(ignore_permissions=True, ignore_mandatory=True)
+		if doc.name != name:
+			frappe.rename_doc("Lead", doc.name, name, force=True)
+		created.append(name)
+	return created
+
+
+def create_dashboard_demo_events(lead_names, users):
+	subjects = [
+		("Site visit and BOQ validation", 0, users[0]),
+		("Quotation follow-up with purchase team", 3, users[1]),
+		("Converted order handover meeting", -4, users[2]),
+		("Pending sample approval", -2, users[3]),
+		("Technical proposal review", 7, users[0]),
+	]
+	for idx, (subject, day_offset, user) in enumerate(subjects):
+		doc = frappe.get_doc({
+			"doctype": "Event",
+			"subject": f"DEMO - {subject}",
+			"event_category": "Meeting",
+			"event_type": "Private",
+			"starts_on": add_days(nowdate(), day_offset),
+			"status": "Open" if day_offset >= 0 else "Closed" if idx == 2 else "Open",
+			"owner": user,
+			"event_participants": [{"reference_doctype": "Lead", "reference_docname": lead_names[idx]}],
+		})
+		doc.insert(ignore_permissions=True, ignore_mandatory=True)
+
+
+def create_dashboard_demo_tasks(lead_names, users):
+	if not frappe.db.exists("DocType", "CRM Task"):
+		return
+	department = frappe.db.exists("Department", "Sales - SPC") or frappe.db.exists("Department", "Customer Service - SPC") or "All Departments"
+	tasks = [
+		("Send revised technical datasheet", "Working", "High", 1, users[0]),
+		("Prepare site measurement note", "Open", "Medium", -1, users[1]),
+		("Schedule converted order kickoff", "Completed", "Medium", -3, users[2]),
+		("Collect sample approval confirmation", "Open", "High", -2, users[3]),
+		("Review technical proposal", "Working", "Low", 5, users[0]),
+	]
+	for idx, (subject, status, priority, due_days, user) in enumerate(tasks):
+		doc = frappe.get_doc({
+			"doctype": "CRM Task",
+			"naming_series": "CRM-Task-.####",
+			"subject": f"DEMO - {subject}",
+			"due_date": add_days(nowdate(), due_days),
+			"posting_date": nowdate(),
+			"priority": priority,
+			"status": status,
+			"description": "Dummy task for SPC Lead Dashboard snapshot.",
+			"lead": lead_names[idx],
+			"assign_to": [{"user": user}],
+			"select_departments": [{"department": department}],
+		})
+		doc.flags.ignore_permissions = True
+		doc.flags.ignore_mandatory = True
+		doc.insert(ignore_permissions=True, ignore_mandatory=True)
+
+
+def create_dashboard_demo_approvals(lead_names, users):
+	if not frappe.db.exists("DocType", "CRM Request Approvel"):
+		return
+	department = frappe.db.exists("Department", "Sales - SPC") or frappe.db.exists("Department", "Customer Service - SPC") or "All Departments"
+	approver = users[0]
+	approvals = [
+		("Special discount approval", "Pending", "High", 0, users[1]),
+		("Sample dispatch approval", "Approved", "Medium", -3, users[0]),
+		("Credit term approval", "Pending", "Medium", 2, users[2]),
+		("Site demo expense approval", "Rejected", "Low", -1, users[3]),
+		("Technical visit approval", "Pending", "High", 4, users[0]),
+	]
+	for idx, (request_type, status, priority, date_offset, requested_by) in enumerate(approvals):
+		doc = frappe.get_doc({
+			"doctype": "CRM Request Approvel",
+			"naming_series": "CRM-Req-App-.###",
+			"lead": lead_names[idx],
+			"request_types": f"DEMO - {request_type}",
+			"requested_by": requested_by,
+			"priority": priority,
+			"description": "Dummy approval request for SPC Lead Dashboard snapshot.",
+			"department": [{"department": department}],
+			"request_date": add_days(nowdate(), date_offset),
+			"approver": approver,
+			"status": status,
+		})
+		if status == "Approved":
+			doc.approved_by = approver
+		elif status == "Rejected":
+			doc.rejected_by = approver
+		doc.flags.ignore_permissions = True
+		doc.flags.ignore_mandatory = True
+		doc.insert(ignore_permissions=True, ignore_mandatory=True)
+
+
+def set_if_has(doc, meta, fieldname, value):
+	if meta.has_field(fieldname):
+		doc.set(fieldname, value)

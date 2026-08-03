@@ -161,7 +161,11 @@ doctype_list_js = {
 #     "Lead": "spcon.public.py.permissions.get_permission_query_conditions",
 # }
 permission_query_conditions = {
-    "*": "spcon.permissions.permissions.get_company_condition"
+    "*": "spcon.permissions.permissions.get_company_condition",
+    "Customer": "spcon.permissions.permissions.customer_query",
+    "Sales Order": "spcon.permissions.permissions.sales_order_query",
+    "Sales Invoice": "spcon.permissions.permissions.sales_invoice_query",
+    "Delivery Note": "spcon.permissions.permissions.delivery_note_query",
 }
 
 
@@ -255,7 +259,8 @@ doc_events = {
         "before_save" : [
             "spcon.public.py.set_cost_center.set_cost_center",
             "spcon.public.py.sales_invoice.validate_naming_series"
-        ] 
+        ],
+        "on_submit" : "spcon.public.py.purchase_invoice.validate_service_item"
     },
     "Sales Order": {
         "before_save": [
