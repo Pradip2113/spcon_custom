@@ -17,6 +17,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		this.active_section = "overview";
 		this.project_tracker_filter = "All";
 		this.project_tracker_search = "";
+		this.demo_mode = new URLSearchParams(window.location.search || "").get("demo") === "1";
 		this.can_view_team = frappe.user_roles.includes("CRM Manager");
 		this.setup();
 		this.refresh();
@@ -41,7 +42,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 				<div class="spc-lead-head">
 					<div>
 						<div class="spc-title"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>${__("SPC - Lead Dashboard")}</div>
-						<div class="spc-sub">${__("SP Concare Pvt. Ltd")} &nbsp;·&nbsp; ${__("Lead pipeline and activity monitor")}</div>
+						<div class="spc-sub">${__("SP Concare Private Limited")} &nbsp;·&nbsp; ${__("Lead pipeline and activity monitor")}${this.demo_mode ? ` &nbsp;·&nbsp; ${__("Demo data")}` : ""}</div>
 					</div>
 					<div class="spc-tabs">
 						<button class="spc-tab active" data-section="overview">${__("Overview")}</button>
@@ -130,6 +131,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			to_date: this.to_date.get_value(),
 			lead_owner: this.lead_owner.get_value(),
 			status: this.status.get_value(),
+			demo: this.demo_mode ? 1 : 0,
 		};
 	}
 

@@ -26,6 +26,12 @@ def get_columns():
 			"width": 180,
 		},
 		{
+			"label": _("PR Date"),
+			"fieldname": "purchase_receipt_date",
+			"fieldtype": "Date",
+			"width": 120,
+		},
+		{
 			"label": _("Purchase Receipt Net Amount"),
 			"fieldname": "purchase_receipt_amount",
 			"fieldtype": "Currency",
@@ -37,6 +43,12 @@ def get_columns():
 			"fieldtype": "Link",
 			"options": "Purchase Invoice",
 			"width": 180,
+		},
+		{
+			"label": _("PI Date"),
+			"fieldname": "purchase_invoice_date",
+			"fieldtype": "Date",
+			"width": 120,
 		},
 		{
 			"label": _("Purchase Invoice Net Amount"),
@@ -85,7 +97,7 @@ def get_data(filters):
 			pr.name as purchase_receipt,
 			pr.net_total as purchase_receipt_amount,
 			pr.supplier_name,
-			pr.posting_date
+			pr.posting_date as purchase_receipt_date
 		from `tabPurchase Receipt` pr
 		left join `tabSupplier` supplier on supplier.name = pr.supplier
 		where {' and '.join(pr_conditions)}
@@ -120,8 +132,10 @@ def get_data(filters):
 				{
 					"purchase_receipt": pr_row.purchase_receipt,
 					"purchase_receipt_amount": pr_row.purchase_receipt_amount,
+					"purchase_receipt_date": pr_row.purchase_receipt_date,
 					"supplier_name": pr_row.supplier_name,
 					"purchase_invoice": None,
+					"purchase_invoice_date": None,
 					"purchase_invoice_amount": None,
 					"difference": difference,
 				}
@@ -132,9 +146,11 @@ def get_data(filters):
 			data.append(
 				{
 					"purchase_receipt": pr_row.purchase_receipt if idx == 0 else None,
+					"purchase_receipt_date": pr_row.purchase_receipt_date if idx == 0 else None,
 					"purchase_receipt_amount": pr_row.purchase_receipt_amount if idx == 0 else None,
 					"supplier_name": pr_row.supplier_name if idx == 0 else None,
 					"purchase_invoice": inv_row.purchase_invoice,
+					"purchase_invoice_date": inv_row.purchase_invoice_date,
 					"purchase_invoice_amount": inv_row.purchase_invoice_amount,
 					"difference": difference if idx == 0 else None,
 				}
@@ -143,9 +159,11 @@ def get_data(filters):
 	data.append(
 		{
 			"purchase_receipt": _("Total"),
+			"purchase_receipt_date": None,
 			"purchase_receipt_amount": total_pr_amount,
 			"supplier_name": None,
 			"purchase_invoice": None,
+			"purchase_invoice_date": None,
 			"purchase_invoice_amount": total_pi_amount,
 			"difference": total_difference,
 		}
@@ -164,7 +182,7 @@ def get_invoice_map(pr_names):
 			coalesce(nullif(pii.purchase_receipt, ''), pri.parent) as purchase_receipt,
 			pi.name as purchase_invoice,
 			sum(pii.amount) as purchase_invoice_amount,
-			max(pi.posting_date) as posting_date
+			max(pi.posting_date) as purchase_invoice_date
 		from `tabPurchase Invoice Item` pii
 		inner join `tabPurchase Invoice` pi on pi.name = pii.parent
 		left join `tabSupplier` supplier on supplier.name = pi.supplier
@@ -191,7 +209,7 @@ def get_invoice_map(pr_names):
 			pri.parent as purchase_receipt,
 			pi.name as purchase_invoice,
 			sum(pri.amount) as purchase_invoice_amount,
-			max(pi.posting_date) as posting_date
+			max(pi.posting_date) as purchase_invoice_date
 		from `tabPurchase Receipt Item` pri
 		inner join `tabPurchase Invoice Item` pii on pii.name = pri.purchase_invoice_item
 		inner join `tabPurchase Invoice` pi on pi.name = pii.parent
@@ -217,7 +235,7 @@ def get_invoice_map(pr_names):
 			pri.parent as purchase_receipt,
 			pi.name as purchase_invoice,
 			sum(pii.amount * pri.amount / nullif(po_pr_amount.total_pr_amount, 0)) as purchase_invoice_amount,
-			max(pi.posting_date) as posting_date
+			max(pi.posting_date) as purchase_invoice_date
 		from `tabPurchase Invoice Item` pii
 		inner join `tabPurchase Invoice` pi on pi.name = pii.parent
 		left join `tabSupplier` supplier on supplier.name = pi.supplier
@@ -251,8 +269,10 @@ def get_invoice_map(pr_names):
 
 		if flt(row.purchase_invoice_amount) > flt(existing.purchase_invoice_amount):
 			existing.purchase_invoice_amount = row.purchase_invoice_amount
-		if row.posting_date and (not existing.posting_date or row.posting_date < existing.posting_date):
-			existing.posting_date = row.posting_date
+		if row.purchase_invoice_date and (
+			not existing.purchase_invoice_date or row.purchase_invoice_date < existing.purchase_invoice_date
+		):
+			existing.purchase_invoice_date = row.purchase_invoice_date
 
 	invoice_map = {}
 	for row in combined.values():
