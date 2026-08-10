@@ -81,7 +81,9 @@ def should_apply_sales_person_restriction(user):
     return "CRM Sales Person" in roles and not is_manager(user, roles)
 
 
-def customer_query(user):
+def get_sales_person_customer_condition(user=None, table_alias="Customer"):
+    user = user or frappe.session.user
+
     if not should_apply_sales_person_restriction(user):
         return ""
 
@@ -91,8 +93,30 @@ def customer_query(user):
         return "1=0"
 
     return f"""
-        `tabCustomer`.custom_sales_person = {frappe.db.escape(sales_person)}
+        `{table_alias}`.custom_sales_person = {frappe.db.escape(sales_person)}
     """
+
+
+def get_sales_person_customer_names(user=None):
+    user = user or frappe.session.user
+
+    if not should_apply_sales_person_restriction(user):
+        return None
+
+    sales_person = get_sales_person(user)
+
+    if not sales_person:
+        return []
+
+    return frappe.get_all(
+        "Customer",
+        filters={"custom_sales_person": sales_person},
+        pluck="name",
+    )
+
+
+def customer_query(user):
+    return get_sales_person_customer_condition(user, "tabCustomer")
 
 
 def sales_order_query(user):
