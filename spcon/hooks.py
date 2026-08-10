@@ -340,6 +340,7 @@ doc_events = {
 # ------------------------------
 #
 override_whitelisted_methods = {
+    "frappe.desk.query_report.run": "spcon.override.query_report.run",
     "erpnext.controllers.accounts_controller.update_child_qty_rate":"spcon.override.sales_order_dates.update_child_qty_rate",
     "erpnext.accounts.doctype.sales_invoice.sales_invoice.make_inter_company_purchase_invoice":"spcon.public.py.inter_company_order.make_inter_company_purchase_invoice",
 }
