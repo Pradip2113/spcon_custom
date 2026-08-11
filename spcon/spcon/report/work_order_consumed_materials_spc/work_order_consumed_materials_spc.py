@@ -47,24 +47,29 @@ def get_data(report_filters):
 
 def get_returned_materials(work_orders):
 	raw_materials_qty = defaultdict(float)
+	work_order_names = [d.name for d in work_orders]
 
-	raw_materials = frappe.get_all(
-		"Stock Entry",
-		fields=[
-			"`tabStock Entry`.`work_order`",
-			"`tabStock Entry Detail`.`item_code`",
-			"`tabStock Entry Detail`.`qty`",
-		],
-		filters=[
-			["Stock Entry", "is_return", "=", 1],
-			["Stock Entry Detail", "docstatus", "=", 1],
-			["Stock Entry", "work_order", "in", [d.name for d in work_orders]],
-		],
-	)
+	if not work_order_names:
+		return
 
-	for d in raw_materials:
-		key = (d.work_order, d.item_code)
-		raw_materials_qty[key] += d.qty
+	for work_order_names_chunk in frappe.utils.create_batch(work_order_names, 500):
+		raw_materials = frappe.get_all(
+			"Stock Entry",
+			fields=[
+				"`tabStock Entry`.`work_order`",
+				"`tabStock Entry Detail`.`item_code`",
+				"`tabStock Entry Detail`.`qty`",
+			],
+			filters=[
+				["Stock Entry", "is_return", "=", 1],
+				["Stock Entry Detail", "docstatus", "=", 1],
+				["Stock Entry", "work_order", "in", work_order_names_chunk],
+			],
+		)
+
+		for d in raw_materials:
+			key = (d.work_order, d.item_code)
+			raw_materials_qty[key] += d.qty
 
 	for row in work_orders:
 		row.returned_qty = 0.0
