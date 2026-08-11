@@ -7,6 +7,7 @@ from spcon.permissions.permissions import get_sales_person_customer_names
 
 
 RESTRICTED_RESULT_REPORTS = {"General Ledger", "Sales Analytics", "Sales Report"}
+REPORT_ALIASES = {"Work Order Consumed Materials": "Work Order Consumed Materials SPC"}
 
 
 @frappe.whitelist()
@@ -22,6 +23,7 @@ def run(
 	are_default_filters=True,
 ):
 	filters = parse_filters(filters)
+	report_name = REPORT_ALIASES.get(report_name, report_name)
 
 	run_as_user = user
 	if report_name in RESTRICTED_RESULT_REPORTS:
