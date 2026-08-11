@@ -6,7 +6,8 @@ from frappe.desk.query_report import _run as original_run, get_report_doc
 from spcon.permissions.permissions import get_sales_person_customer_names
 
 
-RESTRICTED_RESULT_REPORTS = {"General Ledger", "Sales Analytics", "Sales Report"}
+RESTRICTED_RESULT_REPORTS = {"Sales Analytics", "Sales Report"}
+RESTRICTED_FILTER_REPORTS = {"General Ledger"}
 REPORT_ALIASES = {"Work Order Consumed Materials": "Work Order Consumed Materials SPC"}
 
 
@@ -26,7 +27,10 @@ def run(
 	report_name = REPORT_ALIASES.get(report_name, report_name)
 
 	run_as_user = user
-	if report_name in RESTRICTED_RESULT_REPORTS:
+	if report_name in RESTRICTED_FILTER_REPORTS:
+		filters = apply_general_ledger_customer_filter(filters)
+
+	if report_name in RESTRICTED_RESULT_REPORTS or report_name in RESTRICTED_FILTER_REPORTS:
 		get_report_doc(report_name)
 		run_as_user = "Administrator"
 
@@ -63,6 +67,8 @@ def apply_general_ledger_customer_filter(filters):
 	requested_parties = filters.get("party")
 	if isinstance(requested_parties, str):
 		requested_parties = json.loads(requested_parties) if requested_parties.startswith("[") else [requested_parties]
+	elif not isinstance(requested_parties, (list, tuple, set)):
+		requested_parties = []
 
 	if requested_parties:
 		allowed_customers = [customer for customer in allowed_customers if customer in requested_parties]
