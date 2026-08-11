@@ -7,7 +7,6 @@ from spcon.permissions.permissions import get_sales_person_customer_names
 
 
 RESTRICTED_RESULT_REPORTS = {"Sales Analytics", "Sales Report"}
-RESTRICTED_FILTER_REPORTS = {"General Ledger"}
 REPORT_ALIASES = {"Work Order Consumed Materials": "Work Order Consumed Materials SPC"}
 
 
@@ -27,10 +26,7 @@ def run(
 	report_name = REPORT_ALIASES.get(report_name, report_name)
 
 	run_as_user = user
-	if report_name in RESTRICTED_FILTER_REPORTS:
-		filters = apply_general_ledger_customer_filter(filters)
-
-	if report_name in RESTRICTED_RESULT_REPORTS or report_name in RESTRICTED_FILTER_REPORTS:
+	if report_name in RESTRICTED_RESULT_REPORTS:
 		get_report_doc(report_name)
 		run_as_user = "Administrator"
 
@@ -56,26 +52,6 @@ def parse_filters(filters):
 		return frappe._dict(json.loads(filters or "{}"))
 
 	return frappe._dict(filters or {})
-
-
-def apply_general_ledger_customer_filter(filters):
-	allowed_customers = get_sales_person_customer_names()
-
-	if allowed_customers is None:
-		return filters
-
-	requested_parties = filters.get("party")
-	if isinstance(requested_parties, str):
-		requested_parties = json.loads(requested_parties) if requested_parties.startswith("[") else [requested_parties]
-	elif not isinstance(requested_parties, (list, tuple, set)):
-		requested_parties = []
-
-	if requested_parties:
-		allowed_customers = [customer for customer in allowed_customers if customer in requested_parties]
-
-	filters["party_type"] = "Customer"
-	filters["party"] = allowed_customers or ["__no_assigned_customer__"]
-	return filters
 
 
 def filter_report_result_by_customer(result):
