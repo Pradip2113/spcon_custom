@@ -180,6 +180,7 @@ frappe.ui.form.on("Lead", {
 
         update_project_detail_inputs(frm);
         render_crm_tasks(frm);
+        render_lead_chat(frm);
 
         frm.set_query('custom_scope_of_work', function () {
             return {
@@ -516,6 +517,138 @@ function clear_project_detail_inputs(frm) {
     frm.set_value("custom_scope_of_work", "");
     frm.set_value("custom_system", "");
     consumption_fields.forEach(fieldname => frm.set_value(fieldname, null));
+}
+
+function render_lead_chat(frm) {
+    if (!frm.fields_dict.custom_lead_chat) return;
+
+    const wrapper = frm.fields_dict.custom_lead_chat.$wrapper;
+
+    if (frm.is_new()) {
+        wrapper.html(`<div class="text-muted">${__("Save the Lead to view chat.")}</div>`);
+        return;
+    }
+
+    wrapper.html(`
+        <style>
+            .lead-chat-box{border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;background:#FFFFFF}
+            .lead-chat-view{background:#F4F6F8;padding:14px;min-height:220px;max-height:420px;overflow-y:auto}
+            .lead-chat-box *{box-sizing:border-box}
+            .lead-chat-empty{color:#6B7280;font-size:13px;text-align:center;padding:70px 12px}
+            .lead-chat-row{display:flex;margin:8px 0}
+            .lead-chat-row.mine{justify-content:flex-end}
+            .lead-chat-row.other{justify-content:flex-start}
+            .lead-chat-bubble{max-width:72%;border-radius:12px;padding:9px 11px;box-shadow:0 1px 2px rgba(15,23,42,.08);word-break:break-word}
+            .lead-chat-row.mine .lead-chat-bubble{background:#DCF8C6;border-bottom-right-radius:4px}
+            .lead-chat-row.other .lead-chat-bubble{background:#FFFFFF;border-bottom-left-radius:4px}
+            .lead-chat-message{font-size:13px;line-height:1.45;color:#111827;white-space:pre-wrap}
+            .lead-chat-meta{font-size:10.5px;color:#6B7280;margin-top:5px;text-align:right}
+            .lead-chat-compose{display:flex;gap:8px;align-items:flex-end;border-top:1px solid #E5E7EB;background:#FFFFFF;padding:10px}
+            .lead-chat-input{flex:1;min-height:38px;max-height:92px;resize:vertical;border:1px solid #D1D5DB;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4;outline:none}
+            .lead-chat-input:focus{border-color:#22C55E;box-shadow:0 0 0 2px rgba(34,197,94,.12)}
+            .lead-chat-send{border:none;border-radius:8px;background:#22C55E;color:#FFFFFF;font-size:13px;font-weight:600;padding:9px 16px;min-height:38px;cursor:pointer}
+            .lead-chat-send:disabled{background:#9CA3AF;cursor:not-allowed}
+            @media(max-width:760px){.lead-chat-bubble{max-width:86%}.lead-chat-compose{align-items:stretch}.lead-chat-send{padding:9px 12px}}
+        </style>
+        <div class="lead-chat-box">
+            <div class="lead-chat-view"><div class="lead-chat-empty">${__("Loading chat...")}</div></div>
+            <div class="lead-chat-compose">
+                <textarea class="lead-chat-input" rows="1" placeholder="${__("Type a message")}"></textarea>
+                <button class="lead-chat-send" type="button">${__("Send")}</button>
+            </div>
+        </div>
+    `);
+
+    const chatView = wrapper.find(".lead-chat-view");
+    const input = wrapper.find(".lead-chat-input");
+    const sendButton = wrapper.find(".lead-chat-send");
+    const esc = frappe.utils.escape_html;
+
+    function load_chat() {
+        chatView.html(`<div class="lead-chat-empty">${__("Loading chat...")}</div>`);
+
+        return frappe.db.get_list("Lead Chat", {
+            fields: ["name"],
+            filters: { lead: frm.doc.name },
+            order_by: "modified desc",
+            limit: 1
+        }).then((records) => {
+            if (!records || !records.length) {
+                chatView.html(`<div class="lead-chat-empty">${__("No messages yet.")}</div>`);
+                return;
+            }
+
+            return frappe.db.get_doc("Lead Chat", records[0].name).then((chat) => {
+                const rows = (chat.chat_history || []).slice().sort((a, b) => {
+                    const aIdx = cint(a.idx);
+                    const bIdx = cint(b.idx);
+
+                    if (aIdx && bIdx && aIdx !== bIdx) {
+                        return aIdx - bIdx;
+                    }
+
+                    return new Date(a.date || a.creation || 0) - new Date(b.date || b.creation || 0);
+                });
+
+                if (!rows.length) {
+                    chatView.html(`<div class="lead-chat-empty">${__("No messages yet.")}</div>`);
+                    return;
+                }
+
+                const html = rows.map((row) => {
+                    const isMine = row.user === frappe.session.user;
+                    const dateText = row.date ? frappe.datetime.str_to_user(row.date) : "";
+                    const meta = [row.user, dateText].filter(Boolean).join(" • ");
+
+                    return `
+                        <div class="lead-chat-row ${isMine ? "mine" : "other"}">
+                            <div class="lead-chat-bubble">
+                                <div class="lead-chat-message">${esc(row.message || "")}</div>
+                                <div class="lead-chat-meta">${esc(meta)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                chatView.html(html);
+                chatView.scrollTop(chatView.get(0).scrollHeight);
+            });
+        }).catch(() => {
+            chatView.html(`<div class="lead-chat-empty text-danger">${__("Unable to load chat.")}</div>`);
+        });
+    }
+
+    function send_message() {
+        const message = (input.val() || "").trim();
+        if (!message) return;
+
+        sendButton.prop("disabled", true);
+        frappe.call({
+            method: "spcon.public.py.lead.add_lead_chat_message",
+            args: {
+                lead: frm.doc.name,
+                message: message
+            },
+            callback: () => {
+                input.val("");
+                load_chat();
+            },
+            always: () => {
+                sendButton.prop("disabled", false);
+                input.focus();
+            }
+        });
+    }
+
+    sendButton.on("click", send_message);
+    input.on("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            send_message();
+        }
+    });
+
+    load_chat();
 }
 
 function render_crm_tasks(frm) {
