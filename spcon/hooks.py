@@ -242,6 +242,8 @@ doc_events = {
     },
     "Lead": {
         "before_save": "spcon.public.py.lead.set_title_field",
+        "after_insert": "spcon.public.py.lead.create_lead_chat",
+        "on_trash": "spcon.public.py.lead.delete_lead_chat",
     },
     "Purchase Order": {
         "before_save": [
