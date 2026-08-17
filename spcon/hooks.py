@@ -241,8 +241,11 @@ doc_events = {
         "before_submit": "spcon.public.py.quality_inspection.set_parametor_mandetory"
     },
     "Lead": {
-        "before_save": "spcon.public.py.lead.set_title_field",
+        "before_save":[ "spcon.public.py.lead.set_title_field",\
+                        "spcon.public.py.lead.update_project_lead_todo",
+            ],
         "after_insert": "spcon.public.py.lead.create_lead_chat",
+        "on_update": "spcon.public.py.lead.update_project_lead_todo",
         "on_trash": "spcon.public.py.lead.delete_lead_chat",
     },
     "Purchase Order": {
