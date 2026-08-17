@@ -538,22 +538,33 @@ function render_lead_chat(frm) {
             .lead-chat-row{display:flex;margin:8px 0}
             .lead-chat-row.mine{justify-content:flex-end}
             .lead-chat-row.other{justify-content:flex-start}
-            .lead-chat-bubble{max-width:72%;border-radius:12px;padding:9px 11px;box-shadow:0 1px 2px rgba(15,23,42,.08);word-break:break-word}
+            .lead-chat-bubble{max-width:88%;border-radius:12px;padding:9px 11px;box-shadow:0 1px 2px rgba(15,23,42,.08);word-break:break-word}
             .lead-chat-row.mine .lead-chat-bubble{background:#DCF8C6;border-bottom-right-radius:4px}
             .lead-chat-row.other .lead-chat-bubble{background:#FFFFFF;border-bottom-left-radius:4px}
             .lead-chat-message{font-size:13px;line-height:1.45;color:#111827;white-space:pre-wrap}
             .lead-chat-meta{font-size:10.5px;color:#6B7280;margin-top:5px;text-align:right}
             .lead-chat-compose{display:flex;gap:8px;align-items:flex-end;border-top:1px solid #E5E7EB;background:#FFFFFF;padding:10px}
-            .lead-chat-input{flex:1;min-height:38px;max-height:92px;resize:vertical;border:1px solid #D1D5DB;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4;outline:none}
+            .lead-chat-input{width:100%;flex:1;min-height:38px;max-height:92px;resize:vertical;border:1px solid #D1D5DB;border-radius:8px;padding:9px 10px;font-size:13px;line-height:1.4;outline:none}
             .lead-chat-input:focus{border-color:#22C55E;box-shadow:0 0 0 2px rgba(34,197,94,.12)}
             .lead-chat-send{border:none;border-radius:8px;background:#22C55E;color:#FFFFFF;font-size:13px;font-weight:600;padding:9px 16px;min-height:38px;cursor:pointer}
             .lead-chat-send:disabled{background:#9CA3AF;cursor:not-allowed}
-            @media(max-width:760px){.lead-chat-bubble{max-width:86%}.lead-chat-compose{align-items:stretch}.lead-chat-send{padding:9px 12px}}
+            .lead-chat-input-wrap{position:relative;flex:1}
+            .lead-chat-mentions{position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:#FFFFFF;border:1px solid #D1D5DB;border-radius:8px;box-shadow:0 10px 24px rgba(15,23,42,.16);max-height:220px;overflow-y:auto;z-index:20}
+            .lead-chat-mention-item{display:flex;gap:8px;align-items:center;width:100%;border:0;background:#FFFFFF;text-align:left;padding:8px 10px;cursor:pointer}
+            .lead-chat-mention-item:hover,.lead-chat-mention-item.active{background:#F3F4F6}
+            .lead-chat-mention-avatar{width:28px;height:28px;border-radius:50%;background:#E5E7EB;color:#374151;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto}
+            .lead-chat-mention-name{font-size:13px;font-weight:600;color:#111827;line-height:1.2}
+            .lead-chat-mention-email{font-size:11px;color:#6B7280;line-height:1.2;margin-top:2px}
+            .lead-chat-mention{font-weight:700;color:#047857}
+            @media(max-width:760px){.lead-chat-bubble{max-width:94%}.lead-chat-compose{align-items:stretch}.lead-chat-send{padding:9px 12px}}
         </style>
         <div class="lead-chat-box">
             <div class="lead-chat-view"><div class="lead-chat-empty">${__("Loading chat...")}</div></div>
             <div class="lead-chat-compose">
-                <textarea class="lead-chat-input" rows="1" placeholder="${__("Type a message")}"></textarea>
+                <div class="lead-chat-input-wrap">
+                    <div class="lead-chat-mentions hide"></div>
+                    <textarea class="lead-chat-input" rows="1" placeholder="${__("Type a message")}"></textarea>
+                </div>
                 <button class="lead-chat-send" type="button">${__("Send")}</button>
             </div>
         </div>
@@ -561,8 +572,103 @@ function render_lead_chat(frm) {
 
     const chatView = wrapper.find(".lead-chat-view");
     const input = wrapper.find(".lead-chat-input");
+    const mentionsBox = wrapper.find(".lead-chat-mentions");
     const sendButton = wrapper.find(".lead-chat-send");
     const esc = frappe.utils.escape_html;
+    const mentionState = { users: [], selected: 0, active: null, mentionedUsers: {} };
+
+    function render_message(message) {
+        return esc(message || "").replace(/(^|\s)(@[^\s@][^@\n\r]*)/g, (match, prefix, mention) => {
+            return `${prefix}<span class="lead-chat-mention">${mention}</span>`;
+        });
+    }
+
+    function get_mention_query() {
+        const el = input.get(0);
+        const cursor = el.selectionStart || 0;
+        const text = input.val() || "";
+        const uptoCursor = text.slice(0, cursor);
+        const match = uptoCursor.match(/(^|\s)@([^\s@]*)$/);
+
+        if (!match) return null;
+
+        return {
+            start: cursor - match[2].length - 1,
+            end: cursor,
+            query: match[2]
+        };
+    }
+
+    function hide_mentions() {
+        mentionsBox.addClass("hide").empty();
+        mentionState.active = null;
+        mentionState.users = [];
+        mentionState.selected = 0;
+    }
+
+    function render_mentions(users) {
+        mentionState.users = users || [];
+        mentionState.selected = 0;
+
+        if (!mentionState.users.length) {
+            hide_mentions();
+            return;
+        }
+
+        mentionsBox.html(mentionState.users.map((user, index) => {
+            const label = user.full_name || user.name;
+            const initials = label.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase();
+
+            return `
+                <button class="lead-chat-mention-item ${index === 0 ? "active" : ""}" type="button" data-index="${index}">
+                    <span class="lead-chat-mention-avatar">${esc(initials || "@")}</span>
+                    <span>
+                        <div class="lead-chat-mention-name">${esc(label)}</div>
+                        <div class="lead-chat-mention-email">${esc(user.name)}</div>
+                    </span>
+                </button>
+            `;
+        }).join(""));
+        mentionsBox.removeClass("hide");
+    }
+
+    function refresh_mentions() {
+        const active = get_mention_query();
+        mentionState.active = active;
+
+        if (!active) {
+            hide_mentions();
+            return;
+        }
+
+        frappe.call({
+            method: "spcon.public.py.lead.search_mention_users",
+            args: { txt: active.query },
+            callback: (r) => {
+                if (!mentionState.active || mentionState.active.query !== active.query) return;
+                render_mentions(r.message || []);
+            }
+        });
+    }
+
+    function select_mention(index) {
+        const active = mentionState.active || get_mention_query();
+        const user = mentionState.users[index];
+        if (!active || !user) return;
+
+        const el = input.get(0);
+        const text = input.val() || "";
+        const label = user.full_name || user.name;
+        const mention = `@${label} `;
+        const next = text.slice(0, active.start) + mention + text.slice(active.end);
+        const cursor = active.start + mention.length;
+
+        input.val(next);
+        el.focus();
+        el.setSelectionRange(cursor, cursor);
+        mentionState.mentionedUsers[user.name] = label;
+        hide_mentions();
+    }
 
     function load_chat() {
         chatView.html(`<div class="lead-chat-empty">${__("Loading chat...")}</div>`);
@@ -603,7 +709,7 @@ function render_lead_chat(frm) {
                     return `
                         <div class="lead-chat-row ${isMine ? "mine" : "other"}">
                             <div class="lead-chat-bubble">
-                                <div class="lead-chat-message">${esc(row.message || "")}</div>
+                                <div class="lead-chat-message">${render_message(row.message || "")}</div>
                                 <div class="lead-chat-meta">${esc(meta)}</div>
                             </div>
                         </div>
@@ -627,10 +733,15 @@ function render_lead_chat(frm) {
             method: "spcon.public.py.lead.add_lead_chat_message",
             args: {
                 lead: frm.doc.name,
-                message: message
+                message: message,
+                mentioned_users: Object.keys(mentionState.mentionedUsers).filter((user) => {
+                    return message.includes(`@${mentionState.mentionedUsers[user]}`);
+                })
             },
             callback: () => {
                 input.val("");
+                mentionState.mentionedUsers = {};
+                hide_mentions();
                 load_chat();
             },
             always: () => {
@@ -642,10 +753,37 @@ function render_lead_chat(frm) {
 
     sendButton.on("click", send_message);
     input.on("keydown", (e) => {
+        if (!mentionsBox.hasClass("hide") && ["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key)) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                hide_mentions();
+                return;
+            }
+
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                e.preventDefault();
+                const delta = e.key === "ArrowDown" ? 1 : -1;
+                mentionState.selected = (mentionState.selected + delta + mentionState.users.length) % mentionState.users.length;
+                mentionsBox.find(".lead-chat-mention-item").removeClass("active").eq(mentionState.selected).addClass("active");
+                return;
+            }
+
+            if (e.key === "Enter") {
+                e.preventDefault();
+                select_mention(mentionState.selected);
+                return;
+            }
+        }
+
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             send_message();
         }
+    });
+    input.on("input click keyup", () => refresh_mentions());
+    mentionsBox.on("mousedown", ".lead-chat-mention-item", (e) => {
+        e.preventDefault();
+        select_mention(cint($(e.currentTarget).data("index")));
     });
 
     load_chat();

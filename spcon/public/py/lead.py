@@ -8,7 +8,10 @@ class CustomLead(Lead):
     #     return super().set_status(update=update)
 
 
+import json
+
 import frappe
+from frappe.desk.form import assign_to
 
 def create_lead_chat(doc, method=None):
     if isinstance(doc, str):
@@ -44,7 +47,61 @@ def delete_lead_chat(doc, method=None):
         raise
 
 @frappe.whitelist()
-def add_lead_chat_message(lead, message):
+def search_mention_users(txt=""):
+    txt = (txt or "").strip()
+    filters = {"enabled": 1, "user_type": "System User"}
+    or_filters = None
+
+    if txt:
+        or_filters = {
+            "name": ["like", f"%{txt}%"],
+            "full_name": ["like", f"%{txt}%"],
+        }
+
+    return frappe.get_all(
+        "User",
+        fields=["name", "full_name"],
+        filters=filters,
+        or_filters=or_filters,
+        order_by="full_name asc",
+        limit_page_length=10,
+    )
+
+
+def _coerce_mentioned_users(mentioned_users):
+    if not mentioned_users:
+        return []
+
+    if isinstance(mentioned_users, str):
+        try:
+            mentioned_users = json.loads(mentioned_users)
+        except Exception:
+            mentioned_users = [mentioned_users]
+
+    if not isinstance(mentioned_users, (list, tuple, set)):
+        return []
+
+    clean_users = []
+    for user in mentioned_users:
+        user = (user or "").strip()
+        if user and frappe.db.exists("User", {"name": user, "enabled": 1}):
+            clean_users.append(user)
+
+    return list(dict.fromkeys(clean_users))
+
+
+def _assign_mentioned_users(lead, mentioned_users):
+    for user in _coerce_mentioned_users(mentioned_users):
+        assign_to.add({
+            "assign_to": [user],
+            "doctype": "Lead",
+            "name": lead,
+            "description": f"Mentioned in Lead chat by {frappe.session.user}",
+        })
+
+
+@frappe.whitelist()
+def add_lead_chat_message(lead, message, mentioned_users=None):
     if not lead:
         frappe.throw("Lead is required")
 
@@ -68,6 +125,7 @@ def add_lead_chat_message(lead, message):
         "date": frappe.utils.now_datetime(),
     })
     lead_chat.save(ignore_permissions=True)
+    _assign_mentioned_users(lead, mentioned_users)
 
     return lead_chat.name
 
