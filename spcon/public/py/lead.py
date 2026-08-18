@@ -141,3 +141,54 @@ def set_firm_name(firm_name):
 def set_title_field(doc,method=None):
     doc.title = doc.custom_firm_name_lead
 
+
+
+
+#*************************************************************************************************************************
+def update_project_lead_todo(doc, method=None):
+    sales_person = doc.custom_handover_to_project_lead
+
+    if not sales_person:
+        return
+
+    # Only when Sales Person changes
+    if not doc.is_new() and not doc.has_value_changed("custom_handover_to_project_lead"):
+        return
+
+    # Delete old ToDo
+    frappe.db.delete("ToDo", {
+        "reference_type": "Lead",
+        "reference_name": doc.name
+    })
+
+    # Get Employee from Sales Person
+    employee = frappe.db.get_value(
+        "Sales Person",
+        sales_person,
+        "employee"
+    )
+
+    if not employee:
+        frappe.throw(
+            f"Please map an Employee for Sales Person: {sales_person}"
+        )
+
+    # Get User ID from Employee
+    user = frappe.db.get_value(
+        "Employee",
+        employee,
+        "user_id"
+    )
+
+    if not user:
+        return
+
+    # Create new ToDo
+    frappe.get_doc({
+        "doctype": "ToDo",
+        "allocated_to": user,
+        "reference_type": "Lead",
+        "reference_name": doc.name,
+        "description":  doc.name,
+        "assigned_by": frappe.session.user
+    }).insert(ignore_permissions=True)
