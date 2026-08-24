@@ -22,6 +22,7 @@ def _get_changed_sales_order_rows(old_doc, trans_items):
         if not old_row:
             continue
 
+        prev_item_code, new_item_code = old_row.get("item_code"), row.get("item_code")
         prev_rate, new_rate = flt(old_row.get("rate")), flt(row.get("rate"))
         prev_qty, new_qty = flt(old_row.get("qty")), flt(row.get("qty"))
         prev_con_fac, new_con_fac = flt(old_row.get("conversion_factor")), flt(
@@ -31,6 +32,7 @@ def _get_changed_sales_order_rows(old_doc, trans_items):
         prev_bom, new_bom = old_row.get("bom_no"), row.get("bom_no")
         prev_date, new_date = old_row.get("delivery_date"), row.get("delivery_date")
 
+        item_code_unchanged = prev_item_code == new_item_code
         rate_unchanged = prev_rate == new_rate
         qty_unchanged = prev_qty == new_qty
         conversion_factor_unchanged = prev_con_fac == new_con_fac
@@ -43,7 +45,8 @@ def _get_changed_sales_order_rows(old_doc, trans_items):
             date_unchanged = True
 
         if not (
-            rate_unchanged
+            item_code_unchanged
+            and rate_unchanged
             and qty_unchanged
             and conversion_factor_unchanged
             and uom_unchanged
@@ -64,6 +67,22 @@ def sync_draft_item_dates(doc, method=None):
             row.custom_updated_date = row.delivery_date
 
 
+def _prepare_sales_order_update_items(old_doc, trans_items):
+    old_items = {row.name: row for row in old_doc.items}
+
+    for row in trans_items:
+        docname = row.get("docname")
+        if not docname:
+            continue
+
+        old_row = old_items.get(docname)
+        if old_row and row.get("item_code") and old_row.item_code != row.get("item_code"):
+            row.pop("docname", None)
+            row.pop("name", None)
+
+    return trans_items
+
+
 @frappe.whitelist()
 def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, child_docname="items"):
     if parent_doctype != "Sales Order":
@@ -75,9 +94,10 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
     old_item_names = {row.name for row in old_doc.items}
     parsed_items = json.loads(trans_items) if isinstance(trans_items, str) else trans_items
     changed_rows = _get_changed_sales_order_rows(old_doc, parsed_items)
+    parsed_items = _prepare_sales_order_update_items(old_doc, parsed_items)
 
     result = erpnext_update_child_qty_rate(
-        parent_doctype, trans_items, parent_doctype_name, child_docname
+        parent_doctype, json.dumps(parsed_items), parent_doctype_name, child_docname
     )
 
     today = nowdate()

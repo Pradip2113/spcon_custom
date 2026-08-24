@@ -8,7 +8,7 @@ frappe.query_reports["MOQ Compare Report"] = {
             label: "Item",
             fieldtype: "Link",
             options: "Item"
-        },
+        }, 
 		{
             fieldname: "warehouse",
             label: "Warehouse",

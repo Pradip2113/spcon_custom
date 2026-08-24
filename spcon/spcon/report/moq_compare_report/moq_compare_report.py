@@ -40,44 +40,59 @@ def execute(filters=None):
         }
     ]
 
-    bins = frappe.get_all(
-        "Bin",
-        filters={
-            "actual_qty": [">", 0],
-            **({"item_code": filters.item_code} if filters and filters.item_code else {}),
-            **({"warehouse": filters.warehouse} if filters and filters.warehouse else {})
-        },
-        fields=[
-            "item_code",
-            "warehouse",
-            "actual_qty"
-        ],
-        order_by="item_code"
+    finished_goods_groups = frappe.get_all(
+        "Item Group",
+        filters={"parent_item_group": "Finished Goods"},
+        pluck="name"
     )
 
-    data = []
-    added_items = set()
+    if not finished_goods_groups:
+        return columns, []
 
+    item_filters = {
+        "item_group": ["in", finished_goods_groups],
+        **({"name": filters.item_code} if filters and filters.item_code else {})
+    }
+
+    items = frappe.get_all(
+        "Item",
+        filters=item_filters,
+        fields=["name", "item_name", "custom_minimum_sale_qty"],
+        order_by="name"
+    )
+
+    if not items:
+        return columns, []
+
+    item_codes = [item.name for item in items]
+    bin_filters = {
+        "item_code": ["in", item_codes],
+        **({"warehouse": filters.warehouse} if filters and filters.warehouse else {})
+    }
+
+    bins = frappe.get_all(
+        "Bin",
+        filters=bin_filters,
+        fields=["item_code", "warehouse", "actual_qty"],
+        order_by="item_code, warehouse"
+    )
+
+    bins_by_item = {}
     for row in bins:
+        bins_by_item.setdefault(row.item_code, []).append(row)
 
-        item = frappe.db.get_value(
-            "Item",
-            row.item_code,
-            ["item_name", "custom_minimum_sale_qty"],
-            as_dict=True
-        )
+    data = []
 
-        # Show Item Code only for first row
-        item_code = row.item_code if row.item_code not in added_items else ""
+    for item in items:
+        item_bins = bins_by_item.get(item.name) or [None]
 
-        data.append({
-            "item_code": item_code,
-            "item_name": item.item_name,
-            "warehouse": row.warehouse,
-            "available_qty": row.actual_qty,
-            "moq": item.custom_minimum_sale_qty or 0
-        })
-
-        added_items.add(row.item_code)
+        for index, row in enumerate(item_bins):
+            data.append({
+                "item_code": item.name if index == 0 else "",
+                "item_name": item.item_name,
+                "warehouse": row.warehouse if row else (filters.warehouse if filters and filters.warehouse else ""),
+                "available_qty": row.actual_qty if row else 0,
+                "moq": item.custom_minimum_sale_qty or 0
+            })
 
     return columns, data

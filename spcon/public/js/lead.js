@@ -1,6 +1,32 @@
 
 
 frappe.ui.form.on("Lead", {
+    custom_send_mail_button(frm) {
+        if (!(frm.doc.custom_receiver_user_id || []).length) {
+            frappe.msgprint(__("Please select Receiver User."));
+            return;
+        }
+
+        if (frm.is_new()) {
+            frappe.msgprint(__("Please save the Lead before sending request."));
+            return;
+        }
+
+        frappe.call({
+            method: "spcon.public.py.lead.send_create_sales_order_notification",
+            args: {
+                lead: frm.doc.name
+            },
+            freeze: true,
+            freeze_message: __("Sending request..."),
+            callback: function (r) {
+                if (!r.exc) {
+                    frappe.msgprint(__("Request is send."));
+                    frm.reload_doc();
+                }
+            }
+        });
+    },
         
     custom_add_data: function(frm) {   
         if (!frm.doc.custom_system) {
@@ -140,6 +166,28 @@ frappe.ui.form.on("Lead", {
             frm.__view_details_visible = false;
         }
 
+        frm.toggle_display("custom_send_mail_button", !cint(frm.doc.custom_is_generate_sales_order));
+
+        if (!frm.is_new() && frm.doc.custom_is_generate_sales_order == 1) {
+            frm.add_custom_button(__("Sales Order"), () => {
+                frappe.call({
+                    method: "spcon.public.py.lead.get_sales_order_from_lead",
+                    args: { lead: frm.doc.name },
+                    freeze: true,
+                    freeze_message: __("Fetching Sales Order..."),
+                    callback: (r) => {
+                        if (!r.message || !r.message.sales_order) return;
+
+                        const doc = r.message.sales_order;
+                        doc.__islocal = 1;
+                        doc.__unsaved = 1;
+                        frappe.model.sync(doc);
+                        frappe.set_route("Form", "Sales Order", doc.name);
+                    }
+                });
+            }, __("Create"));
+        }
+
         // Apply visibility
         frm.toggle_display("custom_firm_name", frm.__contact_person_visible);
         frm.toggle_display("custom_contact_person", frm.__contact_person_visible);
@@ -171,7 +219,7 @@ frappe.ui.form.on("Lead", {
             // Hide Create menu items
             frm.remove_custom_button(__("Opportunity"), __("Create"));
             frm.remove_custom_button(__("Prospect"), __("Create"));
-            frm.remove_custom_button(__("Quotation"), __("Create"));
+            // frm.remove_custom_button(__("Quotation"), __("Create"));
             frm.remove_custom_button(__("Customer"), __("Create"));
 
             // Hide Action menu item
