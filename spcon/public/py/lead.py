@@ -100,6 +100,153 @@ def _assign_mentioned_users(lead, mentioned_users):
         })
 
 
+def _latest_submitted_quotation_for_lead(lead):
+    return frappe.db.get_value(
+        "Quotation",
+        {"quotation_to": "Lead", "party_name": lead, "docstatus": 1},
+        "name",
+        order_by="modified desc",
+    )
+
+
+def _existing_customer_for_lead(lead):
+    return frappe.db.get_value("Customer", {"lead_name": lead}, "name")
+
+
+def _copy_child_rows(source_rows, fields):
+    rows = []
+    for source in source_rows or []:
+        row = {field: source.get(field) for field in fields if source.get(field) is not None}
+        if row:
+            rows.append(row)
+    return rows
+
+
+@frappe.whitelist()
+def get_sales_order_from_lead(lead):
+    if not lead:
+        frappe.throw("Lead is required")
+
+    if not frappe.has_permission("Lead", "read", lead):
+        frappe.throw("Not permitted", frappe.PermissionError)
+
+    lead_doc = frappe.get_doc("Lead", lead)
+    quotation_name = _latest_submitted_quotation_for_lead(lead)
+    sales_order = frappe.new_doc("Sales Order")
+    sales_order.order_type = "Sales"
+
+    existing_customer = lead_doc.get("customer") or _existing_customer_for_lead(lead)
+    if existing_customer:
+        sales_order.customer = existing_customer
+        sales_order.customer_name = frappe.db.get_value("Customer", existing_customer, "customer_name")
+    else:
+        sales_order.customer_name = lead_doc.get("lead_name") or lead_doc.get("company_name")
+
+    if quotation_name:
+        quotation = frappe.get_doc("Quotation", quotation_name)
+        header_fields = [
+            "company", "transaction_date", "valid_till", "order_type", "currency",
+            "conversion_rate", "selling_price_list", "price_list_currency",
+            "plc_conversion_rate", "ignore_pricing_rule", "taxes_and_charges",
+            "tax_category", "customer_address", "shipping_address_name", "contact_person",
+            "contact_display", "contact_email", "contact_mobile", "payment_terms_template",
+            "tc_name", "terms", "letter_head", "campaign", "source", "territory",
+            "customer_group", "cost_center", "company_address",
+        ]
+        for field in header_fields:
+            if quotation.get(field) is not None:
+                sales_order.set(field, quotation.get(field))
+
+        if not sales_order.customer:
+            sales_order.customer_name = quotation.get("customer_name") or sales_order.customer_name
+
+        item_fields = [
+            "item_code", "customer_item_code", "delivery_date", "item_name", "description",
+            "gst_hsn_code", "item_group", "brand", "image", "qty", "stock_uom", "uom",
+            "conversion_factor", "price_list_rate", "discount_percentage", "discount_amount",
+            "rate", "amount", "item_tax_template", "gst_treatment", "base_rate",
+            "base_amount", "net_rate", "net_amount", "base_net_rate", "base_net_amount",
+            "warehouse", "against_blanket_order", "blanket_order", "blanket_order_rate",
+            "bom_no", "cost_center", "project",
+        ]
+        for row in _copy_child_rows(quotation.items, item_fields):
+            sales_order.append("items", row)
+
+        tax_fields = [
+            "charge_type", "row_id", "account_head", "description", "included_in_print_rate",
+            "included_in_paid_amount", "cost_center", "rate", "account_currency",
+            "tax_amount", "total", "tax_amount_after_discount_amount", "base_tax_amount",
+            "base_total", "base_tax_amount_after_discount_amount", "item_wise_tax_detail",
+            "dont_recompute_tax",
+        ]
+        for row in _copy_child_rows(quotation.taxes, tax_fields):
+            sales_order.append("taxes", row)
+
+        sales_team_fields = ["sales_person", "allocated_percentage", "commission_rate", "allocated_amount", "incentives"]
+        for row in _copy_child_rows(quotation.get("sales_team"), sales_team_fields):
+            sales_order.append("sales_team", row)
+
+        sales_order.set("quotation", quotation.name) if sales_order.meta.has_field("quotation") else None
+
+    sales_order.flags.ignore_permissions = True
+    sales_order.run_method("set_missing_values")
+    sales_order.run_method("calculate_taxes_and_totals")
+
+    return {"sales_order": sales_order.as_dict(), "quotation": quotation_name}
+
+
+def _get_user_from_email(email):
+    email = (email or "").strip()
+    if not email:
+        return None
+
+    return frappe.db.get_value(
+        "User",
+        {"email": email, "enabled": 1},
+        "name",
+    ) or frappe.db.get_value(
+        "User",
+        {"name": email, "enabled": 1},
+        "name",
+    )
+
+
+@frappe.whitelist()
+def send_create_sales_order_notification(lead):
+    if not lead:
+        frappe.throw("Lead is required")
+
+    if not frappe.has_permission("Lead", "write", lead):
+        frappe.throw("Not permitted", frappe.PermissionError)
+
+    doc = frappe.get_doc("Lead", lead)
+    receiver = _get_user_from_email(doc.custom_receiver_email)
+    if not receiver:
+        frappe.throw("Please enter a valid Receiver Email linked with an enabled User.")
+
+    if doc.custom_is_generate_sales_order:
+        return {"status": "already_sent"}
+
+    subject = "Create New Sales Order"
+    content = f"Create New Sales Order request for Lead ID: {doc.name}"
+
+    frappe.get_doc({
+        "doctype": "Notification Log",
+        "subject": subject,
+        "email_content": content,
+        "for_user": receiver,
+        "type": "Alert",
+        "document_type": "Lead",
+        "document_name": doc.name,
+        "from_user": frappe.session.user,
+    }).insert(ignore_permissions=True)
+
+    doc.db_set("custom_is_generate_sales_order", 1, update_modified=True)
+    frappe.db.commit()
+
+    return {"status": "sent", "receiver": receiver}
+
+
 @frappe.whitelist()
 def add_lead_chat_message(lead, message, mentioned_users=None):
     if not lead:
@@ -182,6 +329,15 @@ def update_project_lead_todo(doc, method=None):
 
     if not user:
         return
+
+    frappe.share.add_docshare(
+        "Lead",
+        doc.name,
+        user=user,
+        read=1,
+        write=1,
+        flags={"ignore_share_permission": True},
+    )
 
     # Create new ToDo
     frappe.get_doc({

@@ -31,7 +31,7 @@ import frappe
 @frappe.whitelist()
 def get_latest_rate(customer, item_code):
     result = frappe.db.sql("""
-        SELECT 
+        SELECT
             si.name as invoice,
             si.posting_date,
             sii.rate
