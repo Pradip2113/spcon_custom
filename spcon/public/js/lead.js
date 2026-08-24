@@ -2,8 +2,8 @@
 
 frappe.ui.form.on("Lead", {
     custom_send_mail_button(frm) {
-        if (!frm.doc.custom_receiver_email) {
-            frappe.msgprint(__("Please enter Receiver Email."));
+        if (!(frm.doc.custom_receiver_user_id || []).length) {
+            frappe.msgprint(__("Please select Receiver User."));
             return;
         }
 

@@ -211,6 +211,16 @@ def _get_user_from_email(email):
     )
 
 
+def _get_receiver_users(doc):
+    users = []
+    for row in doc.get("custom_receiver_user_id") or []:
+        user = (row.get("user") or "").strip()
+        if user and frappe.db.exists("User", {"name": user, "enabled": 1}):
+            users.append(user)
+
+    return list(dict.fromkeys(users))
+
+
 @frappe.whitelist()
 def send_create_sales_order_notification(lead):
     if not lead:
@@ -220,9 +230,9 @@ def send_create_sales_order_notification(lead):
         frappe.throw("Not permitted", frappe.PermissionError)
 
     doc = frappe.get_doc("Lead", lead)
-    receiver = _get_user_from_email(doc.custom_receiver_email)
-    if not receiver:
-        frappe.throw("Please enter a valid Receiver Email linked with an enabled User.")
+    receivers = _get_receiver_users(doc)
+    if not receivers:
+        frappe.throw("Please select at least one enabled Receiver User.")
 
     if doc.custom_is_generate_sales_order:
         return {"status": "already_sent"}
@@ -230,21 +240,22 @@ def send_create_sales_order_notification(lead):
     subject = "Create New Sales Order"
     content = f"Create New Sales Order request for Lead ID: {doc.name}"
 
-    frappe.get_doc({
-        "doctype": "Notification Log",
-        "subject": subject,
-        "email_content": content,
-        "for_user": receiver,
-        "type": "Alert",
-        "document_type": "Lead",
-        "document_name": doc.name,
-        "from_user": frappe.session.user,
-    }).insert(ignore_permissions=True)
+    for receiver in receivers:
+        frappe.get_doc({
+            "doctype": "Notification Log",
+            "subject": subject,
+            "email_content": content,
+            "for_user": receiver,
+            "type": "Alert",
+            "document_type": "Lead",
+            "document_name": doc.name,
+            "from_user": frappe.session.user,
+        }).insert(ignore_permissions=True)
 
     doc.db_set("custom_is_generate_sales_order", 1, update_modified=True)
     frappe.db.commit()
 
-    return {"status": "sent", "receiver": receiver}
+    return {"status": "sent", "receivers": receivers}
 
 
 @frappe.whitelist()
