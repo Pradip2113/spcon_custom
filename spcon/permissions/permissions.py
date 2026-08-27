@@ -171,3 +171,39 @@ def delivery_note_query(user):
             WHERE custom_sales_person = {frappe.db.escape(sales_person)}
         )
     """
+
+
+
+def combine_conditions(*conditions):
+    conditions = [c.strip() for c in conditions if c and c.strip()]
+    if not conditions:
+        return ""
+    return " and ".join(f"({condition})" for condition in conditions)
+
+
+def hierarchical_query(user):
+    from spcon.hierarchical_permissions.manager import get_permission_query_conditions
+
+    return get_permission_query_conditions(user)
+
+
+def customer_query_combined(user):
+    return combine_conditions(customer_query(user), hierarchical_query(user))
+
+
+def sales_order_query_combined(user):
+    return combine_conditions(sales_order_query(user), hierarchical_query(user))
+
+
+def sales_invoice_query_combined(user):
+    return combine_conditions(sales_invoice_query(user), hierarchical_query(user))
+
+
+def delivery_note_query_combined(user):
+    return combine_conditions(delivery_note_query(user), hierarchical_query(user))
+
+
+def hierarchical_has_permission(doc, user=None, permission_type=None):
+    from spcon.hierarchical_permissions.manager import has_permission
+
+    return has_permission(doc, user=user, permission_type=permission_type)

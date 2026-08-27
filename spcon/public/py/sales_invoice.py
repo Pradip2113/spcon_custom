@@ -1,4 +1,42 @@
 import frappe
+from frappe.utils import formatdate
+
+
+def get_sales_order_remark_text(sales_orders):
+    sales_orders = list(dict.fromkeys(filter(None, sales_orders or [])))
+
+    if not sales_orders:
+        return ""
+
+    sales_order_dates = frappe.get_all(
+        "Sales Order",
+        filters={"name": ["in", sales_orders]},
+        fields=["name", "transaction_date"],
+    )
+    date_map = {row.name: row.transaction_date for row in sales_order_dates}
+
+    remarks = []
+    for sales_order in sales_orders:
+        sales_order_date = date_map.get(sales_order)
+        formatted_date = formatdate(sales_order_date, "dd-mm-yyyy") if sales_order_date else ""
+        remarks.append(f"({sales_order} = {formatted_date})")
+
+    return ", ".join(remarks)
+
+
+@frappe.whitelist()
+def get_sales_order_remark(sales_orders):
+    if isinstance(sales_orders, str):
+        sales_orders = frappe.parse_json(sales_orders)
+
+    return get_sales_order_remark_text(sales_orders)
+
+
+@frappe.whitelist()
+def set_sales_order_remark(doc, method=None):
+    doc.custom_remark = get_sales_order_remark_text(
+        item.sales_order for item in doc.items
+    )
 
 
 @frappe.whitelist() 

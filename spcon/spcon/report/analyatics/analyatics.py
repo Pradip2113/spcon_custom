@@ -33,6 +33,13 @@ def get_columns():
             "width": 100
         },
         {
+            "fieldname": "owner",
+            "label": _("Created By"),
+            "fieldtype": "Link",
+            "options": "User",
+            "width": 160
+        },
+        {
             "fieldname": "creation",
             "label": _("Start Date"),
             "fieldtype": "Date",
@@ -167,6 +174,9 @@ def get_data(filters):
     if filters.get("status"):
         lead_filters["status"] = filters.get("status")
 
+    if filters.get("created_by"):
+        lead_filters["owner"] = filters.get("created_by")
+
     if filters.get("custom_firm_name_lead"):
         lead_filters["custom_firm_name_lead"] = filters.get("custom_firm_name_lead")
 
@@ -183,13 +193,14 @@ def get_data(filters):
     elif filters.get("to_date"):
         lead_filters["creation"] = ["<=", filters.get("to_date")]
 
-    leads = frappe.get_all(
+    leads = frappe.get_list(
         "Lead",
         filters=lead_filters,
         fields=[
             "name",
             "custom_lead_type",
             "status",
+            "owner",
             "creation",
             "custom_closing_date",
             "source",
@@ -222,6 +233,7 @@ def get_data(filters):
                         "name": lead.name,
                         "custom_lead_type": lead.custom_lead_type,
                         "status": lead.status,
+                        "owner": lead.owner,
                         "creation": lead.creation,
                         "custom_closing_date": lead.custom_closing_date,
                         "source": lead.source,
@@ -244,6 +256,7 @@ def get_data(filters):
                         "name": "",
                         "custom_lead_type": "",
                         "status": "",
+                        "owner": "",
                         "creation": "",
                         "custom_closing_date": "",
                         "source": "",
@@ -272,6 +285,7 @@ def get_data(filters):
                 "name": lead.name,
                 "custom_lead_type": lead.custom_lead_type,
                 "status": lead.status,
+                "owner": lead.owner,
                 "creation": lead.creation,
                 "custom_closing_date": lead.custom_closing_date,
                 "source": lead.source,

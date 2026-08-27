@@ -11,8 +11,32 @@ frappe.ui.form.on('Sales Invoice', {
 		console.log(address);
 		apply_warehouse_filter(frm)
 	},
-	onload: function(frm) {
+	onload(frm) {
 		apply_warehouse_filter(frm);
+	},
+	refresh(frm) {
+		setTimeout(() => set_sales_order_remark(frm), 300);
+	},
+	get_items(frm) {
+		setTimeout(() => set_sales_order_remark(frm), 500);
+	},
+	async validate(frm) {
+		await set_sales_order_remark(frm);
+	}
+});
+
+frappe.ui.form.on('Sales Invoice Item', {
+	items_add(frm) {
+		set_sales_order_remark(frm);
+	},
+	items_remove(frm) {
+		set_sales_order_remark(frm);
+	},
+	sales_order(frm) {
+		set_sales_order_remark(frm);
+	},
+	item_code(frm) {
+		setTimeout(() => set_sales_order_remark(frm), 300);
 	}
 });
 
@@ -28,4 +52,22 @@ function apply_warehouse_filter(frm) {
             }
         };
     });
+}
+
+function set_sales_order_remark(frm) {
+	const sales_orders = [
+		...new Set((frm.doc.items || []).map((row) => row.sales_order).filter(Boolean))
+	];
+
+	if (!sales_orders.length) {
+		return frm.set_value('custom_remark', '');
+	}
+
+	return frappe.call({
+		method: 'spcon.public.py.sales_invoice.get_sales_order_remark',
+		args: { sales_orders },
+		callback(r) {
+			frm.set_value('custom_remark', r.message || '');
+		}
+	});
 }

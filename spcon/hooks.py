@@ -162,10 +162,41 @@ doctype_list_js = {
 # }
 permission_query_conditions = {
     "*": "spcon.permissions.permissions.get_company_condition",
-    "Customer": "spcon.permissions.permissions.customer_query",
-    "Sales Order": "spcon.permissions.permissions.sales_order_query",
-    "Sales Invoice": "spcon.permissions.permissions.sales_invoice_query",
-    "Delivery Note": "spcon.permissions.permissions.delivery_note_query",
+    "Customer": "spcon.permissions.permissions.customer_query_combined",
+    "Sales Order": "spcon.permissions.permissions.sales_order_query_combined",
+    "Sales Invoice": "spcon.permissions.permissions.sales_invoice_query_combined",
+    "Delivery Note": "spcon.permissions.permissions.delivery_note_query_combined",
+    "Lead": "spcon.permissions.permissions.hierarchical_query",
+    "Opportunity": "spcon.permissions.permissions.hierarchical_query",
+    "Quotation": "spcon.permissions.permissions.hierarchical_query",
+    "Task": "spcon.permissions.permissions.hierarchical_query",
+    "ToDo": "spcon.permissions.permissions.hierarchical_query",
+    "Issue": "spcon.permissions.permissions.hierarchical_query",
+    "Project": "spcon.permissions.permissions.hierarchical_query",
+    "Purchase Order": "spcon.permissions.permissions.hierarchical_query",
+    "Purchase Invoice": "spcon.permissions.permissions.hierarchical_query",
+    "Purchase Receipt": "spcon.permissions.permissions.hierarchical_query",
+    "Material Request": "spcon.permissions.permissions.hierarchical_query",
+    "Stock Entry": "spcon.permissions.permissions.hierarchical_query",
+}
+
+has_permission = {
+    "Customer": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Sales Order": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Sales Invoice": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Delivery Note": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Lead": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Opportunity": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Quotation": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Task": "spcon.permissions.permissions.hierarchical_has_permission",
+    "ToDo": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Issue": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Project": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Purchase Order": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Purchase Invoice": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Purchase Receipt": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Material Request": "spcon.permissions.permissions.hierarchical_has_permission",
+    "Stock Entry": "spcon.permissions.permissions.hierarchical_has_permission",
 }
 
 
@@ -277,6 +308,7 @@ doc_events = {
     },
     "Sales Invoice": {
         "before_save": [
+            "spcon.public.py.sales_invoice.set_sales_order_remark",
             "spcon.public.py.sales_invoice.set_actual_dispatch_date_on_save",
             "spcon.public.py.sales_invoice.set_minimum_qty",
             "spcon.public.py.set_cost_center.set_cost_center",
