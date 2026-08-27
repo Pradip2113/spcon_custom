@@ -42,6 +42,12 @@ frappe.query_reports["Analyatics"] = {
             ]
         },
         {
+            fieldname: "created_by",
+            label: __("Created By"),
+            fieldtype: "Link",
+            options: "User"
+        },
+        {
             fieldname: "custom_firm_name_lead",
             label: __("Firm Name"),
             fieldtype: "Link",

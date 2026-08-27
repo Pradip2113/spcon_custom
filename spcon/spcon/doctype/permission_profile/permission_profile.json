@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:profile_name",
+ "creation": "2026-08-28 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "profile_name",
+  "company",
+  "doctype_name",
+  "enabled",
+  "preview_section",
+  "preview_user",
+  "preview_html",
+  "hierarchy_section",
+  "hierarchy_levels",
+  "doctype_permissions_section",
+  "doctype_permissions"
+ ],
+ "fields": [
+  {
+   "fieldname": "profile_name",
+   "fieldtype": "Data",
+   "label": "Profile Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Link",
+   "label": "Primary DocType",
+   "options": "DocType",
+   "description": "Optional primary DocType. Use DocType Permissions to configure one or more doctypes."
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "preview_section",
+   "fieldtype": "Section Break",
+   "label": "Preview Access"
+  },
+  {
+   "fieldname": "preview_user",
+   "fieldtype": "Link",
+   "label": "Preview User",
+   "options": "User"
+  },
+  {
+   "fieldname": "preview_html",
+   "fieldtype": "HTML",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "hierarchy_section",
+   "fieldtype": "Section Break",
+   "label": "Hierarchy Levels"
+  },
+  {
+   "fieldname": "hierarchy_levels",
+   "fieldtype": "Table",
+   "label": "Hierarchy Levels",
+   "options": "Permission Hierarchy Level",
+   "reqd": 1
+  },
+  {
+   "fieldname": "doctype_permissions_section",
+   "fieldtype": "Section Break",
+   "label": "DocType Permissions"
+  },
+  {
+   "fieldname": "doctype_permissions",
+   "fieldtype": "Table",
+   "label": "DocType Permissions",
+   "options": "Permission DocType Permission",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-08-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Permission Profile",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "print": 1,
+   "email": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

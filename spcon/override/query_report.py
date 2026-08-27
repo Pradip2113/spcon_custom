@@ -6,7 +6,7 @@ from frappe.desk.query_report import _run as original_run, get_report_doc
 from spcon.permissions.permissions import get_sales_person_customer_names
 
 
-RESTRICTED_RESULT_REPORTS = {"Sales Analytics", "Sales Report"}
+RESTRICTED_RESULT_REPORTS = {"Sales Analytics", "Sales Report", "Sales Order Analysis", "Sales Order Analysis SPC"}
 REPORT_ALIASES = {"Work Order Consumed Materials": "Work Order Consumed Materials SPC"}
 
 
@@ -43,6 +43,9 @@ def run(
 
 	if report_name in RESTRICTED_RESULT_REPORTS:
 		filter_report_result_by_customer(result)
+
+	if report_name == "Asset Depreciations and Balances":
+		add_opening_net_value_column(result)
 
 	return result
 
@@ -94,3 +97,68 @@ def get_row_customer(row):
 
 def is_customer(name):
 	return bool(name and frappe.db.exists("Customer", name))
+
+
+def add_opening_net_value_column(result):
+	columns = result.get("columns") or []
+	rows = result.get("result") or []
+
+	if any(get_column_fieldname(column) == "net_value_as_on_from_date" for column in columns):
+		return
+
+	value_column_index = next(
+		(
+			idx
+			for idx, column in enumerate(columns)
+			if get_column_fieldname(column) == "value_as_on_from_date"
+		),
+		None,
+	)
+	if value_column_index is None:
+		return
+
+	accumulated_depreciation_index = next(
+		(
+			idx
+			for idx, column in enumerate(columns)
+			if get_column_fieldname(column) == "accumulated_depreciation_as_on_from_date"
+		),
+		None,
+	)
+	value_column = columns[value_column_index]
+	label = get_column_label(value_column).replace("Value as on", "Net Value as on", 1)
+	columns.insert(
+		value_column_index + 1,
+		{
+			"label": label,
+			"fieldname": "net_value_as_on_from_date",
+			"fieldtype": "Currency",
+			"width": 170,
+		},
+	)
+
+	for row in rows:
+		if isinstance(row, dict):
+			row["net_value_as_on_from_date"] = (row.get("value_as_on_from_date") or 0) - (
+				row.get("accumulated_depreciation_as_on_from_date") or 0
+			)
+		elif isinstance(row, list):
+			value = row[value_column_index] or 0
+			accumulated_depreciation = (
+				row[accumulated_depreciation_index] if accumulated_depreciation_index is not None else 0
+			) or 0
+			row.insert(value_column_index + 1, value - accumulated_depreciation)
+
+
+def get_column_fieldname(column):
+	if isinstance(column, dict):
+		return column.get("fieldname")
+
+	return None
+
+
+def get_column_label(column):
+	if isinstance(column, dict):
+		return column.get("label", "Net Value")
+
+	return "Net Value"

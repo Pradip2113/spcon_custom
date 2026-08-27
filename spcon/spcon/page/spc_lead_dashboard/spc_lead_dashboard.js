@@ -443,7 +443,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			`).join("");
 			return `
 				<div class="sp-card" data-owner="${frappe.utils.escape_html(row.user || "")}">
-					<div class="sp-top"><div class="av">${frappe.utils.escape_html(this.initials(row.label))}</div><div><div class="sp-name">${frappe.utils.escape_html(row.label)}</div><div class="sp-role">${__("Lead created by")}</div></div></div>
+					<div class="sp-top"><div class="av">${frappe.utils.escape_html(this.initials(row.label))}</div><div><div class="sp-name">${frappe.utils.escape_html(row.label)}</div><div class="sp-role">${__("Created / handed over")}</div></div></div>
 					<div class="sp-stats">
 						<div class="sp-stat"><span>${__("Total leads")}</span><strong>${row.count || 0}</strong></div>
 						${status_rows}

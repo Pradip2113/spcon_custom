@@ -21,6 +21,7 @@ def get_dashboard_data(filters=None):
 			modified,
 			status,
 			lead_owner,
+			custom_handover_to_project_lead,
 			lead_name,
 			first_name,
 			company_name,
@@ -319,6 +320,7 @@ def get_crm_approval_rows(filters):
 def get_conditions(filters):
 	conditions = []
 	values = {}
+	handover_sales_person = get_session_user_sales_person()
 
 	if filters.get("from_date"):
 		conditions.append("creation >= %(from_date)s")
@@ -334,7 +336,15 @@ def get_conditions(filters):
 		values["status"] = filters.status
 
 	if not has_full_dashboard_access():
-		conditions.append("(owner = %(session_user)s OR lead_owner = %(session_user)s)")
+		if handover_sales_person:
+			conditions.append("""
+				(owner = %(session_user)s
+					OR lead_owner = %(session_user)s
+					OR custom_handover_to_project_lead = %(handover_sales_person)s)
+			""")
+			values["handover_sales_person"] = handover_sales_person
+		else:
+			conditions.append("(owner = %(session_user)s OR lead_owner = %(session_user)s)")
 		values["session_user"] = frappe.session.user
 
 	return (" AND " + " AND ".join(conditions)) if conditions else "", values
@@ -351,6 +361,39 @@ def has_team_tab_access():
 
 def has_approval_manager_access():
 	return "CRM Dashboard Manager" in frappe.get_roles(frappe.session.user)
+
+
+def get_session_user_sales_person():
+	user = frappe.session.user
+	if not user:
+		return None
+
+	sales_person_meta = frappe.get_meta("Sales Person")
+	for fieldname in ("user", "user_id"):
+		if sales_person_meta.has_field(fieldname):
+			sales_person = frappe.db.get_value("Sales Person", {fieldname: user}, "name")
+			if sales_person:
+				return sales_person
+
+	if sales_person_meta.has_field("employee"):
+		employee = frappe.db.get_value("Employee", {"user_id": user}, "name")
+		if employee:
+			sales_person = frappe.db.get_value("Sales Person", {"employee": employee}, "name")
+			if sales_person:
+				return sales_person
+
+	full_name = frappe.db.get_value("User", user, "full_name")
+	for candidate in (full_name, user):
+		if not candidate:
+			continue
+		if frappe.db.exists("Sales Person", candidate):
+			return candidate
+		if sales_person_meta.has_field("sales_person_name"):
+			sales_person = frappe.db.get_value("Sales Person", {"sales_person_name": candidate}, "name")
+			if sales_person:
+				return sales_person
+
+	return None
 
 
 def get_lead_fields():
@@ -558,6 +601,7 @@ def get_forecast_rows(filters, project_item_fields, date_field):
 def get_forecast_conditions(filters, date_field):
 	conditions = ["lead.docstatus < 2"]
 	values = {}
+	handover_sales_person = get_session_user_sales_person()
 
 	date_column = "lead.custom_closing_date" if date_field == "custom_closing_date" else "lead.creation"
 	if filters.get("from_date"):
@@ -575,7 +619,15 @@ def get_forecast_conditions(filters, date_field):
 		values["forecast_status"] = filters.status
 
 	if not has_full_dashboard_access():
-		conditions.append("(lead.owner = %(forecast_session_user)s OR lead.lead_owner = %(forecast_session_user)s)")
+		if handover_sales_person:
+			conditions.append("""
+				(lead.owner = %(forecast_session_user)s
+					OR lead.lead_owner = %(forecast_session_user)s
+					OR lead.custom_handover_to_project_lead = %(forecast_handover_sales_person)s)
+			""")
+			values["forecast_handover_sales_person"] = handover_sales_person
+		else:
+			conditions.append("(lead.owner = %(forecast_session_user)s OR lead.lead_owner = %(forecast_session_user)s)")
 		values["forecast_session_user"] = frappe.session.user
 
 	return " AND " + " AND ".join(conditions), values
@@ -593,16 +645,73 @@ def get_creator_counts(rows):
 		}
 		for user in users
 	}
+	handover_user_by_sales_person = get_handover_user_map(rows)
 
 	for row in rows:
-		if row.owner not in counts:
+		if row.custom_handover_to_project_lead:
+			user = handover_user_by_sales_person.get(row.custom_handover_to_project_lead)
+		else:
+			user = row.owner
+
+		if user not in counts:
 			continue
 		status = row.status or _("Open")
-		counts[row.owner]["count"] += 1
-		counts[row.owner]["statuses"].setdefault(status, 0)
-		counts[row.owner]["statuses"][status] += 1
+		counts[user]["count"] += 1
+		counts[user]["statuses"].setdefault(status, 0)
+		counts[user]["statuses"][status] += 1
 
 	return sorted(counts.values(), key=lambda row: (row["count"] == 0, row["label"]))
+
+
+def get_handover_user_map(rows):
+	sales_persons = list({row.custom_handover_to_project_lead for row in rows if row.custom_handover_to_project_lead})
+	if not sales_persons:
+		return {}
+
+	sales_person_meta = frappe.get_meta("Sales Person")
+	select_fields = ["name"]
+	for fieldname in ("user", "user_id", "employee", "sales_person_name"):
+		if sales_person_meta.has_field(fieldname):
+			select_fields.append(fieldname)
+
+	sales_people = frappe.get_all(
+		"Sales Person",
+		filters={"name": ("in", sales_persons)},
+		fields=select_fields,
+	)
+	employees = [row.employee for row in sales_people if row.get("employee")]
+	user_by_employee = {}
+	if employees:
+		user_by_employee = dict(frappe.get_all(
+			"Employee",
+			filters={"name": ("in", employees)},
+			fields=["name", "user_id"],
+			as_list=True,
+		))
+
+	result = {}
+	for sales_person in sales_people:
+		user = sales_person.get("user") or sales_person.get("user_id")
+		if not user and sales_person.get("employee"):
+			user = user_by_employee.get(sales_person.employee)
+		if not user:
+			user = get_user_by_sales_person_name(sales_person)
+		if user:
+			result[sales_person.name] = user
+
+	return result
+
+
+def get_user_by_sales_person_name(sales_person):
+	candidates = [sales_person.name, sales_person.get("sales_person_name")]
+	for candidate in candidates:
+		if candidate and frappe.db.exists("User", candidate):
+			return candidate
+		if candidate:
+			user = frappe.db.get_value("User", {"full_name": candidate}, "name")
+			if user:
+				return user
+	return None
 
 
 def get_lead_status_options():

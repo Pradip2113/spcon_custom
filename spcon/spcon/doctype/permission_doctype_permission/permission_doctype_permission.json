@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "creation": "2026-08-28 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "doctype_name",
+  "enabled",
+  "apply_role_permissions",
+  "company_field",
+  "owner_field"
+ ],
+ "fields": [
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Link",
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "apply_role_permissions",
+   "fieldtype": "Check",
+   "label": "Apply Role Permissions",
+   "default": "1"
+  },
+  {
+   "fieldname": "company_field",
+   "fieldtype": "Data",
+   "label": "Company Field",
+   "default": "company",
+   "description": "Used for company filtering when the target DocType has this field."
+  },
+  {
+   "fieldname": "owner_field",
+   "fieldtype": "Data",
+   "label": "Owner Field",
+   "default": "owner",
+   "description": "Used for Own Records. Leave owner for standard ownership."
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "Permission DocType Permission",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
