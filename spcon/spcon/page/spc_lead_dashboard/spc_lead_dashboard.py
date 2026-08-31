@@ -329,7 +329,15 @@ def get_conditions(filters):
 		conditions.append("creation <= %(to_date)s")
 		values["to_date"] = add_days(filters.to_date, 1)
 	if filters.get("lead_owner"):
-		conditions.append("lead_owner = %(lead_owner)s")
+		lead_owner_sales_person = get_user_sales_person(filters.lead_owner)
+		if lead_owner_sales_person:
+			conditions.append("""
+				(lead_owner = %(lead_owner)s
+					OR custom_handover_to_project_lead = %(lead_owner_sales_person)s)
+			""")
+			values["lead_owner_sales_person"] = lead_owner_sales_person
+		else:
+			conditions.append("lead_owner = %(lead_owner)s")
 		values["lead_owner"] = filters.lead_owner
 	if filters.get("status"):
 		conditions.append("status = %(status)s")
@@ -364,7 +372,10 @@ def has_approval_manager_access():
 
 
 def get_session_user_sales_person():
-	user = frappe.session.user
+	return get_user_sales_person(frappe.session.user)
+
+
+def get_user_sales_person(user):
 	if not user:
 		return None
 
@@ -612,7 +623,15 @@ def get_forecast_conditions(filters, date_field):
 		conditions.append(f"{date_column} <= %(forecast_to_date)s")
 		values["forecast_to_date"] = to_date
 	if filters.get("lead_owner"):
-		conditions.append("lead.lead_owner = %(forecast_lead_owner)s")
+		lead_owner_sales_person = get_user_sales_person(filters.lead_owner)
+		if lead_owner_sales_person:
+			conditions.append("""
+				(lead.lead_owner = %(forecast_lead_owner)s
+					OR lead.custom_handover_to_project_lead = %(forecast_lead_owner_sales_person)s)
+			""")
+			values["forecast_lead_owner_sales_person"] = lead_owner_sales_person
+		else:
+			conditions.append("lead.lead_owner = %(forecast_lead_owner)s")
 		values["forecast_lead_owner"] = filters.lead_owner
 	if filters.get("status"):
 		conditions.append("lead.status = %(forecast_status)s")

@@ -33,6 +33,60 @@ def parse_users(value):
     return list(dict.fromkeys(part.strip() for part in parts if part.strip()))
 
 
+def get_parent_users(row):
+    parent_users = []
+    for parent_user in getattr(row, "parent_users", None) or []:
+        user = parent_user.get("user") if isinstance(parent_user, dict) else getattr(parent_user, "user", None)
+        if user:
+            parent_users.append(user)
+    parent_user = getattr(row, "parent_user", None) or (row.get("parent_user") if isinstance(row, dict) else None)
+    parent_users.extend(parse_users(parent_user))
+    return list(dict.fromkeys(parent_users))
+
+
+def build_parent_map_from_rows(rows):
+    level_by_user = {}
+    for row in rows:
+        level_name = row.get("level_name") if isinstance(row, dict) else row.level_name
+        for user in parse_users(row.get("users") if isinstance(row, dict) else row.users):
+            level_by_user[user] = level_name
+
+    parent_map = {}
+    for row in rows:
+        level_name = row.get("level_name") if isinstance(row, dict) else row.level_name
+        parent_level = row.get("parent_level") if isinstance(row, dict) else row.parent_level
+        if parent_level:
+            parent_map[level_name] = parent_level
+            continue
+        parent_users = get_parent_users(row)
+        if parent_users:
+            parent_map[level_name] = level_by_user.get(parent_users[0])
+    return {level: parent for level, parent in parent_map.items() if parent}
+
+
+def build_hierarchy_maps(levels):
+    levels_by_name = {row.get("level_name"): row for row in levels}
+    level_by_user = {}
+    for row in levels:
+        for user in parse_users(row.get("users")):
+            level_by_user[user] = row.get("level_name")
+
+    children = defaultdict(list)
+    for row in levels:
+        parent_levels = []
+        if row.get("parent_level"):
+            parent_levels.append(row.get("parent_level"))
+        else:
+            for parent_user in get_parent_users(row):
+                parent_level = level_by_user.get(parent_user)
+                if parent_level:
+                    parent_levels.append(parent_level)
+
+        for parent_level in list(dict.fromkeys(parent_levels)):
+            children[parent_level].append(row.get("level_name"))
+    return levels_by_name, children
+
+
 def clear_permission_profile_cache():
     frappe.cache().delete_value("spcon_hpm_profiles")
     frappe.cache().delete_value("spcon_hpm_user_map")
@@ -42,6 +96,7 @@ def clear_permission_profile_cache():
 def validate_profile(doc):
     validate_duplicate_levels(doc)
     validate_parent_levels(doc)
+    validate_parent_users(doc)
     validate_no_circular_hierarchy(doc)
     validate_users(doc)
     validate_doctype_permissions(doc)
@@ -65,8 +120,21 @@ def validate_parent_levels(doc):
             frappe.throw(_("Hierarchy level cannot be its own parent: {0}").format(row.level_name))
 
 
+def validate_parent_users(doc):
+    mapped_users = set()
+    for row in doc.hierarchy_levels:
+        mapped_users.update(parse_users(row.users))
+
+    for row in doc.hierarchy_levels:
+        for parent_user in get_parent_users(row):
+            if parent_user not in mapped_users:
+                frappe.throw(_("Parent User {0} is not mapped in any hierarchy level").format(parent_user))
+            if parent_user in parse_users(row.users):
+                frappe.throw(_("Parent User {0} cannot be in the same row users for {1}").format(parent_user, row.level_name))
+
+
 def validate_no_circular_hierarchy(doc):
-    parent_map = {row.level_name: row.parent_level for row in doc.hierarchy_levels if row.level_name}
+    parent_map = build_parent_map_from_rows(doc.hierarchy_levels)
     for level in parent_map:
         visited = set()
         current = level
@@ -174,11 +242,7 @@ def get_user_assignment(user, doctype=None):
     for profile in get_profiles():
         if doctype and not any(row.get("doctype_name") == doctype and cint(row.get("enabled")) for row in profile["doctypes"]):
             continue
-        levels_by_name = {row.get("level_name"): row for row in profile["levels"]}
-        children = defaultdict(list)
-        for row in profile["levels"]:
-            if row.get("parent_level"):
-                children[row.get("parent_level")].append(row.get("level_name"))
+        levels_by_name, children = build_hierarchy_maps(profile["levels"])
         for row in profile["levels"]:
             users = parse_users(row.get("users"))
             if user in users:
@@ -205,6 +269,23 @@ def get_users_for_levels(level_names, levels_by_name):
     return list(dict.fromkeys(users))
 
 
+def get_descendant_users_by_parent_user(user, levels, direct_only=False):
+    users = []
+    queue = deque([user])
+    while queue:
+        parent_user = queue.popleft()
+        for row in levels:
+            if parent_user not in get_parent_users(row):
+                continue
+            row_users = parse_users(row.get("users"))
+            for row_user in row_users:
+                if row_user not in users:
+                    users.append(row_user)
+                    if not direct_only:
+                        queue.append(row_user)
+    return users
+
+
 def get_allowed_users(user, doctype):
     if is_bypass_user(user):
         return None
@@ -214,14 +295,22 @@ def get_allowed_users(user, doctype):
     scope = level.get("access_scope") or "Own Records"
     if scope == "All Records":
         return None
-    allowed_levels = [level.get("level_name")]
-    if scope == "Direct Child Team":
-        allowed_levels += get_descendant_levels(level.get("level_name"), children, direct_only=True)
-    elif scope == "All Below Hierarchy":
-        allowed_levels += get_descendant_levels(level.get("level_name"), children)
-    users = get_users_for_levels(allowed_levels, levels_by_name)
+    if scope == "Own Records":
+        return [user]
+
+    direct_only = scope == "Direct Child Team"
+    users = get_descendant_users_by_parent_user(user, profile["levels"], direct_only=direct_only)
+
+    if not users:
+        allowed_levels = []
+        if scope == "Direct Child Team":
+            allowed_levels = get_descendant_levels(level.get("level_name"), children, direct_only=True)
+        elif scope == "All Below Hierarchy":
+            allowed_levels = get_descendant_levels(level.get("level_name"), children)
+        users = get_users_for_levels(allowed_levels, levels_by_name)
+
     if user not in users:
-        users.append(user)
+        users.insert(0, user)
     return users
 
 
@@ -242,8 +331,8 @@ def get_permission_query_conditions(user=None, doctype=None):
     doctype = doctype or frappe.local.form_dict.get("doctype")
     if not doctype or is_bypass_user(user):
         return ""
-    profile = get_profile_for_doctype(doctype)
-    if not profile:
+    profile, level, _levels_by_name, _children = get_user_assignment(user, doctype)
+    if not profile or not level:
         return ""
     allowed_users = get_allowed_users(user, doctype)
     if allowed_users is None:
@@ -278,12 +367,9 @@ def has_permission(doc, user=None, permission_type=None):
     permission_type = permission_type or "read"
     if is_bypass_user(user):
         return True
-    profile = get_profile_for_doctype(doc.doctype)
-    if not profile:
+    profile, level, _levels_by_name, _children = get_user_assignment(user, doc.doctype)
+    if not profile or not level:
         return None
-    level = get_user_level_permission(user, doc.doctype)
-    if not level:
-        return False
     field = PERMISSION_FIELDS.get(permission_type)
     if field and not cint(level.get(field)):
         return False
@@ -354,6 +440,7 @@ def preview_access(profile_name, user):
         hierarchy.append({
             "level_name": hierarchy_level.level_name,
             "parent_level": hierarchy_level.parent_level,
+            "parent_users": get_parent_users(hierarchy_level),
             "users": parse_users(hierarchy_level.users),
             "access_scope": hierarchy_level.access_scope,
             "role": hierarchy_level.role,
