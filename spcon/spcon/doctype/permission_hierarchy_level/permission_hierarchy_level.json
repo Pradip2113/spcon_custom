@@ -10,6 +10,7 @@
   "enabled",
   "role",
   "parent_level",
+  "parent_user",
   "users",
   "access_scope",
   "permissions_section",
@@ -58,6 +59,12 @@
    "fieldtype": "Data",
    "label": "Parent Level",
    "description": "Enter another Level Name from this profile."
+  },
+  {
+   "fieldname": "parent_user",
+   "fieldtype": "Data",
+   "label": "Parent User",
+   "description": "Enter parent user IDs. Multiple users allowed, separated by comma, newline, or semicolon."
   },
   {
    "fieldname": "users",

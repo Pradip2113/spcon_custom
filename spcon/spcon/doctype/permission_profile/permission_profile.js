@@ -131,7 +131,8 @@ function build_popup_preview_html(frm, data) {
                     '<div class="hpm-flow-role">' + escape_html(level.role || '') + '</div></div>' +
                     '<div class="hpm-flow-scope">' + escape_html(level.access_scope || '') + '</div>' +
                 '</div>' +
-                '<div class="hpm-flow-parent">Parent: ' + escape_html(level.parent_level || 'Top Level') + '</div>' +
+                '<div class="hpm-flow-parent">Parent Level: ' + escape_html(level.parent_level || 'Top Level') + '</div>' +
+                '<div class="hpm-flow-parent">Parent User: ' + escape_html((level.parent_users || []).join(', ') || '-') + '</div>' +
                 '<div class="hpm-flow-users">' + users + '</div>' +
             '</div>' +
         '</div>';

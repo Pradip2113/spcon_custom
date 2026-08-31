@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "creation": "2026-08-28 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "api_base_url",
+  "captcha_endpoint",
+  "details_endpoint",
+  "timeout",
+  "auto_create_address"
+ ],
+ "fields": [
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1"
+  },
+  {
+   "fieldname": "api_base_url",
+   "fieldtype": "Data",
+   "label": "API Base URL",
+   "reqd": 1,
+   "default": "http://127.0.0.1:5000",
+   "description": "Open-source GST Verification API base URL, without trailing slash."
+  },
+  {
+   "fieldname": "captcha_endpoint",
+   "fieldtype": "Data",
+   "label": "Captcha Endpoint",
+   "default": "/api/v1/getCaptcha",
+   "reqd": 1
+  },
+  {
+   "fieldname": "details_endpoint",
+   "fieldtype": "Data",
+   "label": "Details Endpoint",
+   "default": "/api/v1/getGSTDetails",
+   "reqd": 1
+  },
+  {
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout Seconds",
+   "default": "20"
+  },
+  {
+   "fieldname": "auto_create_address",
+   "fieldtype": "Check",
+   "label": "Auto Create Customer Address",
+   "default": "1"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-08-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "spcon",
+ "name": "GST Lookup Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

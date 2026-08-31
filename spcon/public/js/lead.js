@@ -1,7 +1,31 @@
 
 
+function update_send_mail_button_visibility(frm) {
+    frm.set_df_property("custom_send_mail_button", "depends_on", null);
+    frm.toggle_display("custom_send_mail_button", !cint(frm.doc.custom_is_generate_sales_order));
+}
+
 frappe.ui.form.on("Lead", {
+    custom_attach_document(frm) {
+        if (!frm.doc.custom_attach_document) {
+            frm.set_value({
+                custom_is_generate_sales_order: 0,
+                custom_is_sales_order_generated: "Not Generated"
+            }).then(() => {
+                update_send_mail_button_visibility(frm);
+            });
+            return;
+        }
+
+        update_send_mail_button_visibility(frm);
+    },
+
     custom_send_mail_button(frm) {
+        if (!frm.doc.custom_attach_document) {
+            frappe.msgprint(__("Attachment is mandatory."));
+            return;
+        }
+
         if (!(frm.doc.custom_receiver_user_id || []).length) {
             frappe.msgprint(__("Please select Receiver User."));
             return;
@@ -166,7 +190,7 @@ frappe.ui.form.on("Lead", {
             frm.__view_details_visible = false;
         }
 
-        frm.toggle_display("custom_send_mail_button", !cint(frm.doc.custom_is_generate_sales_order));
+        update_send_mail_button_visibility(frm);
 
         if (!frm.is_new() && frm.doc.custom_is_generate_sales_order == 1) {
             frm.add_custom_button(__("Sales Order"), () => {
