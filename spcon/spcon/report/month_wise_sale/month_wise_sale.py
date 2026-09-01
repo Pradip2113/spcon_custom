@@ -234,7 +234,6 @@ def get_sales_rows(filters):
 			ON customer.name = si.customer
 		WHERE
 			si.docstatus = 1
-			AND si.is_return = 0
 			AND {conditions}
 		GROUP BY
 			{group_fields}
@@ -250,10 +249,12 @@ def get_conditions(filters):
 		"COALESCE(si.is_internal_customer, 0) = 0",
 		"COALESCE(si.inter_company_invoice_reference, '') = ''",
 		"COALESCE(customer.is_internal_customer, 0) = 0",
+		"sii.income_account = %(income_account)s",
 	]
 	values = {
 		"from_date": filters.from_date,
 		"to_date": filters.to_date,
+		"income_account": "Sales - SPC",
 	}
 
 	if get_group_by(filters) == "Customer Wise" and filters.get("customer"):
