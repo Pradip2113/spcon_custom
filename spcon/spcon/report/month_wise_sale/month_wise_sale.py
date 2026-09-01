@@ -15,7 +15,8 @@ def execute(filters=None):
 
 	months = get_months(filters.from_date, filters.to_date)
 	view_by = get_view_by(filters)
-	columns = get_columns(months, view_by)
+	group_by = get_group_by(filters)
+	columns = get_columns(months, view_by, group_by)
 	data = get_data(filters, months)
 
 	return columns, data
@@ -28,9 +29,16 @@ def validate_filters(filters):
 	if filters.get("view_by") and filters.view_by not in ("Qty Wise", "Amount Wise"):
 		frappe.throw(_("Invalid View By filter."))
 
+	if filters.get("group_by") and filters.group_by not in ("Customer Wise", "Item Wise"):
+		frappe.throw(_("Invalid Group By filter."))
+
 
 def get_view_by(filters):
 	return filters.get("view_by") or "Amount Wise"
+
+
+def get_group_by(filters):
+	return filters.get("group_by") or "Customer Wise"
 
 
 def set_fiscal_year_dates(filters):
@@ -48,22 +56,39 @@ def set_fiscal_year_dates(filters):
 	filters.to_date = fiscal_year.year_end_date
 
 
-def get_columns(months, view_by):
-	columns = [
-		{
-			"label": _("Customer ID"),
-			"fieldname": "customer",
-			"fieldtype": "Link",
-			"options": "Customer",
-			"width": 160,
-		},
-		{
-			"label": _("Customer"),
-			"fieldname": "customer_name",
-			"fieldtype": "Data",
-			"width": 220,
-		},
-	]
+def get_columns(months, view_by, group_by):
+	if group_by == "Item Wise":
+		columns = [
+			{
+				"label": _("Item Code"),
+				"fieldname": "item_code",
+				"fieldtype": "Link",
+				"options": "Item",
+				"width": 160,
+			},
+			{
+				"label": _("Item Name"),
+				"fieldname": "item_name",
+				"fieldtype": "Data",
+				"width": 220,
+			},
+		]
+	else:
+		columns = [
+			{
+				"label": _("Customer ID"),
+				"fieldname": "customer",
+				"fieldtype": "Link",
+				"options": "Customer",
+				"width": 160,
+			},
+			{
+				"label": _("Customer"),
+				"fieldname": "customer_name",
+				"fieldtype": "Data",
+				"width": 220,
+			},
+		]
 
 	for month_start in months:
 		month_label = month_start.strftime("%b-%Y")
@@ -116,43 +141,90 @@ def get_columns(months, view_by):
 
 def get_data(filters, months):
 	rows = get_sales_rows(filters)
-	customer_rows = OrderedDict()
+	group_by = get_group_by(filters)
+	report_rows = OrderedDict()
 
 	for row in rows:
-		if row.customer not in customer_rows:
-			customer_rows[row.customer] = frappe._dict(
-				{
-					"customer": row.customer,
-					"customer_name": row.customer_name,
-					"currency": row.currency,
-					"total_qty": 0,
-					"total_amount": 0,
-				}
-			)
+		key = row.item_code if group_by == "Item Wise" else row.customer
+
+		if key not in report_rows:
+			report_rows[key] = frappe._dict(get_group_row(row, group_by))
 			for month_start in months:
-				customer_rows[row.customer][get_month_qty_fieldname(month_start)] = 0
-				customer_rows[row.customer][get_month_amount_fieldname(month_start)] = 0
+				report_rows[key][get_month_qty_fieldname(month_start)] = 0
+				report_rows[key][get_month_amount_fieldname(month_start)] = 0
 
 		month_qty_field = get_month_qty_fieldname(getdate(row.month_start))
 		month_amount_field = get_month_amount_fieldname(getdate(row.month_start))
 
-		customer_rows[row.customer][month_qty_field] = flt(customer_rows[row.customer].get(month_qty_field)) + flt(row.qty)
-		customer_rows[row.customer][month_amount_field] = flt(customer_rows[row.customer].get(month_amount_field)) + flt(row.net_total)
-		customer_rows[row.customer].total_qty = flt(customer_rows[row.customer].total_qty) + flt(row.qty)
-		customer_rows[row.customer].total_amount = flt(customer_rows[row.customer].total_amount) + flt(row.net_total)
+		report_rows[key][month_qty_field] = flt(report_rows[key].get(month_qty_field)) + flt(row.qty)
+		report_rows[key][month_amount_field] = flt(report_rows[key].get(month_amount_field)) + flt(row.net_total)
+		report_rows[key].total_qty = flt(report_rows[key].total_qty) + flt(row.qty)
+		report_rows[key].total_amount = flt(report_rows[key].total_amount) + flt(row.net_total)
 
-	return sorted(customer_rows.values(), key=lambda d: d.total_amount, reverse=True)
+	return sorted(report_rows.values(), key=lambda d: d.total_amount, reverse=True)
+
+
+def get_group_row(row, group_by):
+	common_values = {
+		"currency": row.currency,
+		"total_qty": 0,
+		"total_amount": 0,
+	}
+
+	if group_by == "Item Wise":
+		common_values.update(
+			{
+				"item_code": row.item_code,
+				"item_name": row.item_name,
+			}
+		)
+	else:
+		common_values.update(
+			{
+				"customer": row.customer,
+				"customer_name": row.customer_name,
+			}
+		)
+
+	return common_values
 
 
 def get_sales_rows(filters):
 	conditions, values = get_conditions(filters)
+	group_by = get_group_by(filters)
 
-	query = f"""
-		SELECT
+	if group_by == "Item Wise":
+		select_fields = """
+			sii.item_code,
+			sii.item_name,
+			si.currency,
+			DATE_FORMAT(si.posting_date, '%%Y-%%m-01') AS month_start,
+		"""
+		group_fields = """
+			sii.item_code,
+			sii.item_name,
+			si.currency,
+			DATE_FORMAT(si.posting_date, '%%Y-%%m-01')
+		"""
+		order_fields = "sii.item_name, month_start"
+	else:
+		select_fields = """
 			si.customer,
 			si.customer_name,
 			si.currency,
 			DATE_FORMAT(si.posting_date, '%%Y-%%m-01') AS month_start,
+		"""
+		group_fields = """
+			si.customer,
+			si.customer_name,
+			si.currency,
+			DATE_FORMAT(si.posting_date, '%%Y-%%m-01')
+		"""
+		order_fields = "si.customer_name, month_start"
+
+	query = f"""
+		SELECT
+			{select_fields}
 			SUM(sii.stock_qty) AS qty,
 			SUM(sii.base_net_amount) AS net_total
 		FROM `tabSales Invoice` si
@@ -165,13 +237,9 @@ def get_sales_rows(filters):
 			AND si.is_return = 0
 			AND {conditions}
 		GROUP BY
-			si.customer,
-			si.customer_name,
-			si.currency,
-			DATE_FORMAT(si.posting_date, '%%Y-%%m-01')
+			{group_fields}
 		ORDER BY
-			si.customer_name,
-			month_start
+			{order_fields}
 	"""
 	return frappe.db.sql(query, values, as_dict=True)
 
@@ -188,9 +256,13 @@ def get_conditions(filters):
 		"to_date": filters.to_date,
 	}
 
-	if filters.get("customer"):
+	if get_group_by(filters) == "Customer Wise" and filters.get("customer"):
 		conditions.append("si.customer = %(customer)s")
 		values["customer"] = filters.customer
+
+	if get_group_by(filters) == "Item Wise" and filters.get("item"):
+		conditions.append("sii.item_code = %(item)s")
+		values["item"] = filters.item
 
 	return " AND ".join(conditions), values
 
