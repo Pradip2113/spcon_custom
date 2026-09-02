@@ -145,7 +145,7 @@ def get_data(filters, months):
 	report_rows = OrderedDict()
 
 	for row in rows:
-		key = row.item_code if group_by == "Item Wise" else row.customer
+		key = get_group_key(row, group_by)
 
 		if key not in report_rows:
 			report_rows[key] = frappe._dict(get_group_row(row, group_by))
@@ -162,6 +162,12 @@ def get_data(filters, months):
 		report_rows[key].total_amount = flt(report_rows[key].total_amount) + flt(row.net_total)
 
 	return sorted(report_rows.values(), key=lambda d: d.total_amount, reverse=True)
+
+
+def get_group_key(row, group_by):
+	if group_by == "Item Wise":
+		return row.item_code
+	return row.customer
 
 
 def get_group_row(row, group_by):
@@ -256,6 +262,10 @@ def get_conditions(filters):
 		"to_date": filters.to_date,
 		"income_account": "Sales - SPC",
 	}
+
+	if filters.get("cost_center"):
+		conditions.append("sii.cost_center = %(cost_center)s")
+		values["cost_center"] = filters.cost_center
 
 	if get_group_by(filters) == "Customer Wise" and filters.get("customer"):
 		conditions.append("si.customer = %(customer)s")

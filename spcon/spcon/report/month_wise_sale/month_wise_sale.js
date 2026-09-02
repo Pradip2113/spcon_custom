@@ -39,6 +39,12 @@ frappe.query_reports["Month-Wise Sale"] = {
 			options: "Item",
 		},
 		{
+			fieldname: "cost_center",
+			label: __("Cost Center"),
+			fieldtype: "Link",
+			options: "Cost Center",
+		},
+		{
 			fieldname: "view_by",
 			label: __("View By"),
 			fieldtype: "Select",
@@ -53,13 +59,15 @@ frappe.query_reports["Month-Wise Sale"] = {
 function set_group_filter_visibility(report) {
 	let group_by = report.get_filter_value("group_by") || "Customer Wise";
 	let show_customer = group_by === "Customer Wise";
+	let show_item = group_by === "Item Wise";
 
 	report.toggle_filter_display("customer", !show_customer);
-	report.toggle_filter_display("item", show_customer);
+	report.toggle_filter_display("item", !show_item);
 
-	if (show_customer) {
-		report.set_filter_value("item", "");
-	} else {
+	if (!show_customer) {
 		report.set_filter_value("customer", "");
+	}
+	if (!show_item) {
+		report.set_filter_value("item", "");
 	}
 }
