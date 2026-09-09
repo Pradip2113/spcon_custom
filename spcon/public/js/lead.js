@@ -1,9 +1,60 @@
 
 
 function update_send_mail_button_visibility(frm) {
+    const show = Boolean(frm.doc.custom_attach_document)
+        && has_receiver_user(frm)
+        && !cint(frm.doc.custom_is_generate_sales_order);
+
     frm.set_df_property("custom_send_mail_button", "depends_on", null);
-    frm.toggle_display("custom_send_mail_button", !cint(frm.doc.custom_is_generate_sales_order));
+    frm.toggle_display("custom_send_mail_button", show);
+    frm.refresh_field("custom_send_mail_button");
+
+    const button_field = frm.fields_dict.custom_send_mail_button;
+    if (button_field && button_field.$wrapper) {
+        button_field.$wrapper.toggle(show);
+    }
 }
+
+function has_receiver_user(frm) {
+    return (frm.doc.custom_receiver_user_id || []).some((row) => row.user);
+}
+
+function refresh_send_mail_button_soon(frm) {
+    setTimeout(() => update_send_mail_button_visibility(frm), 100);
+    setTimeout(() => update_send_mail_button_visibility(frm), 600);
+}
+
+function bind_attach_document_observer(frm) {
+    if (frm.__attach_document_observer_bound || !frm.fields_dict.custom_attach_document) {
+        return;
+    }
+
+    const wrapper = frm.fields_dict.custom_attach_document.$wrapper?.get(0);
+    if (!wrapper || !window.MutationObserver) {
+        return;
+    }
+
+    frm.__attach_document_observer_bound = true;
+    frm.__attach_document_observer = new MutationObserver(() => {
+        refresh_send_mail_button_soon(frm);
+    });
+    frm.__attach_document_observer.observe(wrapper, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+}
+
+frappe.ui.form.on("Lead SO Receiver User", {
+    user(frm) {
+        update_send_mail_button_visibility(frm);
+    },
+
+    custom_receiver_user_id_remove(frm) {
+        update_send_mail_button_visibility(frm);
+    }
+});
 
 frappe.ui.form.on("Lead", {
     custom_attach_document(frm) {
@@ -17,7 +68,14 @@ frappe.ui.form.on("Lead", {
             return;
         }
 
+        if (!has_receiver_user(frm)) {
+            frm.set_value("custom_attach_document", null);
+            update_send_mail_button_visibility(frm);
+            frappe.throw(__("Please select Receiver User before attaching a document."));
+        }
+
         update_send_mail_button_visibility(frm);
+        refresh_send_mail_button_soon(frm);
     },
 
     custom_send_mail_button(frm) {
@@ -26,7 +84,7 @@ frappe.ui.form.on("Lead", {
             return;
         }
 
-        if (!(frm.doc.custom_receiver_user_id || []).length) {
+        if (!has_receiver_user(frm)) {
             frappe.msgprint(__("Please select Receiver User."));
             return;
         }
@@ -191,6 +249,7 @@ frappe.ui.form.on("Lead", {
         }
 
         update_send_mail_button_visibility(frm);
+        bind_attach_document_observer(frm);
 
         if (!frm.is_new() && frm.doc.custom_is_generate_sales_order == 1) {
             frm.add_custom_button(__("Sales Order"), () => {

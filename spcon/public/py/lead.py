@@ -12,6 +12,120 @@ import json
 
 import frappe
 from frappe.desk.form import assign_to
+from frappe.utils import now_datetime
+
+
+def _make_lead_event(lead, subject, description=None, reference_doctype=None, reference_name=None):
+    if not lead:
+        return
+
+    try:
+        event = frappe.new_doc("Event")
+        event.subject = subject
+        event.starts_on = now_datetime()
+        event.event_type = "Public"
+        event.description = description or subject
+        event.append("event_participants", {
+            "reference_doctype": "Lead",
+            "reference_docname": lead,
+        })
+        if reference_doctype and reference_name:
+            event.append("event_participants", {
+                "reference_doctype": reference_doctype,
+                "reference_docname": reference_name,
+            })
+        event.insert(ignore_permissions=True)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Lead Event creation failed for {lead}")
+
+
+def create_initial_lead_handover_event(doc, method=None):
+    if not doc.get("custom_handover_to_project_lead"):
+        return
+
+    _make_lead_event(
+        doc.name,
+        "Lead Handover Selected",
+        f"Handover to Project/Lead selected as {doc.custom_handover_to_project_lead} for Lead {doc.name}.",
+    )
+
+
+def create_lead_change_events(doc, method=None):
+    if doc.is_new():
+        return
+
+    tracked_fields = {
+        "status": "Lead Status Changed",
+        "custom_lead_type": "Lead Type Changed",
+        "custom_handover_to_project_lead": "Lead Handover Changed",
+    }
+
+    for fieldname, subject in tracked_fields.items():
+        if not doc.has_value_changed(fieldname):
+            continue
+
+        old_value = doc.get_doc_before_save().get(fieldname) if doc.get_doc_before_save() else None
+        new_value = doc.get(fieldname)
+        if not old_value and not new_value:
+            continue
+
+        label = doc.meta.get_label(fieldname) or fieldname
+        _make_lead_event(
+            doc.name,
+            subject,
+            f"{label} changed from {old_value or '-'} to {new_value or '-'} for Lead {doc.name}.",
+        )
+
+
+def create_quotation_from_lead_event(doc, method=None):
+    if doc.get("quotation_to") != "Lead" or not doc.get("party_name"):
+        return
+
+    _make_lead_event(
+        doc.party_name,
+        "Quotation Created from Lead",
+        f"Quotation {doc.name} created from Lead {doc.party_name}.",
+        "Quotation",
+        doc.name,
+    )
+
+
+def _get_lead_from_sales_order(doc):
+    quotation = doc.get("quotation")
+    if quotation:
+        lead = frappe.db.get_value("Quotation", {"name": quotation, "quotation_to": "Lead"}, "party_name")
+        if lead:
+            return lead
+
+    quotation_names = []
+    for row in doc.get("items") or []:
+        for fieldname in ("prevdoc_docname", "quotation"):
+            if row.get(fieldname):
+                quotation_names.append(row.get(fieldname))
+
+    quotation_names = list(dict.fromkeys(quotation_names))
+    if quotation_names:
+        return frappe.db.get_value(
+            "Quotation",
+            {"name": ["in", quotation_names], "quotation_to": "Lead"},
+            "party_name",
+        )
+
+    return None
+
+
+def create_sales_order_from_lead_event(doc, method=None):
+    lead = _get_lead_from_sales_order(doc)
+    if not lead:
+        return
+
+    _make_lead_event(
+        lead,
+        "Sales Order Created from Lead",
+        f"Sales Order {doc.name} created from Lead {lead}.",
+        "Sales Order",
+        doc.name,
+    )
 
 def create_lead_chat(doc, method=None):
     if isinstance(doc, str):
@@ -169,7 +283,13 @@ def get_sales_order_from_lead(lead):
             "warehouse", "against_blanket_order", "blanket_order", "blanket_order_rate",
             "bom_no", "cost_center", "project",
         ]
-        for row in _copy_child_rows(quotation.items, item_fields):
+        for quotation_item in quotation.items:
+            row = {field: quotation_item.get(field) for field in item_fields if quotation_item.get(field) is not None}
+            row.update({
+                "prevdoc_doctype": "Quotation",
+                "prevdoc_docname": quotation.name,
+                "quotation_item": quotation_item.name,
+            })
             sales_order.append("items", row)
 
         tax_fields = [
