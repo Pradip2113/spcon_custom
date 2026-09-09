@@ -275,9 +275,18 @@ doc_events = {
         "before_save":[ "spcon.public.py.lead.set_title_field",\
                         "spcon.public.py.lead.update_project_lead_todo",
             ],
-        "after_insert": "spcon.public.py.lead.create_lead_chat",
-        "on_update": "spcon.public.py.lead.update_project_lead_todo",
+        "after_insert": [
+            "spcon.public.py.lead.create_lead_chat",
+            "spcon.public.py.lead.create_initial_lead_handover_event",
+        ],
+        "on_update": [
+            "spcon.public.py.lead.update_project_lead_todo",
+            "spcon.public.py.lead.create_lead_change_events",
+        ],
         "on_trash": "spcon.public.py.lead.delete_lead_chat",
+    },
+    "Quotation": {
+        "after_insert": "spcon.public.py.lead.create_quotation_from_lead_event",
     },
     "Purchase Order": {
         "before_save": [
@@ -304,6 +313,7 @@ doc_events = {
             "spcon.public.py.sales_order.set_minimum_qty",
             "spcon.public.py.set_cost_center.set_cost_center"
         ],
+        "after_insert": "spcon.public.py.lead.create_sales_order_from_lead_event",
         "on_update_after_submit": "spcon.public.py.set_cost_center.on_update_set_cost_center"
     },
     "Sales Invoice": {

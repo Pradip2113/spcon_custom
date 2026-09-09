@@ -11,15 +11,16 @@ def get_sales_order_remark_text(sales_orders):
     sales_order_dates = frappe.get_all(
         "Sales Order",
         filters={"name": ["in", sales_orders]},
-        fields=["name", "transaction_date"],
+        fields=["name", "transaction_date", "po_date"],
     )
-    date_map = {row.name: row.transaction_date for row in sales_order_dates}
+    date_map = {row.name: row.po_date for row in sales_order_dates}
 
     remarks = []
     for sales_order in sales_orders:
         sales_order_date = date_map.get(sales_order)
         formatted_date = formatdate(sales_order_date, "dd-mm-yyyy") if sales_order_date else ""
-        remarks.append(f"({sales_order} = {formatted_date})")
+        # remarks.append(f"({sales_order} = {formatted_date})")
+        remarks.append(f"({formatted_date})")
 
     return ", ".join(remarks)
 

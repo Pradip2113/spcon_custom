@@ -4,6 +4,28 @@ from frappe.utils import add_days, getdate, nowdate
 
 
 @frappe.whitelist()
+def get_lead_owner_users(doctype, txt, searchfield, start, page_len, filters):
+	txt = txt or ""
+	return frappe.db.sql(
+		"""
+		SELECT name, full_name
+		FROM `tabUser`
+		WHERE enabled = 1
+			AND name != %(guest)s
+			AND (name LIKE %(txt)s OR full_name LIKE %(txt)s)
+		ORDER BY full_name, name
+		LIMIT %(start)s, %(page_len)s
+		""",
+		{
+			"guest": "Guest",
+			"txt": "%" + txt + "%",
+			"start": int(start or 0),
+			"page_len": int(page_len or 20),
+		},
+	)
+
+
+@frappe.whitelist()
 def get_dashboard_data(filters=None):
 	filters = frappe._dict(frappe.parse_json(filters) or {})
 	if filters.get("demo"):
@@ -536,11 +558,13 @@ def get_events_by_lead(lead_names):
 			e.name,
 			e.subject,
 			e.event_category,
+			e.custom_followup_date,
 			e.starts_on,
 			e.status,
 			e.docstatus,
 			e.owner,
-			e.creation
+			e.creation,
+			e.modified
 		FROM `tabEvent Participants` ep
 		INNER JOIN `tabEvent` e ON e.name = ep.parent
 		WHERE ep.reference_doctype = 'Lead'
@@ -791,29 +815,54 @@ def get_dashboard_event_status(event):
 
 def build_activities(rows, events_by_lead, today):
 	activities = []
+	handover_user_by_sales_person = get_handover_user_map(rows)
 	for row in rows:
-		for event in events_by_lead.get(row.name, []):
+		lead_owner_user = handover_user_by_sales_person.get(row.custom_handover_to_project_lead) if row.custom_handover_to_project_lead else row.owner
+		lead_owner_label = get_user_label(lead_owner_user or row.owner)
+		for idx, event in enumerate(events_by_lead.get(row.name, [])):
+			followup_date = event.custom_followup_date
+			followup_status = get_followup_status(followup_date, today, completed=idx > 0)
 			activities.append({
 				"event": event.name,
 				"lead": row.name,
 				"lead_title": row.display_name,
+				"lead_owner": lead_owner_label,
+				"lead_creation": row.creation,
 				"customer": row.customer_name,
 				"subject": event.subject,
 				"category": event.event_category or _("Event"),
-				"date": event.starts_on,
+				"date": followup_date,
 				"creation": event.creation,
-				"owner": get_user_label(event.owner or row.lead_owner),
-				"initials": get_initials(get_user_label(event.owner or row.lead_owner)),
-				"status": "Submitted",
+				"event_modified": event.modified,
+				"owner": lead_owner_label,
+				"initials": get_initials(lead_owner_label),
+				"status": followup_status["label"],
+				"status_type": followup_status["type"],
 			})
 	return sorted(activities, key=lambda row: row["creation"] or row["date"] or "", reverse=True)
+
+
+def get_followup_status(followup_date, today, completed=False):
+	if completed:
+		return {"label": _("Completed"), "type": "completed"}
+	if not followup_date:
+		return {"label": "", "type": "none"}
+
+	followup = getdate(followup_date)
+	days = (followup - today).days
+	if days > 0:
+		return {"label": _("Upcoming in {0} days").format(days), "type": "upcoming"}
+	if days == 0:
+		return {"label": _("Due Today"), "type": "due_today"}
+	return {"label": _("Overdue by {0} days").format(abs(days)), "type": "overdue"}
 
 
 def get_activity_status(events, today):
 	if not events:
 		return "No Activity"
 	for event in events:
-		event_date = getdate(event.starts_on) if event.starts_on else None
+		followup_date = event.custom_followup_date
+		event_date = getdate(followup_date) if followup_date else None
 		event_status = get_dashboard_event_status(event)
 		if event_status == "Submitted":
 			return "Submitted"
@@ -825,7 +874,7 @@ def get_activity_status(events, today):
 
 
 def get_last_activity(events):
-	return events[0].starts_on if events else None
+	return events[0].custom_followup_date if events else None
 
 
 def get_user_label(user):

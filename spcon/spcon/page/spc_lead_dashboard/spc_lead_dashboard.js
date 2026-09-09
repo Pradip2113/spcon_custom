@@ -116,6 +116,10 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			label: __("Lead Owner"),
 			fieldtype: "Link",
 			options: "User",
+			ignore_user_permissions: 1,
+			get_query: () => ({
+				query: "spcon.spcon.page.spc_lead_dashboard.spc_lead_dashboard.get_lead_owner_users",
+			}),
 		});
 		this.status = make_field({
 			fieldname: "status",
@@ -417,6 +421,23 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 		return value ? frappe.datetime.str_to_user(value) : "-";
 	}
 
+	followup_date_class(value) {
+		if (!value) return "";
+		const days_from_today = frappe.datetime.get_diff(value, frappe.datetime.get_today());
+		if (days_from_today < 0) return "followup-green";
+		if (days_from_today === 0) return "followup-red";
+		if (days_from_today <= 3) return "followup-blue";
+		return "";
+	}
+
+	activity_status_class(row) {
+		if (row.status_type === "completed") return "b-green";
+		if (row.status_type === "overdue") return "b-red";
+		if (row.status_type === "due_today") return "b-red";
+		if (row.status_type === "upcoming") return "b-blue";
+		return "b-gray";
+	}
+
 	format_short_currency(value) {
 		const amount = flt(value) || 0;
 		const format_number = (number, digits) => Number(number).toLocaleString("en-IN", {
@@ -489,16 +510,28 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 
 	render_activity_rows(rows) {
 		if (!rows.length) return this.empty("No lead activities found");
-		return rows.map((row) => `
-			<div class="arow" data-event="${frappe.utils.escape_html(row.event || "")}">
-				<div class="av">${frappe.utils.escape_html(row.initials || "NA")}</div>
-				<div class="arow-left">
-					<div class="arow-title">${frappe.utils.escape_html(row.subject || row.lead_title || row.lead)}</div>
-					<div class="arow-sub">${frappe.utils.escape_html(row.owner || "-")} &nbsp;·&nbsp; ${row.date ? frappe.datetime.str_to_user(row.date) : "-"} &nbsp;·&nbsp; ${frappe.utils.escape_html(row.customer || "-")}</div>
+		return rows.map((row) => {
+			const followup_date = row.date ? frappe.datetime.str_to_user(row.date) : "-";
+			const followup_class = this.followup_date_class(row.date);
+			return `
+				<div class="arow activity-row" data-event="${frappe.utils.escape_html(row.event || "")}">
+					<div class="av">${frappe.utils.escape_html(row.initials || "NA")}</div>
+					<div class="arow-left">
+						<div class="activity-top">
+							<div class="arow-title">${frappe.utils.escape_html(row.customer || row.lead_title || row.lead || "-")}</div>
+							<div class="activity-owner">${frappe.utils.escape_html(row.lead_owner || row.owner || "-")}</div>
+						</div>
+						<div class="arow-sub activity-details">
+							<span>${frappe.utils.escape_html(row.subject || row.category || "-")}</span>
+							<span>${__("Lead Created")}: ${this.format_date(row.lead_creation)}</span>
+							<span>${__("Last Update")}: ${this.format_date(row.event_modified)}</span>
+							<span>${__("Follow-up")}: <span class="followup-date ${followup_class}">${frappe.utils.escape_html(followup_date)}</span></span>
+						</div>
+					</div>
+					<div class="arow-right"><span class="badge ${this.activity_status_class(row)}">${frappe.utils.escape_html(row.status || "-")}</span></div>
 				</div>
-				<div class="arow-right"><span class="badge ${row.status === "Overdue" ? "b-red" : "b-blue"}">${frappe.utils.escape_html(row.status || row.category || "Event")}</span></div>
-			</div>
-		`).join("");
+			`;
+		}).join("");
 	}
 
 
@@ -689,7 +722,7 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 				.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1rem}.mcard{background:var(--color-background-secondary);border-radius:8px;padding:.75rem 1rem}.mlabel{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}.mval{font-size:22px;font-weight:600}.mval.red{color:#A32D2D}.mval.green{color:#3B6D11}.mval.blue{color:#185FA5}.mval.amber{color:#854F0B}.msub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
 				.spc-section{display:none}.spc-section.active{display:block}.spc-block{margin-bottom:1.5rem}.spc-block-head{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--color-text-tertiary);display:flex;align-items:center;gap:8px;margin-bottom:.75rem;text-transform:uppercase}.spc-block-head:after{content:'';flex:1;height:1px;background:var(--color-border-tertiary)}
 				.funnel{display:flex;flex-direction:column;gap:4px}.fstage{display:flex;align-items:center;gap:8px}.fstage-name{font-size:11px;color:var(--color-text-secondary);min-width:120px;text-align:right}.fbar-wrap{flex:1;background:var(--color-background-secondary);border-radius:4px;height:28px;overflow:hidden}.fbar{height:100%;display:flex;align-items:center;padding-left:8px;border-radius:4px;min-width:48px}.fbar span{font-size:11px;font-weight:600}.fstage-count{font-size:12px;font-weight:600;min-width:28px;text-align:center}
-				.fd-row,.arow{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:6px}.fd-row:hover,.arow:hover{border-color:var(--color-border-secondary)}.fd-dot{width:8px;height:8px;border-radius:50%;background:#185FA5;flex-shrink:0}.fd-main,.arow-left{flex:1;min-width:0}.fd-proj,.arow-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fd-client,.arow-sub,.fd-sp{font-size:11px;color:var(--color-text-secondary)}.fd-sp{min-width:120px}.arow-right{display:flex;flex-direction:column;align-items:flex-end}.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:#EEEDFE;color:#534AB7;flex-shrink:0}
+				.fd-row,.arow{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:6px}.fd-row:hover,.arow:hover{border-color:var(--color-border-secondary)}.fd-dot{width:8px;height:8px;border-radius:50%;background:#185FA5;flex-shrink:0}.fd-main,.arow-left{flex:1;min-width:0}.fd-proj,.arow-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fd-client,.arow-sub,.fd-sp{font-size:11px;color:var(--color-text-secondary)}.activity-row{align-items:flex-start}.activity-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.activity-owner{font-size:11px;color:var(--color-text-secondary);white-space:nowrap}.activity-details{display:flex;gap:10px;flex-wrap:wrap;margin-top:3px}.activity-details span{white-space:nowrap}.followup-date{font-weight:600}.followup-blue{color:#185FA5}.followup-red{color:#A32D2D}.followup-green{color:#3B6D11}.fd-sp{min-width:120px}.arow-right{display:flex;flex-direction:column;align-items:flex-end}.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:#EEEDFE;color:#534AB7;flex-shrink:0}
 				.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}.b-gray{background:#F1EFE8;color:#5F5E5A}.b-blue{background:#E6F1FB;color:#185FA5}.b-green{background:#EAF3DE;color:#3B6D11}.b-amber{background:#FAEEDA;color:#854F0B}.b-red{background:#FCEBEB;color:#A32D2D}.b-purple{background:#EEEDFE;color:#534AB7}
 				.forecast-table{width:100%;border-collapse:collapse;font-size:12px}.forecast-table th{font-size:10px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--color-border-secondary);text-align:left;background:var(--color-background-secondary)}.forecast-table td{padding:7px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle}.forecast-table th:last-child,.forecast-table td.forecast-qty{text-align:right;width:140px;white-space:nowrap}.forecast-qty strong{font-variant-numeric:tabular-nums}.forecast-qty span{display:inline-block;margin-left:4px;color:var(--color-text-secondary)}.forecast-table tr[data-lead],.forecast-table tr[data-task]{cursor:pointer}.forecast-table tr[data-lead]:hover td,.forecast-table tr[data-task]:hover td{background:var(--color-background-secondary)}.task-sub{font-size:10px;color:var(--color-text-secondary);margin-top:2px}.approval-actions{display:flex;gap:6px}.approval-decision{width:28px;height:28px;border:1px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);font-weight:700;line-height:1}.approval-decision.approve{color:#15803D}.approval-decision.reject{color:#B42318}.approval-decision:hover{background:var(--color-background-secondary)}
 				.pt-shell{max-width:1200px;margin:0 auto}.pt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.pt-head-left{display:flex;align-items:center;gap:8px}.pt-icon{font-size:20px;color:#333}.pt-title{font-size:18px;font-weight:600;color:#333}.pt-subtitle{font-size:13px;color:#666}.pt-search{padding:10px 16px;border:1px solid #E0E0E0;border-radius:8px;width:280px;font-size:14px;color:#333;background:#fff}.pt-stats{display:flex;justify-content:space-between;margin-bottom:24px;gap:16px}.pt-stat{flex:1;text-align:center}.pt-stat-label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}.pt-stat-value{font-size:24px;font-weight:700}.pt-stat-value.green{color:#2E7D32}.pt-stat-value.red{color:#C62828}.pt-stat-value.default{color:#333}.pt-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}.pt-filter{padding:6px 14px;border-radius:20px;border:1px solid #E0E0E0;background:#fff;font-size:13px;cursor:pointer;color:#555}.pt-filter.active{background:#E3F2FD;border-color:#90CAF9;color:#1976D2}.pt-list{display:flex;flex-direction:column;gap:16px}.pt-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #F0F0F0;cursor:pointer}.pt-card:hover{border-color:#D7D7D7}.pt-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}.pt-project-title{font-size:16px;font-weight:600;color:#333}.pt-status{padding:4px 12px;border-radius:16px;font-size:12px;font-weight:500;white-space:nowrap}.status-green{background:#E8F5E9;color:#2E7D32}.status-yellow{background:#FFF8E1;color:#F57F17}.status-orange{background:#FFF3E0;color:#E65100}.pt-firm{font-size:13px;color:#666;margin-bottom:12px}.pt-meta,.pt-people,.pt-products{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}.pt-meta{gap:20px}.pt-meta-item,.pt-person{display:flex;align-items:center;gap:6px;font-size:13px;color:#555}.pt-person{font-size:12px;color:#666}.pt-meta-item i,.pt-person i{font-size:14px}.pt-product{font-size:12px;color:#555;padding:2px 0}.pt-product.muted{color:#999}.pt-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:12px;border-top:1px solid #F0F0F0}.pt-closing{font-size:13px;color:#666}.pt-closing.overdue{color:#C62828}.pt-details{font-size:13px;color:#666;text-decoration:none;display:flex;align-items:center;gap:4px}.pt-details:before{content:'›';font-size:18px;line-height:1}
