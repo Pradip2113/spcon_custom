@@ -20,6 +20,7 @@
   {
    "fieldname": "user",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "User",
    "options": "User"
@@ -35,7 +36,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-12 16:46:11.963726",
+ "modified": "2026-09-10 15:53:08.734390",
  "modified_by": "Administrator",
  "module": "spcon",
  "name": "Lead Chat History",

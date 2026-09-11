@@ -514,7 +514,8 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			const followup_date = row.date ? frappe.datetime.str_to_user(row.date) : "-";
 			const followup_class = this.followup_date_class(row.date);
 			return `
-				<div class="arow activity-row" data-event="${frappe.utils.escape_html(row.event || "")}">
+				<!-- SPC CUSTOM: Activity row click should open the linked Lead, not the Event. -->
+				<div class="arow activity-row" data-lead="${frappe.utils.escape_html(row.lead || "")}" data-open-activities="1">
 					<div class="av">${frappe.utils.escape_html(row.initials || "NA")}</div>
 					<div class="arow-left">
 						<div class="activity-top">
@@ -632,13 +633,14 @@ spcon.SPCLeadDashboard = class SPCLeadDashboard {
 			const doctype = $(event.currentTarget).data("task-doctype") || "CRM Task";
 			if (task) frappe.set_route("Form", doctype, task);
 		});
-		this.page.main.find("[data-event]").off("click").on("click", (event) => {
-			const event_name = $(event.currentTarget).data("event");
-			if (event_name) frappe.set_route("Form", "Event", event_name);
-		});
+		// SPC CUSTOM: Removed Event routing for activity rows; [data-lead] handler below opens the particular Lead.
 		this.page.main.find("[data-lead]").off("click").on("click", (event) => {
 			const lead = $(event.currentTarget).data("lead");
-			if (lead) frappe.set_route("Form", "Lead", lead);
+			if (lead) {
+				// SPC CUSTOM: Dashboard activity click opens Lead directly on the Activities tab.
+				if ($(event.currentTarget).data("open-activities")) frappe.route_options = { open_activities_tab: 1 };
+				frappe.set_route("Form", "Lead", lead);
+			}
 		});
 		this.page.main.find("[data-owner]").off("click").on("click", (event) => {
 			const owner = $(event.currentTarget).data("owner");
