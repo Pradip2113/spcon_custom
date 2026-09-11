@@ -24,6 +24,99 @@ function refresh_send_mail_button_soon(frm) {
     setTimeout(() => update_send_mail_button_visibility(frm), 600);
 }
 
+function open_lead_activities_tab_from_dashboard(frm) {
+    if (!frappe.route_options?.open_activities_tab) return;
+
+    // SPC CUSTOM: When SPC Lead Dashboard opens a Lead activity, show Lead Activities tab directly.
+    frappe.route_options.open_activities_tab = null;
+    setTimeout(() => frm.layout?.select_tab?.("activities_tab"), 300);
+}
+
+
+function set_firm_type_fields_from_firm(frm) {
+    if (!frm.doc.custom_firm_name_lead) return;
+
+    frappe.db.get_doc("Firm Name SPC", frm.doc.custom_firm_name_lead).then(system => {
+        if (system.architect == 1) {
+            frm.set_value("custom_architecture", frm.doc.custom_firm_name_lead);
+        }
+        else if (system.contractor == 1) {
+            frm.set_value("custom_contractor", frm.doc.custom_firm_name_lead);
+        }
+        else if (system.applicator == 1) {
+            frm.set_value("custom_applicator", frm.doc.custom_firm_name_lead);
+        }
+        else if (system.consultant == 1) {
+            frm.set_value("custom_consultant", frm.doc.custom_firm_name_lead);
+        }
+        else if (system.other == 1) {
+            frm.set_value("custom_other", frm.doc.custom_firm_name_lead);
+        }
+    });
+}
+
+function copy_existing_lead_data_for_firm(frm) {
+    if (!frm.is_new() || !frm.doc.custom_firm_name_lead || frm.__copying_existing_lead_data) return;
+
+    frm.__copying_existing_lead_data = true;
+    frappe.db.get_list("Lead", {
+        filters: {
+            custom_firm_name_lead: frm.doc.custom_firm_name_lead,
+            name: ["!=", frm.doc.name || ""]
+        },
+        fields: ["name"],
+        order_by: "modified desc",
+        limit: 1
+    }).then(records => {
+        if (!records.length) return;
+
+        return frappe.db.get_doc("Lead", records[0].name).then(source => {
+            const selected_firm_name = frm.doc.custom_firm_name_lead;
+            const skip_fields = new Set([
+                "name", "owner", "creation", "modified", "modified_by", "docstatus", "idx",
+                "naming_series", "custom_is_generate_sales_order", "custom_is_sales_order_generated"
+            ]);
+            const skip_fieldtypes = new Set([
+                "Section Break", "Column Break", "Tab Break", "HTML", "Button", "Fold", "Heading"
+            ]);
+            const values = {};
+
+            (frm.meta.fields || []).forEach(df => {
+                if (!df.fieldname || skip_fields.has(df.fieldname) || skip_fieldtypes.has(df.fieldtype)) return;
+                if (df.read_only || df.no_copy) return;
+
+                if (frappe.model.table_fields.includes(df.fieldtype)) {
+                    frm.clear_table(df.fieldname);
+                    (source[df.fieldname] || []).forEach(source_row => {
+                        const target_row = frm.add_child(df.fieldname);
+                        Object.keys(source_row).forEach(key => {
+                            if (["name", "owner", "creation", "modified", "modified_by", "docstatus", "idx", "parent", "parentfield", "parenttype"].includes(key)) return;
+                            target_row[key] = source_row[key];
+                        });
+                    });
+                    frm.refresh_field(df.fieldname);
+                    return;
+                }
+
+                if (Object.prototype.hasOwnProperty.call(source, df.fieldname)) {
+                    values[df.fieldname] = source[df.fieldname];
+                }
+            });
+
+            // SPC CUSTOM: Keep the selected firm name and copy existing Lead details into this new Lead.
+            values.custom_firm_name_lead = selected_firm_name;
+            return frm.set_value(values).then(() => {
+                frappe.show_alert({
+                    message: __("Existing Lead data copied from {0}", [source.name]),
+                    indicator: "green"
+                });
+            });
+        });
+    }).finally(() => {
+        frm.__copying_existing_lead_data = false;
+    });
+}
+
 function bind_attach_document_observer(frm) {
     if (frm.__attach_document_observer_bound || !frm.fields_dict.custom_attach_document) {
         return;
@@ -249,6 +342,8 @@ frappe.ui.form.on("Lead", {
         }
 
         update_send_mail_button_visibility(frm);
+        open_lead_activities_tab_from_dashboard(frm);
+
         bind_attach_document_observer(frm);
 
         if (!frm.is_new() && frm.doc.custom_is_generate_sales_order == 1) {
@@ -569,35 +664,14 @@ frappe.ui.form.on("Lead", {
         frm.set_value("custom_contact_person", null);
     },
 
+    custom_firm_name_lead(frm) {
+        // SPC CUSTOM: On new Lead, selecting an existing firm copies details from the latest matching Lead.
+        copy_existing_lead_data_for_firm(frm);
+        set_firm_type_fields_from_firm(frm);
+    },
+
     custom_lead_type(frm) {
-        // frappe.call({ 
-        //     method: "spcon.public.py.lead.set_firm_name",
-        //     args: {
-        //         firm_name : frm.doc.custom_firm_name_lead
-        //     },
-        //     callback: function(r) {
-        //         console.log(r.message)
-        //     }
-        // })
-        if(frm.doc.custom_firm_name_lead){
-            frappe.db.get_doc("Firm Name SPC", frm.doc.custom_firm_name_lead).then(system => {
-                if (system.architect == 1) {
-                    frm.set_value("custom_architecture", frm.doc.custom_firm_name_lead);
-                } 
-                else if (system.contractor == 1) {
-                    frm.set_value("custom_contractor", frm.doc.custom_firm_name_lead);
-                } 
-                else if (system.applicator == 1) {
-                    frm.set_value("custom_applicator", frm.doc.custom_firm_name_lead);
-                } 
-                else if (system.consultant == 1) {
-                    frm.set_value("custom_consultant", frm.doc.custom_firm_name_lead);
-                }
-                else if (system.other == 1) {
-                    frm.set_value("custom_other", frm.doc.custom_firm_name_lead);
-                }
-            })
-        }
+        set_firm_type_fields_from_firm(frm);
     }
 });
 
